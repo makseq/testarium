@@ -1,0 +1,33 @@
+<html ng-app="testariumApp">
+<head>
+<title>AB First Example</title>
+<link rel="stylesheet" type="text/css" media="screen" href="Examples.css" />
+<script type="text/javascript" src="../static/scripts/angular.min.js"></script>
+<script type="text/javascript">
+// Angular application definition
+var app = angular.module('testariumApp', []);
+
+// Angular main controller
+app.controller('commits', function commits($scope)
+{
+    $scope.commits = 
+        [{ Name   : '20140511.001222', 
+           Score : 0.5, 
+           Comment   : 'xxx' },
+		   
+         { Name   : '20140512.000033', 
+           Score : 0.4, 
+           Comment   : 'test' }
+        ];
+});
+</script>
+</head>
+
+<body>
+<div ng-controller="commits">
+	<div ng-repeat="commit in commits">
+	{{commit.Name}} : {{commit.Score}} : {{commit.Comment}}
+	</div>
+</div>
+</body>
+</html>

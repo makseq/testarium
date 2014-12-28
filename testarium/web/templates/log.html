@@ -1,0 +1,28 @@
+{% extends "main.html" %}
+
+{% block body %}
+<center>
+{% if commits %}
+	<table id="commit_table"><tbody>
+	<tr>{% for head in commits[0].Print(web=True)[0] %}<th>{{head}}</th>{%endfor%}</tr>
+	{% for c in commits %}
+	<tr>
+		{% for val in c.Print(web=True)[1] %}
+		<td>
+		{% if val|UrlGraph != "" %}
+			<a onclick='$("#graphline").empty();showGraph("{{ val|UrlGraph }}", "False Alarm", "False Reject", "#graphline");$("#graphline_back").show();'>show</a>
+		{% elif val|UrlFile != "" %}
+			<a target='_blank' href='{{ val|UrlFile }}'>open</a>
+		{% else %}
+			{{ val }}
+		{% endif %}
+		</td>
+		{% endfor %}
+	</tr>
+	{% endfor %}
+	</table>
+{% else %}
+	Here are no commits
+{% endif %}
+</center>
+{% endblock %}
