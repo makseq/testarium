@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 Testarium
 Copyright (C) 2014 Maxim Tkachenko
@@ -16,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-#!/usr/bin/env python
 import testarium, testarium.score.fafr
 import random, json
 

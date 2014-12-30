@@ -50,5 +50,6 @@ setup(name='testarium',
       packages=['testarium', 'testarium/score', 'testarium/web'],
 	  install_requires=['flask', 'colorama', 'pycrypto', 'hashlib'],
 	  include_package_data=True,
-	  zip_safe=False
+	  zip_safe=False,
+	  keywords = ['testing', 'logging', 'research', 'science', 'repository']
     )
