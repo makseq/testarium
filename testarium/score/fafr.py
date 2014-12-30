@@ -96,4 +96,5 @@ def Score(dir):
 	
 	# calc EER
 	eer = FA[np.argmin(np.abs(FA-FR))]
-	return {'score' : eer}
+	minDCF = np.min(100*FA + FR)
+	return {'score' : eer, 'minDCF' : minDCF}
