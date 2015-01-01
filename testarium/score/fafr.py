@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 '''
 Testarium
-Copyright (C) 2014 Maxim Tkachenko
+Copyright (C) 2014 Danila Doroshin, Maxim Tkachenko
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
