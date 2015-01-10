@@ -16,21 +16,51 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 import flask, os
+from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
+from flask.ext.restful import Resource, Api
 from testarium.utils import *
-#from flask.ext.restful import fields, marshal_with
 utils = __import__('testarium.utils')
 
 DEBUG = True
+t = 'None'
+
+class Commits(Resource):
+		def get(self):
+			branchName = request.args['branch']
+			print branchName
+			
+			activeName = t.activeBranch.name
+			t.Load(True)
+			t.ChangeBranch(activeName)
+			
+			number = 5
+			name = ''
+			try: number = int(request.args['n'])
+			except: pass
+			try: name = request.args['name']; number = -1
+			except: pass
+			
+			commits = t.SelectCommits(t.activeBranch.name, name, number)
+			printing = [c.Print() for c in commits]
+			
+			return [ dict(zip(col, val)) for col, val in printing]
+			
+
+		def put(self):
+			return 'ok', 201
 
 class WebServer:
 	
 	def __init__(self, testarium):
 		self.app = Flask(__name__)
 		self.app.config.from_object(__name__)
+		self.api = Api(self.app)
+		
 		self.t = testarium
 		self.t.Load(True)
+		global t
+		t = self.t
 
 	def Start(self, port):
 		#-----------------------------------------------
@@ -75,17 +105,18 @@ class WebServer:
 			
 			commits = self.t.SelectCommits(self.t.activeBranch.name, name, number)
 			return render_template('log.html', t=self.t, commits=commits)
-			
+		
 		#-----------------------------------------------
 		@self.app.route('/')
 		def root():
 			return redirect('log')
 		
+		# api
+		self.api.add_resource(Commits, '/api/commits')
+	
 		# jinja filters
 		self.app.jinja_env.filters['UrlGraph'] = utils.UrlGraph
 		self.app.jinja_env.filters['UrlFile'] = utils.UrlFile
 				
 		# app start
 		self.app.run(port=port, host='0.0.0.0')
-		
-		

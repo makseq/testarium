@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
+<html ng-app=testarium>
 <head>
 	<title>{{ t.name }} - Testarium</title>
 
@@ -7,21 +7,26 @@
 	<link href="{{ url_for('static', filename='styles/main.css') }}" rel="stylesheet" type="text/css"/>
 	<link href="{{ url_for('static', filename='styles/d3.linegraph.css') }}" rel="stylesheet" type="text/css"/>
 	<link href="{{ url_for('static', filename='styles/jquery-ui.min.css') }}" rel="stylesheet" type="text/css"/>
+	<link href="{{ url_for('static', filename='styles/ng-table.css') }}" rel="stylesheet" type="text/css"/>
 
-	<script type="text/javascript" src="{{ url_for('static', filename='scripts/jquery-1.11.0.min.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='scripts/jquery.min.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='scripts/jquery-ui.min.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='scripts/angular.min.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='scripts/angular-resource.min.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='scripts/d3.v3.min.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='scripts/d3.linegraph.js') }}"></script>
+	
+	<script type="text/javascript" src="{{ url_for('static', filename='scripts/class.CommitTable.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='scripts/main.js') }}"></script>
 </head>
 
 <body>
-	<div id="body_back">&nbsp;</div>
-	<div id="header_back">&nbsp;</div>
+	<div id=body_back>&nbsp;</div>
+	<div id=header_back>&nbsp;</div>
 	
-	<div id="header">
-		<center class='title'>{{ t.name }}</center>	
-		<center class='branches'>
+	<div id=header>
+		<center class=title>{{ t.name }}</center>	
+		<center class=branches>
 		{% for branch in t.branches %}
 			{% if t.activeBranch.name == branch %}<b>{% endif %}
 			<a href="/branch/set_active/{{branch}}">{{branch}}</a>&nbsp;&nbsp;
@@ -29,23 +34,38 @@
 		{% endfor %}
 		</center>
 		<center class='commands'>
+		
 		</center>
 	</div>
 	
-	<div id="main">
-		<div id="graphline_back"><center>
-			<div id="graphline"> 
-				<center><a onclick="$('#graphline').hide()">hide</a></center>
-			</div></center><br/>
+	<div id=workspace ng-controller="CommitController">
+		<div ng-controller="CommitController" ng-click="loadCommits()">New commit table<div>
+		
+		{% raw %}
+		<div>
+			<table ng-repeat="table in tables">
+				<tr><th ng-repeat="column in table.cols">{{column}}</th></tr>
+				<tr ng-repeat="row in table.rows">
+					<td ng-repeat="column in table.cols">{{row[column]}}</td>
+				</tr>
+			</table>
 		</div>
-	
-		<div id="body">
+		{% endraw %}
+		
 		{% block body %}{% endblock %}
-		</div> <!-- body -->
+		
+		<div id=graphline_back>
+		<center>
+			<div class=graph_header>
+				<center><a onclick="$('#graphline_back').hide()">hide</a></center>
+			</div>
+			<div id=graphline></div>
+		</center>
+		</div>
 
-	</div> <!-- main -->
+	</div> <!-- workspace -->
 
-	<div class="footer"><center>
+	<div class=footer><center>
 	Commits in active branch: {{ t.activeBranch.commits|length }}
 	</center></div>
 

@@ -24,6 +24,41 @@ function hideAll() {
 }
 
 $( document ).ready(function() {
-	$( "#commit_table" ).draggable();
-	$( "#graphline_back" ).draggable();
+	$( "#commit_table" ).draggable({ handle: ".table_header", cursor: "move" });
+	$( "#graphline_back" ).draggable({ cancel: "#graphline", cursor: "move" });
+	
+	$('#commit_table').position({
+		my: 'left top',
+		at: 'left bottom',
+		of: '#header_back',
+		collision: 'fit'
+	});
+	
+	/*$('#graphline_back').position({
+		my: 'left top',
+		at: 'right top',
+		of: '#commit_table',
+		collision: 'fit'
+	});*/
+	
+	//c = new CommitTable();	
 });
+
+var app = angular.module('testarium', []);
+app.controller('CommitController', ['$scope', '$http',
+	function CommitTable($scope, $http) {
+		$scope.index = 0;
+		$scope.tables = [];
+		$scope.loadCommits = function() {
+			$http({
+				url: "/api/commits", 
+				method: "GET",
+				params: { branch:"default", filter: "" },
+			}).success(function(result) {
+				$scope.tables.push({rows: result, cols: Object.keys(result[0])});
+			});
+		
+			$scope.index++;
+		}
+	}]
+);

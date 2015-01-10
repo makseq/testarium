@@ -2,9 +2,10 @@
 
 {% block body %}
 <center>
+{# 
 {% if commits %}
-	<table id="commit_table"><tbody>
-	<tr>{% for head in commits[0].Print(web=True)[0] %}<th>{{head}}</th>{%endfor%}</tr>
+	<table id=commit_table><tbody>
+	<tr class=table_header>{% for head in commits[0].Print(web=True)[0] %}<th>{{head}}</th>{%endfor%}</tr>
 	{% for c in commits %}
 	<tr>
 		{% for val in c.Print(web=True)[1] %}
@@ -21,8 +22,10 @@
 	</tr>
 	{% endfor %}
 	</table>
+	
 {% else %}
 	Here are no commits
 {% endif %}
+#}
 </center>
 {% endblock %}

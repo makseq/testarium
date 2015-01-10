@@ -43,13 +43,21 @@ data_files = [
 setup(name='testarium',
 	  url='http://testarium.makseq.com',
 	  description='Research tool to perform experiments and store results in the repository',
-	  author='Max Tkachenko',
+	  author='Max Tkachenko, Danila Doroshin',
 	  author_email='makseq@gmail.com',
 	  license='GNU GPLv3',
-      version='0.1',
+      version='0.1.0001',
       packages=['testarium', 'testarium/score', 'testarium/web'],
-	  install_requires=['flask', 'colorama', 'pycrypto', 'hashlib'],
+	  install_requires=['flask', 'colorama', 'pycrypto', 'hashlib', 'flask-restful'],
 	  include_package_data=True,
 	  zip_safe=False,
-	  keywords = ['testing', 'logging', 'research', 'science', 'repository']
+	  keywords = ['testing', 'logging', 'research', 'science', 'repository'],
+	  classifiers=[
+		"Topic :: Scientific/Engineering",
+		"Development Status :: 3 - Alpha",
+		"License :: OSI Approved :: GNU GPLv3",
+		"Operating System :: OS Independent",
+		"Programming Language :: Python",
+		"Intended Audience :: Science/Research"
+	  ]
     )

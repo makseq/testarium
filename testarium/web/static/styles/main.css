@@ -41,7 +41,7 @@ h3 {
 	margin:50px 0px 0px 0px;
 }
 
-#main {
+#workspace {
 	width:100%;
 	min-height:600px;
 }
@@ -95,13 +95,23 @@ h3 {
 	height:100px;
 }
 
+#commit_table {
+	position:absolute;
+}
+
 #graphline_back {
+	padding:3px;
+	position:absolute;
 	display: none;
+	width:550px;
+}
+.graph_header {
+	height:30px;
+	background:rgba(245,245,245,0.8);;
 }
 #graphline {
 	background-color: rgba(255,255,255,0.8);
-	margin: 0px;
-	padding: 30px;
+	margin:0px;
 	width:550px;
 }
 
@@ -117,7 +127,7 @@ table td {
 	padding:4px 8px;
 }
 table th {
-	cursor: pointer;
+	/*cursor: pointer;*/
 }
 table tr:hover {
 	background-color:rgba(230,230,240,0.9);
