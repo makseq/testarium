@@ -117,7 +117,7 @@ class Config:
 		else: return True
 	
 	def Save(self, path):
-		json.dump(self.config, open(path, 'w'), indent=2)
+		json.dump(self.config, open(path, 'w'), indent=2, sort_keys=True)
 
 
 
@@ -153,7 +153,7 @@ class Description:
 			return False
 			
 	def Save(self, path):
-		json.dump(self.desc, open(path, 'w'), indent=2)
+		json.dump(self.desc, open(path, 'w'), indent=2, sort_keys=True)
 
 
 

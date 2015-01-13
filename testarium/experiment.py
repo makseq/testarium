@@ -146,6 +146,14 @@ class Experiment:
 		# use try
 		if useTry:
 			try: r = func(params)
+			except MemoryError as e: 
+				log('Out of memory while', 'COLOR.YELLOW', func.__name__+'():')
+				log(e)
+				log_simple()
+				log_exception(traceback.format_exc())
+				log_simple()
+				log('Commit skipped')
+				return None, False
 			except Exception as e: 
 				log('Exception while', 'COLOR.YELLOW', func.__name__+'():')
 				log(e)

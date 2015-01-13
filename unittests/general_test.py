@@ -41,8 +41,8 @@ class TestGeneral(unittest.TestCase):
 
 		if full_test:
 			print 'Setup ...'		
-			try: subprocess.call(['easy_install.exe', 'http://testarium.makseq.com/testarium-0.1.zip'])
-			except: subprocess.call([r'c:\Python27\Scripts\easy_install.exe', 'http://testarium.makseq.com/testarium-0.1.zip'])
+			try: subprocess.call(['easy_install.exe', 'http://testarium.makseq.com/testarium.zip'])
+			except: subprocess.call([r'c:\Python27\Scripts\easy_install.exe', 'http://testarium.makseq.com/testarium.zip'])
 		
 		print 'Remove .testarium directory ...'
 		try: shutil.rmtree('.testarium')
