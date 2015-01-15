@@ -27,3 +27,6 @@ $( document ).ready(function() {
 	$( "#commit_table" ).draggable();
 	$( "#graphline_back" ).draggable();
 });
+
+
+// http://jsfiddle.net/whnSs/
