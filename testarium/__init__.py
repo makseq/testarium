@@ -119,7 +119,7 @@ def differ(args):
 def print_diff(a, b, aName = 'A', bName = 'B', useKeys=[]):
 	if a is None: log_lines('No '+aName+' to make difference'); return
 	if b is None: log_lines('No '+bName+' to make difference'); return
-	
+
 	s = a.config.StrDifference(b.config, aName, bName, useKeys)
 	log_lines(s)
 	
