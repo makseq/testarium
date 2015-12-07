@@ -520,6 +520,30 @@ class Testarium:
 			if N == -1: N = 5
 			return [ commits[c] for c in sort_keys[0:N] ]
 
+	# Where commit selector (expressions for desc and config to select commit)
+	def Where(self, conditions):
+		#commits = self.AllCommits()
+		commits = self.activeBranch.commits
+
+		sort_keys = sorted([k for k in commits], reverse=True)
+		if not sort_keys: return None
+		cond = ''.join(conditions)
+		cond = cond.replace("['", "[").replace("']", "]").replace("[", "['").replace("]", "']")
+
+		# where
+		keyError = ''
+		out_commits = []
+		for k in sort_keys:
+			c = commits[k].config.config
+			d = commits[k].desc.desc
+
+			show = False
+			try: exec 'if '+cond+ ': show = True';
+			except KeyError, e: keyError = e
+			except: pass
+
+			if show: out_commits.append(commits[k])
+		return out_commits, keyError
 		
 	# Load branches and commits
 	# if loadCommits == False than branch descriptions will be loaded only

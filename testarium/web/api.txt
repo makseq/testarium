@@ -1,0 +1,5 @@
+[testarium.api]
+api
+    branches                        - ['a', 'b', 'c']
+        branch_name                 - branch desc
+            commits?from=0&to=100   - [{ name: '20150505.050505', ...}, {name: '20150505.050506'}, ...]

@@ -139,37 +139,18 @@ def logs(args):
 	if commits: print_commits(commits, args)
 		
 def where(args):
-	# preload commit keys
 	testarium.Load(loadCommits=True, silent=True)
-	commits = testarium.AllCommits()
-	
-	sort_keys = sorted([k for k in commits], reverse=True)
-	if not sort_keys: log('No commits in this branch')	
-	cond = ''.join(args.conditions)
-	cond = cond.replace("['", "[").replace("']", "]").replace("[", "['").replace("]", "']")
-	
-	# where
-	count = 0
-	found = 0
-	keyError = ''
-	out_commits = []
-	for k in sort_keys:
-		c = commits[k].config.config
-		d = commits[k].desc.desc
-		
-		show = False
-		try: exec 'if '+cond+ ': show = True'; 
-		except KeyError, e: keyError = e
-		
-		if show: 
-			out_commits.append(commits[k])
-			found += 1
-		count += 1
-	log('Found:', found, 'commits')
-	print_commits(out_commits, args)
-	if keyError: 
-		log('COLOR.YELLOW', 'Warning: There was KeyError:', keyError)
-		log('COLOR.YELLOW', 'Not all commits contain this key or key is wrong')
+	out_commits, keyError = testarium.Where(args.conditions)
+
+	if out_commits is None:
+		log('No commits in this branch')
+		return
+	else:
+		log('Found:', len(out_commits), 'commits')
+		print_commits(out_commits, args)
+		if keyError:
+			log('COLOR.YELLOW', 'Warning: There was KeyError:', keyError)
+			log('COLOR.YELLOW', 'Not all commits contain this key or key is wrong')
 	
 def webserver(args):
 	if not webOk: log('Web server is disabled. Try to "easy_install flask"'); exit(-101)

@@ -1,0 +1,13 @@
+@font-face {font-family: 'Gudea';
+	src: url('Gudea-Regular.otf');
+	src: local('Gudea'), url('Gudea-Regular.ttf') format('truetype');}
+
+@font-face {font-family: 'Gudea';
+	font-style: italic;
+	src: url('Gudea-Italic.otf');
+	src: local('Gudea'), url('Gudea-Italic.ttf') format('truetype');}
+
+@font-face {font-family: 'Gudea';
+	font-style: italic;
+	src: url('Gudea-Bold.otf');
+	src: local('Gudea'), url('Gudea-Bold.ttf') format('truetype');}
