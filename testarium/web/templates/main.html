@@ -29,7 +29,7 @@
 	<div id=control>
 		<div class='button info'>{{ t.name[0] }}</div>
 		<div class='button commits fa-th'></div>
-		<div class='button plot fa-line-chart'></div>
+		<div class='button plot-btn fa-line-chart'></div>
 	</div>
 
 {% raw %}
@@ -39,9 +39,31 @@
 			<tbody>
 				{{for result}}
 				<tr>
+
 					{{props :}}
-					<td>{{:prop}}</td>
+					{{if key=="config"}}
+						{{setvar "path" prop /}}
+					{{/if}}
 					{{/props}}
+
+					{{props :}}
+					{{if key!="config"}}
+						{{if key=="name" }}
+							<td><a href="{{:~getvarfile('path')}}" target=blank>{{:prop}}</a></td>
+						{{else}}
+
+							{{if ~checkfile(prop) }}
+								<td><a class=fa-file-o href="{{:~cleanfile(prop)}}" target=blank></a></td>
+							{{else ~checkgraph(prop) }}
+								<td data-url="{{:~cleangraph(prop)}}" onclick='loadPlot(this)'><div class='fa fa-line-chart'></div></td>
+							{{else}}
+								<td>{{:prop}}</td>
+							{{/if}}
+
+						{{/if}}
+					{{/if}}
+					{{/props}}
+
 				</tr>
 				{{/for}}
 			</tbody>
@@ -64,7 +86,9 @@
 				<table>
 					<thead><tr>
 						{{props header}}
-						<th>{{:prop}}</th>
+						{{if prop!="config" }}
+							<th>{{:prop}}</th>
+						{{/if}}
 						{{/props}}
 						<th class='close-button'>x</th>
 					</tr></thead>
@@ -76,9 +100,9 @@
 
 	<!-- Template for Graph -->
 	<script id="plotTemplate" type="text/x-jsrender">
-		<div class=graph>
-			<div class=graph-header><a onclick="$('.graph-back').hide()">hide</a></div>
-			<div class=graph-canvas></div>
+		<div class='plot window' id={{>id}}>
+			<div class=header><span class='name'>plot</span><a class=close-button>x</a></div>
+			<div class=canvas></div>
 		</div>
 	</script>
 

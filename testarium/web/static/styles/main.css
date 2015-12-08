@@ -66,7 +66,7 @@ html {
 	text-shadow: 0px 1px 2px rgba(0,0,0,0.2);
 }
 
-#control .button.plot.fa-line-chart {
+#control .button.plot-btn.fa-line-chart {
 	font-size: 27px !important;
 }
 
@@ -94,15 +94,16 @@ html {
 /*** Window ***/
 .window {
 	position:absolute;
-	background-color: rgba(255,255,255,0.2);
-	left:100px;
-	top:50px;
+	background-color: rgba(255,255,255,0.3);
+	left:47px;
+	top:80px;
 	z-index: 1;
 }
 .window:focus {
 	outline: 0;
 }
 
+/*** Info ***/
 #info {
 	display:none;
 	font-size:70%;
@@ -135,7 +136,6 @@ html {
 	font-size: 70%;
 	background:rgba(255,255,255,0.95);
 	padding:0 3px;
-	color:
 }
 .commit-table .body {
 	height:600px;
@@ -144,23 +144,37 @@ html {
 .commit-table .footer {
 
 }
+.commit-table .fa-line-chart{
+	color:#8C97A8;
+}
 
-/**** Graph line ****/
-.graph {
-	padding:3px;
+/**** Plot ****/
+.plot {
 	position:absolute;
-	display: none;
-	width:550px;
+	left: 650px;
 }
-.graph-header {
+.plot .header {
+	padding:0;
 	height:30px;
-	background:rgba(245,245,245,0.8);;
+	background:rgba(245,245,245,0.5);
 }
-.graph-canvas {
-	background-color: rgba(255,255,255,0.8);
+.plot .header .close-button {
+	display:block;
+	float:right;
+	padding-right: 1%;
+}
+.plot .header .name {
+	display:block;
+	float:left;
+	padding-left: 1%;
+}
+.plot .canvas {
 	margin:0px;
-	width:550px;
+	width:525px;
+	height:500px;
 }
+
+
 
 .title{
 	width:1%;
@@ -175,21 +189,25 @@ h1 {
 	font-size:130%;
 }
 
-a { text-decoration:none; color:#701B1F; cursor:pointer; }
-a:hover { color:#901B1F; text-decoration:underline; }
-a:visited{  }
+a { text-decoration:none; color: #384870; cursor:pointer; }
+a:hover { color: #2b3d66; text-decoration:underline; }
+a:visited {  }
 
 table {
 	text-align: center;
 }
 table td {
 	padding:0px 8px;
+	vertical-align: middle;
 }
 table th {
 	cursor: pointer;
 }
 table tr:hover {
-	background-color:rgba(230,230,230,0.7);
+	background-color:rgba(230,230,230,0.95) !important;
+}
+table tr.selected {
+	background-color:rgba(245,245,225,1.0) !important;
 }
 table tr {
 	background-color:rgba(255,255,255,0.7);

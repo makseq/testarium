@@ -251,15 +251,16 @@ class Commit:
 		# make much pretty commits have sub name (eg. 20140506.120001003)
 		if len(name)>15: name = name[:15] + ' ' + name[15:]
 		
-		cols = ['name', 'branch', 'score', 'time', 'comment']
-		out = [name, branch, score, time, comment]
+		cols = ['name', 'score', 'time', 'comment']
+		out = [name, score, time, comment]
 		
 		# if web interface used
 		if web:
-			try: fafr = 'graph:'+self.dir+'/fafr.txt';
-			except: fafr = ''
 			cols.append('fafr')
-			out.append(fafr)
+			out.append('graph://storage/'+self.dir+'/fafr.txt')
+
+			cols.append('config')
+			out.append('file://storage/'+self.dir+'/config.json')
 			
 		return cols, out
 		

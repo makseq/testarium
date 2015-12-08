@@ -90,7 +90,8 @@ def Score(dir):
 	
 	# save cache 
 	data = [ { 'x' : FA[i], 'y' : FR[i], 't' : th[i] } for i, x in enumerate(FR) ]
-	j = json.dumps(data)
+
+	j = json.dumps({ 'xAxis':'False Alarm', 'yAxis': 'False Reject', 'data': data})
 	try: open(dir + '/fafr.txt', 'w').write(j)
 	except: print "Can't save: " + dir + '/fafr.txt'
 	

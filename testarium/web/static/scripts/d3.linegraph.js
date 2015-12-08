@@ -24,126 +24,113 @@ for (var i = 0, l = __links.length; i < l; i++) {
 	}
 }*/
 
-function loadUrlData(url)
+function d3LoadAndPlot(url, place_id, color)
 {
-	var txtFile = new XMLHttpRequest();
-	var urlData = null;
-	txtFile.open("GET", url, false);
-	txtFile.onreadystatechange = function() {
-	  if (txtFile.readyState === 4) {  // Makes sure the document is ready to parse.
-		if (txtFile.status === 200) {  // Makes sure it's found the file.
-		  allText = txtFile.responseText;
-		  if (allText === 'no files') {
-			urlData = []
-		  }
-		  else {
-			urlData = JSON.parse(allText);
-		  }
-		}
-		else alert ('200')
-	  } else alert ('4')
-	}
-	txtFile.send(null);
-	return urlData;
+	$.getJSON(url, function (plotdata) {
+		if ('xAxis' in plotdata && 'yAxis' in plotdata)
+			d3ShowGraph(plotdata.data, 'False Alarm', 'False Reject', place_id, color)
+		else
+			d3ShowGraph(plotdata, 'X', 'Y', place_id, color)
+	})
 }
 
-
-
-function showGraph(url, xAxisName, yAxisName, place) 
+function d3ShowGraph(plotdata, xAxisName, yAxisName, place, color)
 {
+
 	var svg;
-	var xAxis, yAxis; 
+	var xAxis, yAxis;
 	var data = 	{ "x":[0, 0.5], "y":[0, 1] };
 	var line, points, x, y;
-	var colors = ['black', 'steelblue', 'red', 'purple', 'green']
+	var colors = ['black', color, 'red', 'purple', 'green']
 	var someAxis = [{'x':0, 'y':0, 't':0}, {'x':0, 'y':1, 't':0}, {'x':0, 'y':0, 't':0}, {'x':1, 'y':0, 't':0}]
-	data = [someAxis, loadUrlData(url)];
-	
+	data = [someAxis, plotdata];
+
+
 	//************************************************************
 	// Create Margins and Axis and hook our zoom function
 	//************************************************************
 	var margin = {top: 10, right: 10, bottom: 50, left: 50},
 		width = 500 - margin.left - margin.right,
 		height = 500 - margin.top - margin.bottom;
-		
+
 	x = d3.scale.linear()
 		.domain([0, 1])
 		.range([0, width]);
-	 
+
 	y = d3.scale.linear()
 		.domain([0, 1])
 		.range([height, 0]);
-		
+
 	xAxis = d3.svg.axis()
 		.scale(x)
 		.tickSize(-height)
-		.tickPadding(10)	
-		.tickSubdivide(true)	
+		.tickPadding(10)
+		.tickSubdivide(true)
 		.orient("bottom");
-		
+
 	yAxis = d3.svg.axis()
 		.scale(y)
 		.tickPadding(10)
 		.tickSize(-width)
-		.tickSubdivide(true)	
+		.tickSubdivide(true)
 		.orient("left");
-		
+
 	var zoom = d3.behavior.zoom()
 		.x(x)
 		.y(y)
 		.scaleExtent([1, 150])
-		.on("zoom", 
+		.on("zoom",
 			function zoomed() {
 				d3.select(this).select(".x.axis").call(xAxis);
-				d3.select(this).select(".y.axis").call(yAxis);   
-				d3.select(this).selectAll('path.line').attr('d', line);  
-			 
-				d3.select(this).selectAll('.dots').selectAll('circle').attr("transform", function(d) { 
+				d3.select(this).select(".y.axis").call(yAxis);
+				d3.select(this).selectAll('path.line').attr('d', line);
+
+				d3.select(this).selectAll('.dots').selectAll('circle').attr("transform", function(d) {
 					return "translate(" + x(d.point.x) + "," + y(d.point.y) + ")"; }
 				);
-			}		
-		);	
-		
-		
+			}
+		);
+
+
 	//************************************************************
 	// Generate our SVG object
-	//************************************************************	
-	
+	//************************************************************
+
 	svg = d3.select(place).append("svg")
 		.call(zoom)
 		.attr("width", width + margin.left + margin.right)
 		.attr("height", height + margin.top + margin.bottom)
 		.append("g")
 		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-	 
+
 	svg.append("g")
 		.attr("class", "x axis")
 		.attr("transform", "translate(0," + height + ")")
 		.call(xAxis);
-		
+
 	svg.append("g")
 		.attr("class", "y axis")
 		.call(yAxis);
-	 
-	 	
+
+
 	svg.append("g")
 		.attr("class", "x axis")
 		.append("text")
 		.attr("class", "axis-label")
 		.attr("x", width/2-38)
-		.attr("y", height+34) 
+		.attr("y", height+34)
 		.text(xAxisName);
-	 
+
 	svg.append("g")
 		.attr("class", "y axis")
 		.append("text")
 		.attr("class", "axis-label")
 		.attr("transform", "rotate(-90)")
 		.attr("x", -height/2-30)
-		.attr("y", (-margin.left)+14) 
+		.attr("y", (-margin.left)+14)
 		.text(yAxisName);
-		
-	 
+
+
 	svg.append("clipPath")
 		.attr("id", "clip")
 		.append("rect")
@@ -151,15 +138,15 @@ function showGraph(url, xAxisName, yAxisName, place)
 		.attr("height", height);
 
 
-	
+
 	//************************************************************
 	// Create D3 line object and draw data on our SVG object
 	//************************************************************
 	line = d3.svg.line()
 		.interpolate("linear")
 		.x(function(d) { return x(d.x); })
-		.y(function(d) { return y(d.y); });		
-		
+		.y(function(d) { return y(d.y); });
+
 	svg.selectAll('.line')
 		.data(data)
 		.enter()
@@ -167,9 +154,9 @@ function showGraph(url, xAxisName, yAxisName, place)
 		.attr("class", function(d,i){ return i==0 ? 'axisinner line' : 'line'; })
 		.attr("clip-path", "url(#clip)")
 		.attr('stroke', function(d,i){ return colors[i%colors.length]; })
-		.attr("d", line);	
-	
-			
+		.attr("d", line);
+
+
 	//************************************************************
 	// Draw points on SVG object based on the data given
 	//************************************************************
@@ -178,29 +165,29 @@ function showGraph(url, xAxisName, yAxisName, place)
 		.enter()
 		.append("g")
 		.attr("class", "dots")
-		.attr("clip-path", "url(#clip)");	
+		.attr("clip-path", "url(#clip)");
 
 	points.selectAll('.dot')
 		.data(function(d, index){
 			var a = [];
 			d.forEach(function(point,i){
 				a.push({'index': index, 'point': point});
-			});		
+			});
 			return a;
 		})
 		.enter()
 		.append('circle')
 		.attr('class', function(d,i){ return d.index==0 ? '' : 'dot' })
 		.attr("r", function(d,i){ return d.index==0? 0.0 : 1.0 })
-		.attr('fill', function(d,i){ 	
+		.attr('fill', function(d,i){
 			return colors[d.index%colors.length];
 		})
-		.attr("transform", function(d) { 
+		.attr("transform", function(d) {
 			return "translate(" + x(d.point.x) + "," + y(d.point.y) + ")"; }
 		)
 		.append("svg:title")
 		.text(function(d) { return xAxisName + ' = ' + d.point.x.toFixed(5)  + '\n'+ yAxisName + ' = ' + d.point.y.toFixed(5) + '\n' + 'Threshold = ' + d.point.t.toFixed(5); });
-		
+
 		$(place).show();
-} 
+}
 

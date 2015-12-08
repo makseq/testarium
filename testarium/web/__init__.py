@@ -113,7 +113,7 @@ class WebServer:
 				commits = t.SelectCommits(name, commitName, number)
 				keyError = None
 
-			printing = [c.Print() for c in commits]
+			printing = [c.Print(web=True) for c in commits]
 			res = [collections.OrderedDict(zip(col, val)) for col, val in printing]
 
 			status = 0
