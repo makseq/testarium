@@ -24,7 +24,8 @@ def MyPrint(commit):
 	except: a = ''
 	
 	score = str(commit.desc['score'])
-	return ['name', 'a', 'score'], [commit.name, a, score]
+	return ['name', 'a', 'score', 'config'], [commit.name, a, score, 'file://storage/.testarium/'+
+		commit.desc['branch']+'/'+commit.name+'/config.json']
 	
 @testarium.testarium.set_compare
 def MyCompare(self, other):
