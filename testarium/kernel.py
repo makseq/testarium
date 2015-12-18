@@ -102,17 +102,7 @@ class Config(collections.OrderedDict):
 		# delete unnecessary '\n'
 		if s and s[len(s)-1] == '\n': s = s[0:len(s)-1] 
 		return s
-	
-	'''def Load(self, path):
-		try: 
-			self._init = False
-			self = json.loads(open(path, 'r').read(), object_pairs_hook=Config)
-			self._init = True
-		except: return False
-		else: return True
-	
-	def Save(self, path):
-		json.dump(super(Config, self), open(path, 'w'), indent=2)'''
+
 
 
 
@@ -262,7 +252,6 @@ class Commit:
 		self.dir = dir
 
 		if not self.desc.Load(self.dir + '/desc.json'): raise Exception("Can't load commit description: " + dir)
-		#if not self.config.Load(self.dir + '/config.json'): raise Exception("Can't load commit config: " + dir)
 		try: self.config = json.load(open(self.dir + '/config.json'), object_pairs_hook=Config)
 		except: raise Exception("Can't load commit config: " + dir)
 
@@ -281,7 +270,6 @@ class Commit:
 		try:
 			self.config[CONFIG_COMMIT_DIRECTORY] = dir
 			create_dir(dir)
-			#self.config.Save(self.dir + '/config.json')
 			json.dump(self.config, open(self.dir + '/config.json', 'w'), indent=2)
 			if configOnly: return
 			self.desc.Save(self.dir + '/desc.json')
