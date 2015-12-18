@@ -42,20 +42,15 @@ class Common:
 	Config contains a json config of experiment
 	(parameters and other) 
 '''
-class Config():
+class Config(collections.OrderedDict):
 	def __init__(self):
-		self.config = collections.OrderedDict()
 		self._init = True
-		
-	def __getitem__(self, key):
-		return self.config[key]
-	
-	def __setitem__(self, key, value):
-		self.config[key] = value
-	
+		super(Config, self).__init__()
+
+
 	def Print(self, useKeys=[]):
-		if not useKeys: return self.config
-		return {c:self.config[c] for c in self.config if c in useKeys}
+		if not useKeys: return self
+		return {c:self[c] for c in self if c in useKeys}
 	
 	def __str__(self, useKeys=[]):
 		msg = ''
@@ -72,12 +67,9 @@ class Config():
 		if msg and msg[len(msg)-1] == '\n': msg = msg[0:len(msg)-1] 
 		return msg
 
-	def keys(self):
-		return self.config.keys()
-	
 	def Difference(self, other_config, useKeys=[]):
-		a = self.config
-		b = other_config.config
+		a = self
+		b = other_config
 		
 		keys = set(a) | set(b)
 		diff = dict()
@@ -111,16 +103,16 @@ class Config():
 		if s and s[len(s)-1] == '\n': s = s[0:len(s)-1] 
 		return s
 	
-	def Load(self, path):
+	'''def Load(self, path):
 		try: 
 			self._init = False
-			self.config = json.loads(open(path, 'r').read(), object_pairs_hook=collections.OrderedDict)
+			self = json.loads(open(path, 'r').read(), object_pairs_hook=Config)
 			self._init = True
 		except: return False
 		else: return True
 	
 	def Save(self, path):
-		json.dump(self.config, open(path, 'w'), indent=2)
+		json.dump(super(Config, self), open(path, 'w'), indent=2)'''
 
 
 
@@ -206,7 +198,7 @@ class Commit:
 		self.desc['name'] = name
 	
 	def SetConfig(self, c):
-		self.config.config = collections.OrderedDict(c)
+		self.config = collections.OrderedDict(c)
 		 
 	def SetBranchName(self, name):
 		self.desc['branch'] = name
@@ -264,12 +256,18 @@ class Commit:
 			out.append('file://storage/'+self.dir+'/config.json')
 			
 		return cols, out
-		
+
 	def Load(self, dir):
 		self._init = False
 		self.dir = dir
+
 		if not self.desc.Load(self.dir + '/desc.json'): raise Exception("Can't load commit description: " + dir)
-		if not self.config.Load(self.dir + '/config.json'): raise Exception("Can't load commit config: " + dir)
+		#if not self.config.Load(self.dir + '/config.json'): raise Exception("Can't load commit config: " + dir)
+		try: self.config = json.load(open(self.dir + '/config.json'), object_pairs_hook=Config)
+		except: raise Exception("Can't load commit config: " + dir)
+
+		print 'INIT: ----- ', self.config._init
+
 		self.name = self.desc['name']
 		self._init = True
 
@@ -283,10 +281,11 @@ class Commit:
 		try:
 			self.config[CONFIG_COMMIT_DIRECTORY] = dir
 			create_dir(dir)
-			self.config.Save(self.dir + '/config.json')
+			#self.config.Save(self.dir + '/config.json')
+			json.dump(self.config, open(self.dir + '/config.json', 'w'), indent=2)
 			if configOnly: return
 			self.desc.Save(self.dir + '/desc.json')
-		except: 
+		except:
 			raise Exception("Can't save the commit (config or desc write error): " + dir)
 		self._init = True
 
@@ -536,7 +535,7 @@ class Testarium:
 		keyError = ''
 		out_commits = []
 		for k in sort_keys:
-			c = commits[k].config.config
+			c = commits[k].config
 			d = commits[k].desc.desc
 
 			show = False
