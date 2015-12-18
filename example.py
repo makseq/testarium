@@ -3,9 +3,9 @@ import testarium, testarium.score.fafr
 import random, json, time
 
 @testarium.experiment.set_run
-def MyRun(cfg):
-	c = json.loads(open(cfg, 'r').read())
-	dir = c[testarium.kernel.CONFIG_COMMIT_DIRECTORY] # 'testarium.commitDirectory'
+def MyRun(commit):
+	c = commit.config
+	dir = commit.dir
 	pos = open(dir + '/pos.txt', 'w')
 	neg = open(dir + '/neg.txt', 'w')
 	for i in xrange(100): pos.write(str(random.random()) + '\n')
@@ -13,8 +13,8 @@ def MyRun(cfg):
 	return 0
 
 @testarium.experiment.set_score
-def MyScore(commit_dir):
-	d = testarium.score.fafr.Score(commit_dir)
+def MyScore(commit):
+	d = testarium.score.fafr.Score(commit.dir)
 	d['test'] = 1
 	return d
 
