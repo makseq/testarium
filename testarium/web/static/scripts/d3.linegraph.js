@@ -24,13 +24,15 @@ for (var i = 0, l = __links.length; i < l; i++) {
 	}
 }*/
 
-function d3LoadAndPlot(url, place_id, color)
+function d3LoadAndPlot(url, place_id, color, done)
 {
 	$.getJSON(url, function (plotdata) {
 		if ('xAxis' in plotdata && 'yAxis' in plotdata)
 			d3ShowGraph(plotdata.data, 'False Alarm', 'False Reject', place_id, color)
 		else
 			d3ShowGraph(plotdata, 'X', 'Y', place_id, color)
+
+		done();
 	})
 }
 

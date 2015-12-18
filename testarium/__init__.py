@@ -21,7 +21,7 @@ import kernel, experiment
 from utils import *
 import sys, argparse, json
 
-try: import numpy as np
+try: import numpy as np, collections
 except: pass
 
 import web
@@ -41,8 +41,8 @@ def run(args):
 	else: config_path = testarium.activeBranch.config_path # use default branch config
 	
 	# try to load main config
-	config = dict()	
-	try: config = json.loads(open(os.getcwd() + '/'+ config_path, 'r').read())
+	config = collections.OrderedDict()
+	try: config = json.loads(open(os.getcwd() + '/'+ config_path, 'r').read(), object_pairs_hook=collections.OrderedDict)
 	except Exception, e: 
 		log('COLOR.RED', "Error: can't open config file:", config_path, '('+str(e)+')')
 		return False
@@ -53,7 +53,7 @@ def run(args):
 	groups = re.findall(p, args.newParams)
 	
 	# apply newParams to dict c
-	c = dict()
+	c = collections.OrderedDict()
 	stop = False
 	for g in groups: 
 		cmd = "c['"+g[1]+"'] = "+g[2]

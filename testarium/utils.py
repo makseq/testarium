@@ -50,12 +50,12 @@ COLOR_DICT = {
 
 # check and return graph url
 def UrlGraph(string):
-	if string[0:6] == 'graph://': return string
+	if string[0:8] == 'graph://': return string
 	else: return ''
 	
 # check and return file url
 def UrlFile(string):
-	if string[0:5] == 'file://': return string
+	if string[0:7] == 'file://': return string
 	else: return ''
 
 # time to str

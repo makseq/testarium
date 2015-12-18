@@ -17,6 +17,10 @@
 	<script type="text/javascript" src="{{ url_for('static', filename='scripts/d3.v3.min.js') }}"></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='scripts/d3.linegraph.js') }}"></script>
 
+	<script type="text/javascript" src="{{ url_for('static', filename='scripts/wavesurfer.min.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='scripts/wavesurfer.regions.js') }}"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='scripts/wavesurfer.spectrogram.js') }}"></script>
+
 	<script type="text/javascript" src="{{ url_for('static', filename='scripts/main.js') }}"></script>
 </head>
 
@@ -55,7 +59,7 @@
 							{{if ~checkfile(prop) }}
 								<td><a class=fa-file-o href="{{:~cleanfile(prop)}}" target=blank></a></td>
 							{{else ~checkgraph(prop) }}
-								<td data-url="{{:~cleangraph(prop)}}" onclick='loadPlot(this)'><div class='fa fa-line-chart'></div></td>
+								<td data-url="{{:~cleangraph(prop)}}" onclick='return loadPlot(event, this)'><div class='fa fa-line-chart'></div></td>
 							{{else}}
 								<td>{{:prop}}</td>
 							{{/if}}
@@ -98,13 +102,22 @@
 		</div>
 	</script>
 
-	<!-- Template for Graph -->
+	<!-- Template for Plot -->
 	<script id="plotTemplate" type="text/x-jsrender">
 		<div class='plot window' id={{>id}}>
 			<div class=header><span class='name'>plot</span><a class=close-button>x</a></div>
 			<div class=canvas></div>
 		</div>
 	</script>
+
+	<!-- Template for Waveform -->
+	<script id="waveformTemplate" type="text/x-jsrender">
+		<div class='waveform window' id={{>id}}>
+			<div class=header><span class='name'>waveform</span><a class=close-button>x</a></div>
+			<div class=canvas></div>
+		</div>
+	</script>
+
 
 	<!-- Template for Info -->
 	<div class='info window' id="info">

@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import json, time, traceback, sys, gc
+import json, time, traceback, sys, gc, collections
 import itertools as it
 from utils import *
 import kernel
@@ -102,7 +102,7 @@ class Experiment:
 
 			# combine params
 			varNames = sorted(newParams)
-			combinations = [dict(zip(varNames, prod)) for prod in it.product(*(newParams[varName] for varName in varNames))]
+			combinations = [collections.OrderedDict(zip(varNames, prod)) for prod in it.product(*(newParams[varName] for varName in varNames))]
 
 			# init vars
 			results = []
@@ -189,7 +189,7 @@ class Experiment:
 			return None, False
 		
 		# form config with newParams
-		config = dict(config)
+		config = collections.OrderedDict(config)
 		for key in newParams:
 			if not key in config: log('COLOR.YELLOW', 'Warning:', "new key '"+key+"' is not in config")
 			config[key] = newParams[key]
@@ -206,7 +206,7 @@ class Experiment:
 		beginTime = time.time()
 		
 		#--- RUN section 
-		r, ok = self.ExecUserFunc(self.user_run, config_path, int)
+		r, ok = self.ExecUserFunc(self.user_run, c, int)
 		gc.collect()
 		if not ok: return c, False
 		
@@ -220,7 +220,7 @@ class Experiment:
 		duration = time.time() - beginTime
 		
 		#--- SCORE and DESC section 
-		desc, ok = self.ExecUserFunc(self.user_score, c.dir, dict)
+		desc, ok = self.ExecUserFunc(self.user_score, c, dict)
 		gc.collect()
 		if not ok: return c, False
 		

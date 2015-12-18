@@ -78,28 +78,38 @@ function focusWindow(e) {
 
 }
 
-function commitFilter(e) {
-	commits = $('#'+$(this).data('commits-table-id'));
-	data = commits.data('scope')
+function commitUpdate(commits_id) {
+	commits = $('#'+commits_id);
+	active_branch = commits.data('active-branch')
+	request = 'api/branches/'+active_branch+'/commits';
+	filter = commits.find('input').val()
+	if (filter) request = 'api/branches/'+active_branch+'/commits?where='+filter;
 
-	request = 'api/branches/'+data.active_branch+'/commits';
-	if ($(this).val()) request = 'api/branches/'+data.active_branch+'/commits?where='+$(this).val();
+	$.ajax({ url: request, dataType: 'json', success: function (data) {
+		// refresh if data changed
+		if (JSON.stringify(commits.data('scope')) != JSON.stringify(data)) {
+			l('update ' + commits_id )
+			commits.data('scope', data)
+			commits.find('.body table').remove()
+			commits.find('.body').append($("#commitsTableTemplate").render(data, true))
 
-	$.getJSON(request, function (data) {
-		commits.find('.body table').remove()
-		commits.find('.body').append($("#commitsTableTemplate").render(data, true))
-
-		// table body and footer widths
-		body = commits.children('.body').find('td')
-		footer = commits.children('.footer').find('th')
-		for (var i = 0; i < body.length; i++) {
-			var j = i % (footer.length-1) // -1 is for close X
-			$(body.get(i)).outerWidth($(footer.get(j)).outerWidth())
+			// table body and footer widths
+			body = commits.children('.body').find('td')
+			footer = commits.children('.footer').find('th')
+			for (var i = 0; i < body.length; i++) {
+				var j = i % (footer.length - 1) // -1 is for close X
+				$(body.get(i)).outerWidth($(footer.get(j)).outerWidth())
+			}
 		}
-	})
+
+		setTimeout(commitUpdate, 2000, commits_id)
+	}})
 }
 
-
+function commitFilter()
+{
+	commitUpdate($(this).data('commits-table-id'))
+}
 
 function newCommitTable()
 {
@@ -114,6 +124,7 @@ function newCommitTable()
 
 			commits = $('#' + data.id)
 			commits.data('scope', data)
+			commits.data('active-branch', data.active_branch)
 			commits.data('window-type', 'commits')
 			commits.find('.body').append($("#commitsTableTemplate").render(data, true))
 
@@ -136,7 +147,7 @@ function newCommitTable()
 			input.height(span.height())
 			input.css({left: span.outerWidth()+20})
 			input.data('commits-table-id', data.id)
-			input.keyup(commitFilter)
+			//input.keyup(commitFilter)
 
 			// close button
 			btn = commits.find('table th.close-button')
@@ -154,8 +165,16 @@ function newCommitTable()
 				$(this).toggleClass('selected')
 			})
 
+			// remove bind singal
+			commits.bind('remove', function() {
+				scope.commits.number--;
+				scope.commits.active='';
+			})
+
 			scope.commits.number++
 			commits.focusin();
+
+			setTimeout(commitUpdate, 2000, commits.attr('id'))
 		}); // api/branch/name/commits
 	}) // api/info
 }
@@ -190,15 +209,19 @@ function newPlot()
 
 	// drag
 	plot.draggable({ handle: ".header" });
+	plot.bind('remove', function() {
+		scope.plot.number--;
+		scope.plot.active='';
+	})
 
 	scope.plot.number++
 	plot.focusin()
 }
 
-function loadPlot(e)
+function loadPlot(event, obj)
 {
-	url = $(e).data('url')
-	if (scope.plot.active == '')
+	url = $(obj).data('url')
+	if (scope.plot.active == '' )
 		newPlot()
 
 	// random color for plot line
@@ -207,17 +230,28 @@ function loadPlot(e)
 	bright = to-from
 	random = {r: from+Math.floor(Math.random()*bright), g: from+Math.floor(Math.random()*bright), b: from+Math.floor(Math.random()*bright)}
 	backcolor = 'rgb('+random.r+','+random.g+','+random.b+')'
-	$(e).css('background-color', backcolor)
+	$(obj).css('background-color', backcolor)
 
-	$(e).attr('id', 'commit-plot-btn-'+scope.plot.plot_btn_number)
+	$(obj).attr('id', 'commit-plot-btn-'+scope.plot.plot_btn_number)
 	scope.plot.plot_btn_number++;
 
-	active_id = '#'+scope.plot.active+' .canvas';
-	prev_plot_btn = $(active_id).data('assigned-plot-buttons')
-	$('#' + prev_plot_btn).css('background', 'none')
-	$(active_id).find('svg').remove()
-	$(active_id).data('assigned-plot-buttons', $(e).attr('id'))
-	d3LoadAndPlot(url, active_id, backcolor)
+	plot = $('#'+scope.plot.active);
+	plot.find('.header .name').text()
+	canvas = $('#'+scope.plot.active+' .canvas');
+	canvas.find('svg').remove()
+
+	function done() {
+		canvas.find('svg').data('assigned-plot-buttons', $(obj).attr('id'))
+		canvas.find('svg').bind('remove', function () {
+			plot_btn = $(this).data('assigned-plot-buttons')
+			$('#' + plot_btn).css('background', 'none')
+		})
+	}
+
+	d3LoadAndPlot(url, '#'+scope.plot.active+' .canvas', backcolor, done)
+	event.preventDefault()
+	event.stopPropagation()
+	return false
 }
 
 $( document ).ready(function() {

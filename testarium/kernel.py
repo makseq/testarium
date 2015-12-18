@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
 import datetime, time
-import os, operator, shutil
+import os, operator, shutil, collections
 
 from utils import *
 import coderepos
@@ -42,9 +42,9 @@ class Common:
 	Config contains a json config of experiment
 	(parameters and other) 
 '''
-class Config:
+class Config():
 	def __init__(self):
-		self.config = dict()
+		self.config = collections.OrderedDict()
 		self._init = True
 		
 	def __getitem__(self, key):
@@ -71,6 +71,9 @@ class Config:
 		# delete unnecessary '\n'
 		if msg and msg[len(msg)-1] == '\n': msg = msg[0:len(msg)-1] 
 		return msg
+
+	def keys(self):
+		return self.config.keys()
 	
 	def Difference(self, other_config, useKeys=[]):
 		a = self.config
@@ -93,7 +96,7 @@ class Config:
 	
 	def StrDifference(self, other_config, aName, bName, useKeys=[]):
 		diff = self.Difference(other_config, useKeys)
-		if (len(diff) == 0): return 'No configs difference' + \
+		if len(diff) == 0: return 'No configs difference' + \
 			(' with key filter ' + str(useKeys) if len(useKeys) > 0 else '')
 		
 		s = ''
@@ -111,13 +114,13 @@ class Config:
 	def Load(self, path):
 		try: 
 			self._init = False
-			self.config = json.loads(open(path, 'r').read())
+			self.config = json.loads(open(path, 'r').read(), object_pairs_hook=collections.OrderedDict)
 			self._init = True
 		except: return False
 		else: return True
 	
 	def Save(self, path):
-		json.dump(self.config, open(path, 'w'), indent=2, sort_keys=True)
+		json.dump(self.config, open(path, 'w'), indent=2)
 
 
 
@@ -203,7 +206,7 @@ class Commit:
 		self.desc['name'] = name
 	
 	def SetConfig(self, c):
-		 self.config.config = dict(c)
+		self.config.config = collections.OrderedDict(c)
 		 
 	def SetBranchName(self, name):
 		self.desc['branch'] = name
@@ -245,8 +248,6 @@ class Commit:
 		except: time = ''
 		try: comment = self.desc['comment'];
 		except: comment = ''
-		try: branch = self.desc['branch'];
-		except: branch = 'noname'
 		
 		# make much pretty commits have sub name (eg. 20140506.120001003)
 		if len(name)>15: name = name[:15] + ' ' + name[15:]

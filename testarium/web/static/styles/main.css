@@ -157,6 +157,7 @@ html {
 	padding:0;
 	height:30px;
 	background:rgba(245,245,245,0.5);
+	cursor: move;
 }
 .plot .header .close-button {
 	display:block;
