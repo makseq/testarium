@@ -43,10 +43,9 @@ class Common:
 	(parameters and other) 
 '''
 class Config(collections.OrderedDict):
-	def __init__(self):
+	def __init__(self, *arg, **kw):
 		self._init = True
-		super(Config, self).__init__()
-
+		super(Config, self).__init__(*arg, **kw)
 
 	def Print(self, useKeys=[]):
 		if not useKeys: return self
@@ -112,34 +111,13 @@ class Config(collections.OrderedDict):
 	(score, time, comment and other) 
 	after commit evaluation 
 '''
-class Description:
-	def __init__(self):
+class Description(collections.OrderedDict):
+	def __init__(self, *arg, **kw):
 		self._init = True
-		self.desc = dict()
-		
-	def __getitem__(self,key):
-		return self.desc[key]
-		
-	def __setitem__(self, key, value):
-		self.desc[key] = value
+		super(Description, self).__init__(*arg, **kw)
 	
 	def Score(self):
 		return self.desc['score']
-	
-	def Load(self, path):
-		try:
-			self._init = False
-			self.desc = json.loads(open(path, 'r').read())
-			self._init = True
-			return True 
-		except:
-			self.desc = dict()
-			self._init = False
-			return False
-			
-	def Save(self, path):
-		json.dump(self.desc, open(path, 'w'), indent=2, sort_keys=True)
-
 
 
 #------------------------------------------------------------------------------
@@ -251,11 +229,13 @@ class Commit:
 		self._init = False
 		self.dir = dir
 
-		if not self.desc.Load(self.dir + '/desc.json'): raise Exception("Can't load commit description: " + dir)
+		# desc
+		try: self.desc = json.load(open(self.dir + '/desc.json'), object_pairs_hook=Description)
+		except:	raise Exception("Can't load commit description: " + dir)
+
+		# config
 		try: self.config = json.load(open(self.dir + '/config.json'), object_pairs_hook=Config)
 		except: raise Exception("Can't load commit config: " + dir)
-
-		print 'INIT: ----- ', self.config._init
 
 		self.name = self.desc['name']
 		self._init = True
@@ -272,7 +252,7 @@ class Commit:
 			create_dir(dir)
 			json.dump(self.config, open(self.dir + '/config.json', 'w'), indent=2)
 			if configOnly: return
-			self.desc.Save(self.dir + '/desc.json')
+			json.dump(self.desc, open(self.dir + '/desc.json', 'w'), indent=2)
 		except:
 			raise Exception("Can't save the commit (config or desc write error): " + dir)
 		self._init = True
@@ -524,7 +504,7 @@ class Testarium:
 		out_commits = []
 		for k in sort_keys:
 			c = commits[k].config
-			d = commits[k].desc.desc
+			d = commits[k].desc
 
 			show = False
 			try: exec 'if '+cond+ ': show = True';
