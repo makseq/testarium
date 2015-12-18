@@ -17,13 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import testarium, testarium.score.fafr
+import testarium
+import testarium.score.fafr
 import random, json
 
 @testarium.experiment.set_run
-def MyRun(cfg):
-	c = json.loads(open(cfg, 'r').read())
-	dir = c[testarium.kernel.CONFIG_COMMIT_DIRECTORY] # 'testarium.commitDirectory'
+def MyRun(commit):
+	c = commit.config
+	dir = commit.dir
 
 	pos = open(dir + '/pos.txt', 'w')
 	neg = open(dir + '/neg.txt', 'w')
@@ -32,8 +33,8 @@ def MyRun(cfg):
 	return 0
 
 @testarium.experiment.set_score
-def MyScore(commit_dir):
-	d = testarium.score.fafr.Score(commit_dir)
+def MyScore(commit):
+	d = testarium.score.fafr.Score(commit.dir)
 	d['test'] = 1
 	return d
 
