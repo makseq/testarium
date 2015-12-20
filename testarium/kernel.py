@@ -300,7 +300,9 @@ class Branch:
 		commit.SetConfig(config)
 		commit.SetBranchName(self.name)
 		commit.common = self.common
-		commit.filedb.SetFiles(self.filedb.GetFiles())
+		if commit.filedb.IsInitialized():
+			commit.filedb.SetFiles(self.filedb.GetFiles())
+
 		self.commits[commit.name] = commit
 		return commit
 	
@@ -328,7 +330,8 @@ class Branch:
 			
 			commit = Commit()
 			commit.common = self.common
-			commit.filedb.SetFiles(self.filedb.GetFiles())
+			if commit.filedb.IsInitialized():
+				commit.filedb.SetFiles(self.filedb.GetFiles())
 
 			try: commit.Load(dir + '/' + d)
 			except: pass
@@ -350,6 +353,7 @@ class Branch:
 		except: raise Exception("Can't save the branch descrition: " + path)
 
 		self.filedb.SaveFiles(dir+'/filedb.json')
+		print '~~~~ Branch saved!!!'
 
 		if not saveCommits: return
 		
