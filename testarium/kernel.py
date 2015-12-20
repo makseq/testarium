@@ -23,6 +23,7 @@ import os, operator, shutil, collections
 
 from utils import *
 import coderepos
+import filedb
 
 CONFIG_COMMIT_DIRECTORY = 'testarium.commitDirectory'
 
@@ -132,6 +133,7 @@ class Commit:
 		self.name = 'none'
 		self.common = Common()
 		self._init = False
+		self.filedb = filedb.FileDataBase()
 		
 	def __nonzero__(self):
 		return self._init
@@ -237,6 +239,9 @@ class Commit:
 		try: self.config = json.load(open(self.dir + '/config.json'), object_pairs_hook=Config)
 		except: raise Exception("Can't load commit config: " + dir)
 
+		# file db
+		self.filedb.LoadMeta(self.dir+'/filedb.meta.json')
+
 		self.name = self.desc['name']
 		self._init = True
 
@@ -248,11 +253,19 @@ class Commit:
 			dir = self.dir
 			
 		try:
+			# dir
 			self.config[CONFIG_COMMIT_DIRECTORY] = dir
 			create_dir(dir)
+
+			# config
 			json.dump(self.config, open(self.dir + '/config.json', 'w'), indent=2)
 			if configOnly: return
+
+			# desc
 			json.dump(self.desc, open(self.dir + '/desc.json', 'w'), indent=2)
+
+			# file db
+			self.filedb.SaveMeta(self.dir+'/filedb.meta.json')
 		except:
 			raise Exception("Can't save the commit (config or desc write error): " + dir)
 		self._init = True
@@ -270,6 +283,7 @@ class Branch:
 		self.config_path = 'config/config.json'
 		self.commits = dict()
 		self.common = Common()
+		self.filedb = filedb.FileDataBase()
 	
 	def NewCommit(self, config):
 		commit = Commit()
@@ -286,6 +300,7 @@ class Branch:
 		commit.SetConfig(config)
 		commit.SetBranchName(self.name)
 		commit.common = self.common
+		commit.filedb.SetFiles(self.filedb.GetFiles())
 		self.commits[commit.name] = commit
 		return commit
 	
@@ -311,11 +326,13 @@ class Branch:
 		for d in subdirs: 
 			if d in self.commits: continue
 			
-			c = Commit()
-			c.common = self.common
-			try: c.Load(dir + '/' + d)
+			commit = Commit()
+			commit.common = self.common
+			commit.filedb.SetFiles(self.filedb.GetFiles())
+
+			try: commit.Load(dir + '/' + d)
 			except: pass
-			else: self.commits[c.name] = c
+			else: self.commits[commit.name] = commit
 			
 		self._init = True
 		
@@ -331,7 +348,9 @@ class Branch:
 		path = dir + '/branch.json'
 		try: json.dump(desc, open(path, 'w'), indent=2)
 		except: raise Exception("Can't save the branch descrition: " + path)
-		
+
+		self.filedb.SaveFiles(dir+'/filedb.json')
+
 		if not saveCommits: return
 		
 		# save commits
