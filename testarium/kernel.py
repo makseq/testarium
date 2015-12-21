@@ -37,6 +37,7 @@ class Common:
 		self.best_score_max = False
 		self.commit_print_func = [None] 
 		self.commit_cmp_func = [None]
+		self.filedb = None
 
 #------------------------------------------------------------------------------
 ''' 
@@ -241,6 +242,10 @@ class Commit:
 
 		# file db
 		self.filedb.LoadMeta(self.dir+'/filedb.meta.json')
+		if self.common.filedb is None:
+			self.common.filedb = filedb.FileDataBase()
+			self.common.filedb.LoadFiles(self.dir + '/../filedb.json')
+		self.filedb.SetFiles(self.common.filedb.GetFiles())
 
 		self.name = self.desc['name']
 		self._init = True
@@ -266,6 +271,8 @@ class Commit:
 
 			# file db
 			self.filedb.SaveMeta(self.dir+'/filedb.meta.json')
+			if not self.common.filedb._files_saved:
+				self.common.filedb.SaveFiles(self.dir+'/../filedb.json')
 		except:
 			raise Exception("Can't save the commit (config or desc write error): " + dir)
 		self._init = True
@@ -283,7 +290,6 @@ class Branch:
 		self.config_path = 'config/config.json'
 		self.commits = dict()
 		self.common = Common()
-		self.filedb = filedb.FileDataBase()
 	
 	def NewCommit(self, config):
 		commit = Commit()
@@ -300,8 +306,12 @@ class Branch:
 		commit.SetConfig(config)
 		commit.SetBranchName(self.name)
 		commit.common = self.common
-		if commit.filedb.IsInitialized():
-			commit.filedb.SetFiles(self.filedb.GetFiles())
+
+		# file db
+		if self.common.filedb is None:
+			self.common.filedb = filedb.FileDataBase()
+			self.common.filedb.LoadFiles(self.dir + '/filedb.json')
+		commit.filedb.SetFiles(self.common.filedb.GetFiles())
 
 		self.commits[commit.name] = commit
 		return commit
@@ -318,7 +328,7 @@ class Branch:
 		self.name = j['name']
 		self.config_path = j['config_path']
 		self.commits = dict()
-		
+
 		if not loadCommits: return 
 		
 		# scan for commit dirs
@@ -330,8 +340,12 @@ class Branch:
 			
 			commit = Commit()
 			commit.common = self.common
-			if commit.filedb.IsInitialized():
-				commit.filedb.SetFiles(self.filedb.GetFiles())
+
+			# file db
+			if self.common.filedb is None:
+				self.common.filedb = filedb.FileDataBase()
+				self.common.filedb.LoadFiles(self.dir + '/filedb.json')
+			commit.filedb.SetFiles(self.common.filedb.GetFiles())
 
 			try: commit.Load(dir + '/' + d)
 			except: pass
@@ -351,9 +365,6 @@ class Branch:
 		path = dir + '/branch.json'
 		try: json.dump(desc, open(path, 'w'), indent=2)
 		except: raise Exception("Can't save the branch descrition: " + path)
-
-		self.filedb.SaveFiles(dir+'/filedb.json')
-		print '~~~~ Branch saved!!!'
 
 		if not saveCommits: return
 		

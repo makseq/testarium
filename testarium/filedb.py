@@ -10,6 +10,7 @@ class FileDataBase:
         self.shuffled_keys = None
         self.shuffled_last = 0
         self._init = False
+        self._files_saved = False
 
     def IsInitialized(self):
         return self._init
@@ -27,6 +28,7 @@ class FileDataBase:
                     if not value in self.files.values():
                         self.files[_id] = value
         self._init = True
+        self._files_saved = False
 
     def ShuffleFiles(self):
         self.shuffled_keys = self.files.keys()
@@ -41,7 +43,7 @@ class FileDataBase:
             count *= self.GetFilesNumber()
 
         start = self.shuffled_last
-        end = None if count is None else (self.shuffled_last+count)
+        end = None if count is None else int(self.shuffled_last+count)
         self.shuffled_last = end
         return self.shuffled_keys[start:end]
 
@@ -65,6 +67,7 @@ class FileDataBase:
     def SetFiles(self, files):
         self.files = files
         self._init = True
+        self._files_saved = True
 
     def GetFiles(self):
         return self.files
@@ -75,12 +78,14 @@ class FileDataBase:
     def SaveFiles(self, filename):
         try: json.dump(self.files, open(filename, 'w'), sort_keys=True)
         except: return False
+        self._files_saved = True
         return True
 
     def LoadFiles(self, filename):
         try: self.files = json.load(open(filename))
         except: return False
         self._init = True
+        self._files_saved = True
         return True
 
     def SaveMeta(self, filename):
