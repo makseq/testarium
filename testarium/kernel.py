@@ -196,7 +196,7 @@ class Commit:
 	
 	def Print(self, skipUserPrint=False, web=False):
 		if not self._init: return [], []
-		
+
 		# user print func
 		if not self.common.commit_print_func is None and not skipUserPrint:
 			if not self.common.commit_print_func[0] is None:
@@ -245,7 +245,7 @@ class Commit:
 		if self.common.filedb is None:
 			self.common.filedb = filedb.FileDataBase()
 			self.common.filedb.LoadFiles(self.dir + '/../filedb.json')
-		self.filedb.SetFiles(self.common.filedb.GetFiles())
+		self.filedb.SetFiles(self.common.filedb)
 
 		self.name = self.desc['name']
 		self._init = True
@@ -310,8 +310,8 @@ class Branch:
 		# file db
 		if self.common.filedb is None:
 			self.common.filedb = filedb.FileDataBase()
-			self.common.filedb.LoadFiles(self.dir + '/filedb.json')
-		commit.filedb.SetFiles(self.common.filedb.GetFiles())
+			self.common.filedb.LoadFiles(dir + '/filedb.json')
+		commit.filedb.SetFiles(self.common.filedb)
 
 		self.commits[commit.name] = commit
 		return commit
@@ -344,8 +344,8 @@ class Branch:
 			# file db
 			if self.common.filedb is None:
 				self.common.filedb = filedb.FileDataBase()
-				self.common.filedb.LoadFiles(self.dir + '/filedb.json')
-			commit.filedb.SetFiles(self.common.filedb.GetFiles())
+				self.common.filedb.LoadFiles(dir + '/filedb.json')
+			commit.filedb.SetFiles(self.common.filedb)
 
 			try: commit.Load(dir + '/' + d)
 			except: pass

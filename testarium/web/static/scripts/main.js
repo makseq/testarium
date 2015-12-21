@@ -113,12 +113,13 @@ function commitFilter()
 
 function newCommitTable()
 {
-	$.getJSON('api/info', function(info) {
-		info = info.result
+	$.getJSON('api/branches', function(info) {
+		var branch = prompt("Please enter branch name", info.result);
+		if (branch == null) return
 
-		$.getJSON('api/branches/'+info.active_branch+'/commits', function (data) {
-			data.id = 'commits-table-'+info.active_branch+scope.commits.number
-			data.active_branch = info.active_branch
+		$.getJSON('api/branches/'+branch+'/commits', function (data) {
+			data.id = 'commits-table-'+branch+scope.commits.number
+			data.active_branch = branch
 			data.header = Object.keys(data.result[0])
 			$('body').append($("#commitsDivTemplate").render(data, true))
 

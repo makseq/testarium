@@ -16,6 +16,7 @@ class FileDataBase:
         return self._init
 
     def ScanDirectoryRecursively(self, watch_dir, extension):
+        count = 0
         for root, _, files in os.walk(watch_dir):
             for filename in files:
                 if filename.endswith(extension):
@@ -27,8 +28,11 @@ class FileDataBase:
                     value = { 'path': path, 'size': os.path.getsize(path) }
                     if not value in self.files.values():
                         self.files[_id] = value
+                        count += 1
+
         self._init = True
         self._files_saved = False
+        return count
 
     def ShuffleFiles(self):
         self.shuffled_keys = self.files.keys()
@@ -64,10 +68,10 @@ class FileDataBase:
         if _id in self.meta: self.meta[_id].update(data)
         else: self.meta[_id] = data
 
-    def SetFiles(self, files):
-        self.files = files
-        self._init = True
-        self._files_saved = True
+    def SetFiles(self, other_filedb):
+        self.files = other_filedb.files
+        self._init = other_filedb._init
+        self._files_saved = other_filedb._files_saved
 
     def GetFiles(self):
         return self.files
@@ -76,16 +80,20 @@ class FileDataBase:
         return len(self.files)
 
     def SaveFiles(self, filename):
-        try: json.dump(self.files, open(filename, 'w'), sort_keys=True)
+        try:
+            json.dump(self.files, open(filename, 'w'))
+            self._files_saved = True
         except: return False
-        self._files_saved = True
         return True
 
     def LoadFiles(self, filename):
-        try: self.files = json.load(open(filename))
+        try:
+            self._init = False
+            self._files_saved = False
+            self.files = json.load(open(filename))
+            self._init = True
+            self._files_saved = True
         except: return False
-        self._init = True
-        self._files_saved = True
         return True
 
     def SaveMeta(self, filename):

@@ -80,7 +80,7 @@ class WebServer:
 					"root" : t.common.root,
 					"best_score_max" : t.common.best_score_max
 				},
-				"branches" : [b for b in t.branches],
+				"branches" : [b.replace('.','-') for b in t.branches],
 				"active_branch" : t.ActiveBranch().name
 			}
 			return answer(object=res)
@@ -89,13 +89,14 @@ class WebServer:
 		@self.app.route('/api/branches')
 		def API_branches():
 			t.Load(True)
-			res = [b for b in t.branches]
+			res = [b.replace('.','-') for b in t.branches]
 			return answer(object=res)
 
 		#-----------------------------------------------
 		@self.app.route('/api/branches/<name>/commits')
 		def API_branches_commits(name):
 			t.Load(True)
+			if name.replace('-','.') in t.branches: name = name.replace('-','.')
 			t.ChangeBranch(name)
 
 			number = 100
