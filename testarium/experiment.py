@@ -229,7 +229,7 @@ class Experiment:
 		c.desc['duration'] = duration
 		c.desc['comment'] = comment
 		if len(newParams)>0: 
-			c.desc['comment'] = (c.desc['comment']+' ' if c.desc['comment'] else '') + str(newParams)
+			c.desc['comment'] = (c.desc['comment']+' ' if c.desc['comment'] else '') + json.dumps(newParams)
 			
 		# resave commit with the new description
 		c.Save()

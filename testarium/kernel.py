@@ -422,16 +422,18 @@ class Testarium:
 		self.common.root = dir
 		create_dir(self.root)
 		
-	def ChangeBranch(self, name):
+	def ChangeBranch(self, name, new=True):
 		if name in self.branches:
 			self.activeBranch = self.branches[name]
-		else:
+		elif new:
 			b = Branch()
 			b.name = name
 			b.common = self.common
 			b.Save(saveCommits=False)
 			self.branches[name] = b
 			self.activeBranch = b
+		else:
+			return
 		
 		# coderepos change branch
 		self.coderepos.changebranch(name)

@@ -97,7 +97,7 @@ class WebServer:
 		def API_branches_commits(name):
 			t.Load(True)
 			if name.replace('-','.') in t.branches: name = name.replace('-','.')
-			t.ChangeBranch(name)
+			t.ChangeBranch(name, new=False)
 
 			number = 100
 			commitName = ''
