@@ -31,7 +31,7 @@ class FileDataBase:
                         count += 1
 
         self._init = True
-        self._files_saved = False
+        self._files_saved = False if count > 0 else True
         return count
 
     def ShuffleFiles(self):
@@ -80,11 +80,15 @@ class FileDataBase:
         return len(self.files)
 
     def SaveFiles(self, filename):
-        try:
-            json.dump(self.files, open(filename, 'w'))
-            self._files_saved = True
-        except: return False
-        return True
+        if not self._files_saved:
+            try:
+                json.dump(self.files, open(filename, 'w'))
+                self._files_saved = True
+                print 'FILEDB SAVED to ', filename
+                return True
+            except: return False
+        else:
+            return False
 
     def LoadFiles(self, filename):
         try:

@@ -271,8 +271,7 @@ class Commit:
 
 			# file db
 			self.filedb.SaveMeta(self.dir+'/filedb.meta.json')
-			if not self.common.filedb._files_saved:
-				self.common.filedb.SaveFiles(self.dir+'/../filedb.json')
+			self.filedb.SaveFiles(self.dir+'/../filedb.json')
 		except:
 			raise Exception("Can't save the commit (config or desc write error): " + dir)
 		self._init = True
