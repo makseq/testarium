@@ -263,7 +263,8 @@ class Commit:
 			create_dir(dir)
 
 			# config
-			json.dump(self.config, open(self.dir + '/config.json', 'w'), indent=2)
+			config_str = json.dumps(self.config, indent=2, ensure_ascii=False).encode('utf-8')
+			open(self.dir + '/config.json', 'w').write(config_str)
 			if configOnly: return
 
 			# desc
