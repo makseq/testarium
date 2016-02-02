@@ -41,7 +41,7 @@ def fafr(pT, pU):
 	con = np.concatenate((pU, pT));
 	N = 1000
 	step = len(con) / N if len(con)>=N else 1
-	con = np.sort(con)[::step];
+	con = np.sort(con)[::step]
 	
 	FA = []
 	FR = []

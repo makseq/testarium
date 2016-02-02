@@ -1,4 +1,5 @@
 import os, json, random
+from utils import *
 
 class FileDataBaseException(Exception): pass
 
@@ -17,22 +18,35 @@ class FileDataBase:
 
     def ScanDirectoryRecursively(self, watch_dir, extension):
         count = 0
+        exist = 0
+
+        files_ok = {}
         for root, _, files in os.walk(watch_dir):
             for filename in files:
                 if filename.endswith(extension):
                     _id = str(self.last_id)
-                    self.last_id += 1
                     path = root + '/' + filename
 
                     # find duplicates
-                    value = { 'path': path, 'size': os.path.getsize(path) }
-                    if not value in self.files.values():
-                        self.files[_id] = value
+                    value = { 'path': path }
+                    added = False
+                    for i in self.files:
+                        if self.files[i]['path'] == value['path']:
+                            files_ok[i] = value
+                            added = True
+                            exist += 1
+                            break
+
+                    if not added:
+                        files_ok[_id] = value
+                        self.last_id += 1
                         count += 1
 
+
+        self.files = files_ok
         self._init = True
         self._files_saved = False if count > 0 else True
-        return count
+        return count, exist
 
     def ShuffleFiles(self):
         self.shuffled_keys = self.files.keys()
@@ -84,7 +98,7 @@ class FileDataBase:
             try:
                 json.dump(self.files, open(filename, 'w'))
                 self._files_saved = True
-                print 'FILEDB SAVED to ', filename
+                log('FileDB saved to ', filename)
                 return True
             except: return False
         else:
@@ -95,6 +109,7 @@ class FileDataBase:
             self._init = False
             self._files_saved = False
             self.files = json.load(open(filename))
+            self.last_id = max([int(i) for i in self.files.keys()])
             self._init = True
             self._files_saved = True
         except: return False
