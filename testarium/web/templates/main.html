@@ -57,7 +57,7 @@
 						{{else}}
 
 							{{if ~checkfile(prop) }}
-								<td><a class=fa-file-o href="{{:~cleanfile(prop)}}" target=blank></a></td>
+								<td><a class='fa fa-file-o' href="{{:~cleanfile(prop)}}" target=blank></a></td>
 							{{else ~checkgraph(prop) }}
 								<td data-url="{{:~cleangraph(prop)}}" onclick='return loadPlot(event, this)'><div class='fa fa-line-chart'></div></td>
 							{{else}}

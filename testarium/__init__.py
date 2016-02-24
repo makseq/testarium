@@ -91,7 +91,10 @@ def branch(args):
 			log('Config:', testarium.activeBranch.config_path)
 		testarium.SaveActiveBranch(saveCommits=False)
 		
-	
+
+def cleanup(args):
+	testarium.RemoveBrokenCommitsAndLoad()
+
 def delete(args):
 	if not args.name: log('Commit name is not specified'); return
 	commit = testarium.SelectCommits(branch_name = args.branch, name = args.name, N = 1)
@@ -140,7 +143,7 @@ def logs(args):
 		
 def where(args):
 	testarium.Load(loadCommits=True, silent=True)
-	out_commits, keyError = testarium.Where(args.conditions)
+	out_commits, error = testarium.Where(args.conditions)
 
 	if out_commits is None:
 		log('No commits in this branch')
@@ -148,9 +151,8 @@ def where(args):
 	else:
 		log('Found:', len(out_commits), 'commits')
 		print_commits(out_commits, args)
-		if keyError:
-			log('COLOR.YELLOW', 'Warning: There was KeyError:', keyError)
-			log('COLOR.YELLOW', 'Not all commits contain this key or key is wrong')
+		if error:
+			log('COLOR.YELLOW', 'Warning: There was an error:', error)
 	
 def webserver(args):
 	if not webOk: log('Web server is disabled. Try to "easy_install flask"'); exit(-101)
@@ -256,6 +258,7 @@ def main():
 	parser_run 		= subparsers.add_parser('run',		help='run experiment')
 	parser_branch	= subparsers.add_parser('branch',	help='operate with branches')
 	parser_delete	= subparsers.add_parser('del',		help='delete commit')
+	parser_cleanup	= subparsers.add_parser('cleanup',	help='remove broken commits')
 	parser_differ	= subparsers.add_parser('diff',		help='show difference between the commits')
 	parser_log		= subparsers.add_parser('log',		help='show commits history')
 	parser_where	= subparsers.add_parser('where',	help='show commits where user conditions are satisfied')
@@ -265,6 +268,7 @@ def main():
 	parser_run		.set_defaults(func=run)
 	parser_branch	.set_defaults(func=branch)
 	parser_delete	.set_defaults(func=delete)
+	parser_cleanup  .set_defaults(func=cleanup)
 	parser_differ	.set_defaults(func=differ)
 	parser_log		.set_defaults(func=logs)
 	parser_where	.set_defaults(func=where)

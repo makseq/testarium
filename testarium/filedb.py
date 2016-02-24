@@ -16,13 +16,20 @@ class FileDataBase:
     def IsInitialized(self):
         return self._init
 
-    def ScanDirectoryRecursively(self, watch_dir, extension):
+    def ScanDirectoryRecursively(self, watch_dir, extension, exclude):
         count = 0
         exist = 0
+        excluded = 0
 
         files_ok = {}
         for root, _, files in os.walk(watch_dir):
             for filename in files:
+
+                # skip excluded files
+                if filename in exclude:
+                    excluded += 1
+                    continue
+
                 if filename.endswith(extension):
                     _id = str(self.last_id)
                     path = root + '/' + filename
@@ -46,7 +53,7 @@ class FileDataBase:
         self.files = files_ok
         self._init = True
         self._files_saved = False if count > 0 else True
-        return count, exist
+        return count, exist, excluded
 
     def ShuffleFiles(self):
         self.shuffled_keys = self.files.keys()

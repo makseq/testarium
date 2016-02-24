@@ -38,6 +38,7 @@ class Common:
 		self.commit_print_func = [None] 
 		self.commit_cmp_func = [None]
 		self.filedb = None
+		self.allow_remove_commits = False
 
 #------------------------------------------------------------------------------
 ''' 
@@ -320,23 +321,24 @@ class Branch:
 		self._init = False
 		self.dir = dir
 		
-		# load branch descrition
+		# load branch description
 		path = dir + '/branch.json'
 		try: j = json.loads(open(path, 'r').read())
 		except: raise Exception('No branch description: ' + path)
 		
 		self.name = j['name']
 		self.config_path = j['config_path']
-		self.commits = dict()
 
-		if not loadCommits: return 
+		if not loadCommits: return
 		
 		# scan for commit dirs
 		subdirs = [d for d in os.listdir(dir) if os.path.isdir(dir + '/' + d)] 
 		
 		# load commits
+		removed = 0
 		for d in subdirs: 
-			if d in self.commits: continue
+			if d in self.commits:
+				continue
 			
 			commit = Commit()
 			commit.common = self.common
@@ -348,9 +350,18 @@ class Branch:
 			commit.filedb.SetFiles(self.common.filedb)
 
 			try: commit.Load(dir + '/' + d)
-			except: pass
+			except:
+				if self.common.allow_remove_commits:
+					try:
+						shutil.rmtree(dir + '/' + d)
+					except:
+						log("Can't remove:", dir + '/' + d)
+					else:
+						log('Commit removed:', dir + '/' + d)
+						removed += 1
 			else: self.commits[commit.name] = commit
-			
+
+		if removed > 0: log('Total removed commits:', removed)
 		self._init = True
 		
 	def Save(self, saveCommits):
@@ -536,7 +547,7 @@ class Testarium:
 		cond = cond.replace("['", "[").replace("']", "]").replace("[", "['").replace("]", "']")
 
 		# where
-		keyError = ''
+		error = ''
 		out_commits = []
 		for k in sort_keys:
 			c = commits[k].config
@@ -544,11 +555,16 @@ class Testarium:
 
 			show = False
 			try: exec 'if '+cond+ ': show = True';
-			except KeyError, e: keyError = e
-			except: pass
+			except Exception as e: error += str(e) + '; '
 
 			if show: out_commits.append(commits[k])
-		return out_commits, keyError
+		return out_commits, error
+
+	# Remove bad commits while load
+	def RemoveBrokenCommitsAndLoad(self):
+		self.common.allow_remove_commits = True
+		self.Load(True)
+		self.common.allow_remove_commits = False
 		
 	# Load branches and commits
 	# if loadCommits == False than branch descriptions will be loaded only
@@ -557,17 +573,13 @@ class Testarium:
 		j = self.LoadTestariumOnly()
 	
 		# load branches and commits if need
-		self.branches = dict()
 		subdirs = [d for d in os.listdir(self.root) if os.path.isdir(self.root + '/' + d)] 
 		commitsCount = 0
 		for d in subdirs:
-			b = Branch()
-			b.common = self.common
-			b.Load(self.root + '/' + d, loadCommits)
-			self.branches[b.name] = b
+			b = self.LoadBranch(d, silent=True, loadCommits=loadCommits)
 			commitsCount += len(b.commits)
 		self.activeBranch = self.branches[ j['activeBranch'] ]
-		
+
 		self._init = True
 		if not silent: log('Loaded', len(self.branches), 'branches and', commitsCount, 'commits')
 	
@@ -584,10 +596,10 @@ class Testarium:
 		
 	# Load active branch only
 	# if loadCommits == False than branch descriptions will be loaded only
-	def LoadBranch(self, name, silent=False):
-		b = Branch()
+	def LoadBranch(self, name, silent=False, loadCommits=True):
+		b = self.branches[name] if name in self.branches else Branch()
 		b.common = self.common
-		b.Load(self.root + '/' + name, loadCommits=True)
+		b.Load(self.root + '/' + name, loadCommits)
 		self.branches[b.name] = b
 		
 		if not silent: log('Branch', name,'has been loaded with', len(b.commits), 'commits')
@@ -596,10 +608,7 @@ class Testarium:
 	# Load active branch only
 	# if loadCommits == False than branch descriptions will be loaded only
 	def LoadActiveBranch(self, silent=False):
-		b = Branch()
-		b.common = self.common
-		b.Load(self.root + '/' + self.activeBranch.name, loadCommits=True)
-		self.branches[b.name] = b
+		b = self.LoadBranch(self.activeBranch.name, silent, loadCommits=True)
 		self.activeBranch = b
 		
 		if not silent: log('Active branch has been loaded with', len(b.commits), 'commits')
@@ -640,10 +649,10 @@ class Testarium:
 		log('Active branch has been saved')
 		
 	def DeleteCommit(self, commit):
+		name = commit.name
 		if commit.name in self.activeBranch.commits:
-			name = commit.name
 			shutil.rmtree(self.root + '/' + self.activeBranch.name + '/' + name)
 			del self.activeBranch.commits[name]
 			log('Commit', name, 'has been deleted from branch', self.activeBranch.name)
 		else:
-			log("Can't find commit", name, 'in branch', acriveBranch.name)
+			log("Can't find commit", name, 'in branch', self.activeBranch.name)

@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import flask, os, json, collections, copy
+import flask, os, json, collections, copy, traceback
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 
 
@@ -107,21 +107,21 @@ class WebServer:
 			# where
 			if 'where' in request.args:
 				where = request.args['where']
-				commits, keyError = t.Where(where)
+				commits, error = t.Where(where)
 
 			# simple select
 			else:
 				commits = t.SelectCommits(name, commitName, number)
-				keyError = None
+				error = None
 
 			printing = [c.Print(web=True) for c in commits]
 			res = [collections.OrderedDict(zip(col, val)) for col, val in printing]
 
 			status = 0
 			msg = "ok"
-			if keyError:
+			if error:
 				status=-150
-				msg="There was KeyError: '" + str(keyError) + "'. Not all commits contain this key or key is wrong"
+				msg="There was error: '" + str(error) + "'"
 			return answer(status=status, msg=msg, object=res)
 
 
@@ -145,4 +145,4 @@ class WebServer:
 			return render_template('main.html', t=self.t, commits=commits)
 
 		# app start
-		self.app.run(port=port, host='0.0.0.0')
+		self.app.run(port=port, host='0.0.0.0', use_reloader=False, debug=True)
