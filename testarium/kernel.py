@@ -106,8 +106,6 @@ class Config(collections.OrderedDict):
 		return s
 
 
-
-
 #------------------------------------------------------------------------------
 ''' 
 	Description contains a json desc 
@@ -135,7 +133,9 @@ class Commit:
 		self.name = 'none'
 		self.common = Common()
 		self._init = False
+		self.meta = filedb.MetaDataBase()
 		self.filedb = filedb.FileDataBase()
+		self.branch = None
 		
 	def __nonzero__(self):
 		return self._init
@@ -168,12 +168,18 @@ class Commit:
 	def SetName(self, name):
 		self.name = name
 		self.desc['name'] = name
-	
+
+	def SetCommon(self, common):
+		self.common = common
+
+	def SetBranch(self, branch):
+		self.branch = branch
+		self.desc['branch'] = branch.name
+		self.filedb = branch.filedb
+		self.meta.SetFileDB(self.filedb)
+
 	def SetConfig(self, c):
 		self.config = collections.OrderedDict(c)
-		 
-	def SetBranchName(self, name):
-		self.desc['branch'] = name
 		
 	def GetConfigPath(self):
 		if self.dir != '': return self.dir + '/config.json'
@@ -242,12 +248,9 @@ class Commit:
 		except: raise Exception("Can't load commit config: " + dir)
 
 		# file db
-		self.filedb.LoadMeta(self.dir+'/filedb.meta.json')
-		if self.common.filedb is None:
-			self.common.filedb = filedb.FileDataBase()
-			self.common.filedb.LoadFiles(self.dir + '/../filedb.json')
-		self.filedb.SetFiles(self.common.filedb)
+		self.meta.LoadMeta(self.dir+'/filedb.meta.json')
 
+		# common
 		self.name = self.desc['name']
 		self._init = True
 
@@ -272,8 +275,8 @@ class Commit:
 			json.dump(self.desc, open(self.dir + '/desc.json', 'w'), indent=2)
 
 			# file db
-			self.filedb.SaveMeta(self.dir+'/filedb.meta.json')
-			self.filedb.SaveFiles(self.dir+'/../filedb.json')
+			self.branch.filedb.SaveFiles(self.dir+'/../filedb.json')
+			self.meta.SaveMeta(self.dir+'/filedb.meta.json')
 		except:
 			raise Exception("Can't save the commit (config or desc write error): " + dir)
 		self._init = True
@@ -291,6 +294,7 @@ class Branch:
 		self.config_path = 'config/config.json'
 		self.commits = dict()
 		self.common = Common()
+		self.filedb = filedb.FileDataBase()
 	
 	def NewCommit(self, config):
 		commit = Commit()
@@ -305,14 +309,11 @@ class Branch:
 			count += 1
 
 		commit.SetConfig(config)
-		commit.SetBranchName(self.name)
-		commit.common = self.common
+		commit.SetBranch(self)
+		commit.SetCommon(self.common)
 
 		# file db
-		if self.common.filedb is None:
-			self.common.filedb = filedb.FileDataBase()
-			self.common.filedb.LoadFiles(dir + '/filedb.json')
-		commit.filedb.SetFiles(self.common.filedb)
+		self.filedb.LoadFiles(dir + '/filedb.json')
 
 		self.commits[commit.name] = commit
 		return commit
@@ -341,21 +342,17 @@ class Branch:
 				continue
 			
 			commit = Commit()
-			commit.common = self.common
+			commit.SetBranch(self)
+			commit.SetCommon(self.common)
 
 			# file db
-			if self.common.filedb is None:
-				self.common.filedb = filedb.FileDataBase()
-				self.common.filedb.LoadFiles(dir + '/filedb.json')
-			commit.filedb.SetFiles(self.common.filedb)
+			self.filedb.LoadFiles(dir + '/filedb.json')
 
 			try: commit.Load(dir + '/' + d)
 			except:
 				if self.common.allow_remove_commits:
-					try:
-						shutil.rmtree(dir + '/' + d)
-					except:
-						log("Can't remove:", dir + '/' + d)
+					try: shutil.rmtree(dir + '/' + d)
+					except: log("Can't remove:", dir + '/' + d)
 					else:
 						log('Commit removed:', dir + '/' + d)
 						removed += 1
@@ -375,7 +372,7 @@ class Branch:
 		
 		path = dir + '/branch.json'
 		try: json.dump(desc, open(path, 'w'), indent=2)
-		except: raise Exception("Can't save the branch descrition: " + path)
+		except: raise Exception("Can't save the branch description: " + path)
 
 		if not saveCommits: return
 		

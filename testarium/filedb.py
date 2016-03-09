@@ -6,7 +6,6 @@ class FileDataBaseException(Exception): pass
 class FileDataBase:
     def __init__(self):
         self.files = {}
-        self.meta = {}
         self.last_id = 0
         self.shuffled_keys = None
         self.shuffled_last = 0
@@ -31,24 +30,22 @@ class FileDataBase:
                     continue
 
                 if filename.endswith(extension):
-                    _id = str(self.last_id)
                     path = root + '/' + filename
 
                     # find duplicates
-                    value = { 'path': path }
                     added = False
+                    value = { 'path': path }
                     for i in self.files:
-                        if self.files[i]['path'] == value['path']:
+                        if self.files[i]['path'] == path:
                             files_ok[i] = value
                             added = True
                             exist += 1
                             break
 
                     if not added:
-                        files_ok[_id] = value
+                        files_ok[str(self.last_id)] = value
                         self.last_id += 1
                         count += 1
-
 
         self.files = files_ok
         self._init = True
@@ -76,18 +73,9 @@ class FileDataBase:
         return self.files[_id]
 
     def GetPath(self, _id):
-        return self.files[_id]['path']
-
-    def SetMeta(self, _id, data):
-        if not isinstance(data, dict):  raise FileDataBaseException('data must be a dict '+str(data))
-        if not _id in self.files: raise FileDataBaseException('no such _id '+str(_id))
-        self.meta[_id] = data
-
-    def AddMeta(self, _id, data):
-        if not isinstance(data, dict):  raise FileDataBaseException('data must be a dict '+str(data))
-        if not _id in self.files: raise FileDataBaseException('no such _id '+str(_id))
-        if _id in self.meta: self.meta[_id].update(data)
-        else: self.meta[_id] = data
+        try: int(_id)
+        except: return _id
+        else: return self.files[_id]['path']
 
     def SetFiles(self, other_filedb):
         self.files = other_filedb.files
@@ -103,9 +91,10 @@ class FileDataBase:
     def SaveFiles(self, filename):
         if not self._files_saved:
             try:
+                filename = os.path.normpath(filename)
                 json.dump(self.files, open(filename, 'w'))
                 self._files_saved = True
-                log('FileDB saved to ', filename)
+                log('FileDB saved to:', filename)
                 return True
             except: return False
         else:
@@ -116,11 +105,19 @@ class FileDataBase:
             self._init = False
             self._files_saved = False
             self.files = json.load(open(filename))
-            self.last_id = max([int(i) for i in self.files.keys()])
+            self.last_id = max([int(i) for i in self.files.keys()])+1
             self._init = True
             self._files_saved = True
         except: return False
         return True
+
+class MetaDataBase:
+    def __init__(self):
+        self.meta = {}
+        self.filedb = None
+
+    def SetFileDB(self, filedb):
+        self.filedb = filedb
 
     def SaveMeta(self, filename):
         # save json with meta info
@@ -135,3 +132,12 @@ class FileDataBase:
         try: self.meta = json.load(open(filename))
         except: return False
         return True
+
+    def SetMeta(self, _id, data):
+        if not isinstance(data, dict):  raise FileDataBaseException('data must be a dict '+str(data))
+        self.meta[_id] = data
+
+    def AddMeta(self, _id, data):
+        if not isinstance(data, dict):  raise FileDataBaseException('data must be a dict '+str(data))
+        if _id in self.meta: self.meta[_id].update(data)
+        else: self.meta[_id] = data

@@ -109,7 +109,7 @@ class Experiment:
 			count = 0
 			fault = 0
 			beginTime = time.time()
-			best_commit = kernel.Commit() # not inited commit with worst score
+			best_commit = kernel.Commit() # not inited commit with the worst score
 			
 			# main loop
 			for comb in combinations:
