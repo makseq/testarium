@@ -313,6 +313,7 @@ class Branch:
 		commit.SetCommon(self.common)
 
 		# file db
+		self.filedb.ResetShuffle()
 		self.filedb.LoadFiles(dir + '/filedb.json')
 
 		self.commits[commit.name] = commit

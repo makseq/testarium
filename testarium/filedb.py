@@ -69,6 +69,10 @@ class FileDataBase:
         self.shuffled_last = end
         return self.shuffled_keys[start:end]
 
+    def ResetShuffle(self):
+        self.shuffled_keys = None
+        self.shuffled_last = 0
+
     def GetFile(self, _id):
         return self.files[_id]
 
