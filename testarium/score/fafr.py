@@ -22,6 +22,8 @@ import numpy as np
 import urlparse
 import json
 
+class FafrException(Exception): pass
+
 def fafr(pT, pU):
 	#computes false alarms, rejects and corresponding thresholds for a given
 	#target and background data
@@ -95,6 +97,35 @@ def Score(dir):
 	try: open(dir + '/fafr.txt', 'w').write(j)
 	except: print "Can't save: " + dir + '/fafr.txt'
 	
+	# calc EER
+	eer = FA[np.argmin(np.abs(FA-FR))]
+	minDCF = np.min(100*FA + FR)
+	return {'score' : eer, 'minDCF' : minDCF}
+
+def Score(commit):
+	# collect data from commit meta and file db
+	pos, neg = [], []
+	for _id in commit.meta.GetAllIds():
+		probs = commit.meta.GetMeta(_id)['probs']
+		targets = commit.filedb.GetFile(_id)['targets']
+
+		for name in probs: # unpack probs by name
+			if targets[name] == 1: pos += [probs[name]]
+			else: neg += [probs[name]]
+
+	# calc fafr
+	print len(pos), len(neg)
+	pos, neg = np.array(pos), np.array(neg)
+	pos = pos[np.logical_not(np.isnan(pos))]
+	neg = neg[np.logical_not(np.isnan(neg))]
+	FA, FR, th = fafr(pos, neg)
+
+	# save cache
+	data = [ { 'x' : FA[i], 'y' : FR[i], 't' : th[i] } for i, x in enumerate(FR) ]
+	j = json.dumps({ 'xAxis': 'False Alarm', 'yAxis': 'False Reject', 'data': data})
+	try: open(commit.dir + '/fafr.txt', 'w').write(j)
+	except: print "Can't save: " + commit.dir + '/fafr.txt'
+
 	# calc EER
 	eer = FA[np.argmin(np.abs(FA-FR))]
 	minDCF = np.min(100*FA + FR)

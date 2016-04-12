@@ -15,7 +15,7 @@ class FileDataBase:
     def IsInitialized(self):
         return self._init
 
-    def ScanDirectoryRecursively(self, watch_dir, extension, exclude):
+    def ScanDirectoryRecursively(self, watch_dir, extension, exclude, myFileInfoExtractor=None):
         count = 0
         exist = 0
         excluded = 0
@@ -35,6 +35,8 @@ class FileDataBase:
                     # find duplicates
                     added = False
                     value = { 'path': path }
+                    if myFileInfoExtractor:
+                        value.update(myFileInfoExtractor(path))
                     for i in self.files:
                         if self.files[i]['path'] == path:
                             files_ok[i] = value
@@ -104,6 +106,9 @@ class FileDataBase:
         else:
             return False
 
+    def GetAllIds(self):
+        return self.files.keys()
+
     def LoadFiles(self, filename):
         try:
             self._init = False
@@ -145,3 +150,10 @@ class MetaDataBase:
         if not isinstance(data, dict):  raise FileDataBaseException('data must be a dict '+str(data))
         if _id in self.meta: self.meta[_id].update(data)
         else: self.meta[_id] = data
+
+    def GetMeta(self, _id):
+        if not _id in self.meta: raise FileDataBaseException('incorrect id ' + str(_id))
+        return self.meta[_id]
+
+    def GetAllIds(self):
+        return self.meta.keys()

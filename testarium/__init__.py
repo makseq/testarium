@@ -157,7 +157,7 @@ def where(args):
 def webserver(args):
 	if not webOk: log('Web server is disabled. Try to "easy_install flask"'); exit(-101)
 	
-	w = web.WebServer(testarium)
+	w = web.WebServer(testarium, experiment)
 	w.Start(int(args.port))
 	
 def mail(args):

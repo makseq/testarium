@@ -16,12 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import flask, os, json, collections, copy, traceback
+import flask, os, json, collections, copy, traceback, copy
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 
 
 DEBUG = True
 t = 'None'
+e = 'None'
 
 # answer for api
 def answer(status=0, msg="", object=None):
@@ -37,15 +38,17 @@ def answer(status=0, msg="", object=None):
 
 
 class WebServer:
-	
-	def __init__(self, testarium):
+
+	def __init__(self, testarium, experiment):
 		self.app = Flask(__name__)
 		self.app.config.from_object(__name__)
-		
+
 		self.t = testarium
 		self.t.Load(True)
-		global t
+		self.e = experiment
+		global t, e
 		t = self.t
+		e = self.e
 
 	def Start(self, port):
 
@@ -93,11 +96,11 @@ class WebServer:
 			return answer(object=res)
 
 		#-----------------------------------------------
-		@self.app.route('/api/branches/<name>/commits')
-		def API_branches_commits(name):
+		@self.app.route('/api/branches/<branch_name>/commits')
+		def API_branches_commits(branch_name):
 			t.Load(True)
-			if name.replace('-','.') in t.branches: name = name.replace('-','.')
-			t.ChangeBranch(name, new=False)
+			if branch_name.replace('-', '.') in t.branches: branch_name = branch_name.replace('-', '.')
+			t.ChangeBranch(branch_name, new=False)
 
 			number = 100
 			commitName = ''
@@ -111,7 +114,7 @@ class WebServer:
 
 			# simple select
 			else:
-				commits = t.SelectCommits(name, commitName, number)
+				commits = t.SelectCommits(branch_name, commitName, number)
 				error = None
 
 			printing = [c.Print(web=True) for c in commits]
@@ -124,6 +127,39 @@ class WebServer:
 				msg="There was error: '" + str(error) + "'"
 			return answer(status=status, msg=msg, object=res)
 
+		#-----------------------------------------------
+		@self.app.route('/api/branches/<branch_name>/commits/<commit_name>')
+		def API_commit(branch_name, commit_name):
+			status = 0
+			msg = "ok"
+
+			# get commit
+			commit = t.SelectCommits(branch_name, commit_name, 1)
+			if not commit: return answer(-151, 'no commit with this name ' + commit_name)
+			commit = commit[0]
+
+			# filter by file info
+			if 'file_filter' in request.args:
+				file_filter = request.args['file_filter']
+				cond = file_filter.replace("['", "[").replace("']", "]").replace("[", "['").replace("]", "']")
+				commit = copy.deepcopy(commit)
+
+				error = 'ok; '
+				for _id in commit.meta.GetAllIds():
+					f = commit.filedb.GetFile(_id)
+					m = commit.meta.meta[_id]
+					try: exec 'if not (' + cond + '): del commit.meta.meta[_id]' in globals(), locals();
+					except Exception as e: error += str(e) + '; '
+				msg = error
+
+				# rescore commit by user score
+				global e
+				if e.user_score:
+					commit.desc.update(e.user_score(commit))
+
+
+			res = {'config': commit.config, 'desc': commit.desc, 'meta': commit.meta.meta}
+			return answer(status=status, msg=msg, object=res)
 
 		### ROOT ###
 
@@ -142,7 +178,7 @@ class WebServer:
 			except: pass
 
 			commits = self.t.SelectCommits(t.activeBranch.name, name, number)
-			return render_template('main.html', t=self.t, commits=commits)
+			return render_template('main.html', t=self.t)
 
 		# app start
 		self.app.run(port=port, host='0.0.0.0', use_reloader=False, debug=True)
