@@ -181,7 +181,8 @@ function newCommitTable()
 			})
 
 			scope.commits.number++
-			commits.focusin();
+			commits.children('.body').resizable();
+
 
 			//setTimeout(commitUpdate, 2000, commits.attr('id'))
 		}); // api/branch/name/commits
@@ -223,7 +224,7 @@ function newPlot()
 		scope.plot.active='';
 	})
 
-	scope.plot.number++
+	scope.plot.number++;
 	plot.focusin()
 }
 

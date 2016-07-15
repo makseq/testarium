@@ -66,7 +66,7 @@ setup(name='testarium',
 	  author='Max Tkachenko, Danila Doroshin',
 	  author_email='makseq@gmail.com',
 	  license='GNU GPLv3',
-      version='0.2.1',
+      version='0.2.4',
       packages=['testarium', 'testarium/score', 'testarium/web'],
 	  install_requires=['flask', 'colorama', 'pycrypto'],
 	  include_package_data=True,
@@ -78,6 +78,6 @@ setup(name='testarium',
 		"License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 		"Operating System :: OS Independent",
 		"Programming Language :: Python",
-		"Intended Audience :: Science/Research"
+        "Intended Audience :: Science/Research"
 	  ]
     )

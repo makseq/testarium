@@ -48,12 +48,17 @@
 					{{if key=="config"}}
 						{{setvar "path" prop /}}
 					{{/if}}
+					{{if key=="desc"}}
+						{{setvar "path_desc" prop /}}
+					{{/if}}
 					{{/props}}
 
 					{{props :}}
-					{{if key!="config"}}
+					{{if key!="config" && key!="desc"}}
 						{{if key=="name" }}
 							<td><a href="{{:~getvarfile('path')}}" target=blank>{{:prop}}</a></td>
+						{{else key=="score" }}
+							<td><a href="{{:~getvarfile('path_desc')}}" target=blank>{{:prop}}</a></td>
 						{{else}}
 
 							{{if ~checkfile(prop) }}
@@ -90,7 +95,7 @@
 				<table>
 					<thead><tr>
 						{{props header}}
-						{{if prop!="config" }}
+						{{if prop!="config" && prop!="desc"}}
 							<th>{{:prop}}</th>
 						{{/if}}
 						{{/props}}
