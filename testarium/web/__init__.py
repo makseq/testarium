@@ -98,10 +98,17 @@ class WebServer:
             return answer(object=res)
 
         # -----------------------------------------------
+        @self.app.route('/api/branches/active')
+        def API_branches_active():
+            t.Load(False)
+            return answer(object=t.ActiveBranch().name)
+
+        # -----------------------------------------------
         @self.app.route('/api/branches/<branch_name>/commits')
         def API_branches_commits(branch_name):
             t.Load(True)
             if branch_name.replace('-', '.') in t.branches: branch_name = branch_name.replace('-', '.')
+            if branch_name == '~': branch_name = t.ActiveBranch().name
             t.ChangeBranch(branch_name, new=False)
 
             number = 100

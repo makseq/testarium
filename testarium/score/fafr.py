@@ -43,7 +43,7 @@ def fafr(pT, pU):
     if nsize == 0: nsize = 1.0
 
     con = np.concatenate((pU, pT))
-    con = np.linspace(np.min(con), np.max(con), 200.0)
+    #con = np.linspace(np.min(con), np.max(con), 200.0)
     s = np.sort(con)
     step = con.shape[0]/200 if len(con) > 200 else 1
     con = s[::step]

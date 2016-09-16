@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*var __links = document.querySelectorAll('a');
 function __linkClick(e) { parent.window.postMessage(this.href, '*');};
 for (var i = 0, l = __links.length; i < l; i++) {
-	if ( __links[i].getAttribute('target') == '_blank' ) { 
+	if ( __links[i].getAttribute('target') == '_blank' ) {
 		__links[i].addEventListener('click', __linkClick, false);
 	}
 }*/
@@ -28,9 +28,9 @@ function d3LoadAndPlot(url, place_id, color, done)
 {
 	$.getJSON(url, function (plotdata) {
 		if ('xAxis' in plotdata && 'yAxis' in plotdata)
-			d3ShowGraph(plotdata.data, 'False Alarm', 'False Reject', place_id, color)
+			d3ShowGraph(plotdata.data, 'False Alarm', 'False Reject', place_id, color);
 		else
-			d3ShowGraph(plotdata, 'X', 'Y', place_id, color)
+			d3ShowGraph(plotdata, 'X', 'Y', place_id, color);
 
 		done();
 	})
@@ -38,14 +38,23 @@ function d3LoadAndPlot(url, place_id, color, done)
 
 function d3ShowGraph(plotdata, xAxisName, yAxisName, place, color)
 {
-
 	var svg;
 	var xAxis, yAxis;
-	var data = 	{ "x":[0, 0.5], "y":[0, 1] };
-	var line, points, x, y;
-	var colors = ['black', color, 'red', 'purple', 'green']
-	var someAxis = [{'x':0, 'y':0, 't':0}, {'x':0, 'y':1, 't':0}, {'x':0, 'y':0, 't':0}, {'x':1, 'y':0, 't':0}]
-	data = [someAxis, plotdata];
+	var line, x, y;
+	var someAxis = [{'x':0, 'y':0, 't':0}, {'x':0, 'y':1, 't':0}, {'x':0, 'y':0, 't':0}, {'x':1, 'y':0, 't':0}];
+	var data = $(place).data('data');
+	var colors = $(place).data('colors');
+
+	if (typeof(data) == 'undefined') {
+		data = [someAxis, plotdata];
+		colors = ['black', color]
+	}
+	else {
+		data.push(plotdata);
+		colors.push(color)
+	}
+	$(place).data('data', data);
+	$(place).data('colors', colors);
 
 
 	//************************************************************
@@ -139,8 +148,6 @@ function d3ShowGraph(plotdata, xAxisName, yAxisName, place, color)
 		.attr("width", width)
 		.attr("height", height);
 
-
-
 	//************************************************************
 	// Create D3 line object and draw data on our SVG object
 	//************************************************************
@@ -162,7 +169,7 @@ function d3ShowGraph(plotdata, xAxisName, yAxisName, place, color)
 	//************************************************************
 	// Draw points on SVG object based on the data given
 	//************************************************************
-	points = svg.selectAll('.dots')
+	var points = svg.selectAll('.dots')
 		.data(data)
 		.enter()
 		.append("g")
@@ -182,14 +189,16 @@ function d3ShowGraph(plotdata, xAxisName, yAxisName, place, color)
 		.attr('class', function(d,i){ return d.index==0 ? '' : 'dot' })
 		.attr("r", function(d,i){ return d.index==0? 0.0 : 1.0 })
 		.attr('fill', function(d,i){
-			return colors[d.index%colors.length];
+			return colors[d.index % colors.length];
 		})
 		.attr("transform", function(d) {
 			return "translate(" + x(d.point.x) + "," + y(d.point.y) + ")"; }
 		)
 		.append("svg:title")
-		.text(function(d) { return xAxisName + ' = ' + d.point.x.toFixed(5)  + '\n'+ yAxisName + ' = ' + d.point.y.toFixed(5) + '\n' + 'Threshold = ' + d.point.t.toFixed(5); });
+		.text(function(d) { return xAxisName + ' = ' + d.point.x.toFixed(5)  + '\n'+ yAxisName +
+				' = ' + d.point.y.toFixed(5) + '\n' +
+				'Threshold = ' + d.point.t.toFixed(5); });
 
-		$(place).show();
+	$(place).show();
 }
 
