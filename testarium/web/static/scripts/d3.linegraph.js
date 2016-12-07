@@ -154,7 +154,12 @@ function d3ShowGraph(plotdata, xAxisName, yAxisName, place, color)
 	line = d3.svg.line()
 		.interpolate("linear")
 		.x(function(d) { return x(d.x); })
-		.y(function(d) { return y(d.y); });
+		.y(function(d) { return y(d.t); });
+
+	line = d3.svg.line()
+		.interpolate("linear")
+		.x(function(d) { return x(d.y); })
+		.y(function(d) { return y(d.t); });
 
 	svg.selectAll('.line')
 		.data(data)
