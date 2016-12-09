@@ -553,7 +553,8 @@ class Testarium:
 
         # commits
         commits = branch.commits
-        sort_keys = sorted([k for k in commits], reverse=True)
+        #sort_keys = sorted([k for k in commits], reverse=True)
+        sort_keys = sorted(commits.keys(), reverse=True)
         if not sort_keys: log('No commits in this branch:', branch.name); return
 
         # -----------------------------------------------
@@ -680,7 +681,7 @@ class Testarium:
     def LoadBranch(self, name, silent=False, loadCommits=True):
         b = self.branches[name] if name in self.branches else Branch()
         b.common = self.common
-        b.Load(self.root + '/' + name, loadCommits)
+        b.Load(self.root + '/' + name, loadCommits=not b._init)
         self.branches[b.name] = b
 
         if not silent: log('Branch', name, 'has been loaded with', len(b.commits), 'commits')

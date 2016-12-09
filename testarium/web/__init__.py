@@ -142,11 +142,20 @@ class WebServer:
             global e
             status = 0
             msg = "ok"
+            res = None
 
             # get commit
             commit = t.SelectCommits(branch_name, commit_name, 1)
             if not commit: return answer(-151, 'no commit with this name ' + commit_name)
             commit = commit[0]
+
+            # modify
+            if 'op' in request.args and request.args['op']=='modify':
+                if 'comment' in request.args:
+                    commit.desc['comment'] = request.args['comment']
+                    commit.Save()
+                    return answer(status=status, msg=msg, object=res)
+
 
             # filter by file info
             if 'filter' in request.args:
@@ -189,6 +198,7 @@ class WebServer:
                 res = {'config': commit.config, 'desc': commit.desc, 'meta': commit.meta.meta}
             return answer(status=status, msg=msg, object=res)
 
+
         ### ROOT ###
 
         # -----------------------------------------------
@@ -213,4 +223,4 @@ class WebServer:
             return render_template('main.html', t=self.t)
 
         # app start
-        self.app.run(port=port, host='0.0.0.0', use_reloader=False, debug=True)
+        self.app.run(port=port, host='0.0.0.0', use_reloader=True, debug=True)

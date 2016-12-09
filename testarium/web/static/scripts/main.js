@@ -203,6 +203,13 @@ function showInfo()
 		})
 }
 
+function saveComment(e)
+{
+	var branch = $(e.currentTarget).closest('.commit-table').data('activeBranch');
+	var commitName = $(e.currentTarget).closest('.commit-name').data('commit-name')
+	$.ajax('api/branches/'+branch+'/commits/'+commitName+'?op=modify&comment='+$(e.currentTarget).text())
+}
+
 function newPlot()
 {
 	data = { id: 'plot-'+scope.plot.number };

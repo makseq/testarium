@@ -42,9 +42,11 @@
 		<table>
 			<tbody>
 				{{for result}}
-				<tr>
 
 					{{props :}}
+					{{if key=="name"}}
+					    <tr data-commit-name="{{:prop}}" class='commit-name'>
+					{{/if}}
 					{{if key=="config"}}
 						{{setvar "path" prop /}}
 					{{/if}}
@@ -59,6 +61,8 @@
 							<td><a href="{{:~getvarfile('path')}}" target=blank>{{:prop}}</a></td>
 						{{else key=="score" }}
 							<td><a href="{{:~getvarfile('path_desc')}}" target=blank>{{:prop}}</a></td>
+						{{else key=="comment" }}
+						    <td><div contenteditable="true" onkeyup="saveComment(event)">{{:prop}}</div></td>
 						{{else}}
 
 							{{if ~checkfile(prop) }}
