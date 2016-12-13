@@ -160,7 +160,7 @@ html {
 	background:rgba(245,245,245,0.5);
 	cursor: move;
 }
-.plot .header .close-button {
+.plot .header .close-button, .plot .header .change-plot-button {
 	display:block;
 	float:right;
 	padding-right: 1%;

@@ -222,6 +222,14 @@ function newPlot()
 	close.data('plot-id', data.id);
 	close.click(function(){ $('#'+$(this).data('plot-id')).remove(); });
 
+	change_plot = plot.find('.change-plot-button');
+	change_plot.data('plot-id', data.id);
+	change_plot.click(function(){
+		$('#'+$(this).data('plot-id')+' .xy_plot').toggle();
+		$('#'+$(this).data('plot-id')+' .xtyt_plot').toggle();
+	});
+
+
 	// focus
 	plot.attr('tabindex',-1);
 	plot.on('focusin', focusWindow);
@@ -244,8 +252,8 @@ function loadPlot(event, obj)
 		newPlot();
 
 	// random color for plot line
-	to = 200;
-	from = 40;
+	to = 255;
+	from = 0;
 	bright = to-from;
 	random = {r: from+Math.floor(Math.random()*bright), g: from+Math.floor(Math.random()*bright), b: from+Math.floor(Math.random()*bright)};
 	backcolor = 'rgb('+random.r+','+random.g+','+random.b+')';
@@ -293,11 +301,9 @@ $( document ).ready(function() {
 		newCommitTableByBranch(data.result);  // load active branch commit table
 	});
 
-	$('html').mouseup(function(e){
-		if (e.button == 2) {
-			tmp = $('html').css('background');
+	$('#control').dblclick(function(e){
+			var tmp = $('html').css('background');
 			$('html').css('background', prev_background);
 			prev_background = tmp;
-		}
 	})
 });
