@@ -185,6 +185,7 @@ function newCommitTableByBranch(branch)
 function newCommitTable()
 {
 	$.getJSON('api/branches', function(info) {
+
 		var branch = prompt("Please enter branch name", info.result);
 		if (branch == null) return;
 		newCommitTableByBranch(branch)
@@ -241,6 +242,9 @@ function newPlot()
 		scope.plot.active='';
 	});
 
+	// get position of active commit table and set right corner for new plot
+	var link = $('#'+scope.commits.active);
+	plot.css({top: link.offset().top, left: link.offset().left + link.outerWidth() + 30});
 	scope.plot.number++;
 	plot.focusin()
 }

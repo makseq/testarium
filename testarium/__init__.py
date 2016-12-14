@@ -19,9 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import kernel, experiment as experiment_module
 from utils import *
-import sys, argparse, json
+import sys, argparse, json, collections, copy
 
-try: import numpy as np, collections
+try: import numpy as np
 except: pass
 
 try: import web; webOk = True
@@ -91,6 +91,38 @@ def branch(args):
         else:
             log('Config:', testarium.activeBranch.config_path)
         testarium.SaveActiveBranch(saveCommits=False)
+
+
+def rescore(args):
+    # get commit
+    commits = testarium.SelectCommits(branch_name=args.branch, name=args.name, N=args.n)
+    if not commits:
+        log('No commits')
+        return -1
+
+    for commit in commits:
+        # filter by file info
+        if args.filter:
+            filter = args.filter
+            cond = filter.replace("['", "[").replace("']", "]").replace("[", "['").replace("]", "']")
+
+            error = 'ok; '
+            for _id in commit.meta.GetAllIds():
+                f = commit.filedb.GetFile(_id)
+                m = commit.meta.meta[_id]
+                try:
+                    exec 'if not (' + cond + '): del commit.meta.meta[_id]' in globals(), locals()
+                except Exception as exception:
+                    error += str(exception) + '; '
+            msg = error
+            log(msg)
+
+        # rescore commit by user score
+        old = copy.deepcopy(commit)
+        if experiment.user_score:
+            commit.desc.update(experiment.user_score(commit))
+            commit.Save()
+        log(old, '==>', commit)
 
 
 def cleanup(args):
@@ -280,6 +312,7 @@ def main():
     parser_run = subparsers.add_parser('run', help='run experiment')
     parser_branch = subparsers.add_parser('branch', help='operate with branches')
     parser_delete = subparsers.add_parser('del', help='delete commit')
+    parser_rescore = subparsers.add_parser('rescore', help='run user scoring function for commits in the branch')
     parser_cleanup = subparsers.add_parser('cleanup', help='remove broken commits')
     parser_differ = subparsers.add_parser('diff', help='show difference between the commits')
     parser_log = subparsers.add_parser('log', help='show commits history')
@@ -290,6 +323,7 @@ def main():
     parser_run.set_defaults(func=run)
     parser_branch.set_defaults(func=branch)
     parser_delete.set_defaults(func=delete)
+    parser_rescore.set_defaults(func=rescore)
     parser_cleanup.set_defaults(func=cleanup)
     parser_differ.set_defaults(func=differ)
     parser_log.set_defaults(func=logs)
@@ -316,7 +350,7 @@ def main():
     parser_delete.add_argument('name', default='', nargs='?',
                                help="name of commit. Use 'best' for the best scored commit. 0 is last, -1 is first commit")
     parser_delete.add_argument('--branch', default='', dest='branch',
-                               help='name of branch, stay it empty to use active branch')
+                               help='name of branch, leave it empty to use active branch')
 
     # diff
     parser_differ.add_argument('nameA', default='best', nargs='?',
@@ -337,14 +371,24 @@ def main():
                             help='print incremental difference between the commit configs')
     parser_log.add_argument('-c', default=False, dest='print_config', action='store_true', help='print configs')
     parser_log.add_argument('-k', default=[], dest='config_keys', nargs='+', help='config keys to show')
-    parser_log.add_argument('-n', default=-1, dest='n', type=int, help='number of commits to display')
+    parser_log.add_argument('-n', default=-1, dest='n', type=int, help='number of commits to display, -1 = all')
     parser_log.add_argument('--branch', default='', dest='branch',
-                            help='name of branch to be shown, stay it empty to use active branch')
+                            help='name of branch to be shown, leave it empty to use active branch')
+
+    # rescore
+    parser_rescore.add_argument('name', default='', nargs='?',
+                            help="name of commit. Use 'best' for the best scored commit. 0 is last, -1 is first commit")
+    parser_rescore.add_argument('-n', default=1, dest='n', type=int, help='number of commits to rescore, -1 = all')
+    parser_rescore.add_argument('--branch', default='', dest='branch',
+                            help='name of branch to be shown, leave it empty to use active branch')
+    parser_rescore.add_argument('-f', default='', dest='filter',
+                            help='file filter to exclude scores with metadata from scoring')
 
     # where
     parser_where.add_argument('conditions', default='True', nargs='+',
-                              help="user conditions: 'c' - config dict, 'd' - descrition dict, count - currect commit position, found - already found commit number. \
-        Where proceeds all commits from all branches")
+                              help="user conditions: 'c' - config dict, 'd' - descrition dict, count - currect commit "
+                                   "position, found - already found commit number. "
+                                   "Where proceeds all commits from all branches")
     parser_where.add_argument('-i', default=False, dest='print_diff', action='store_true',
                               help='print incremental difference between the commit configs')
     parser_where.add_argument('-c', default=False, dest='print_config', action='store_true', help='print configs')
@@ -362,7 +406,8 @@ def main():
     parser_mail.add_argument('--proxy', default=None, dest='proxy', nargs=2,
                              help='proxy (http) for sending email, eg.: "192.168.10.1 8080"')
     parser_mail.add_argument('--auto', default=-1, dest='time',
-                             help='send autoreports if experiment duration is higher specified time (in seconds), set -1 to disable it')
+                             help='send autoreports if experiment duration is higher specified time (in seconds), '
+                                  'set -1 to disable it')
     parser_mail.add_argument('--test', default=False, dest='test', action='store_true', help='send testing email')
     parser_mail.add_argument('--reset', default=False, dest='reset', action='store_true',
                              help='reset mail settings (account, password and others)')

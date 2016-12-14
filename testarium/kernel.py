@@ -545,7 +545,7 @@ class Testarium:
             if branch_name in self.branches:
                 branch = self.LoadBranch(self.branches[branch_name].name, silent=True)
             else:
-                log('COLOR.RED', 'Error: no such branch:', branch_name);
+                log('COLOR.RED', 'Error: no such branch:', branch_name)
                 return
         # select active branch
         else:
@@ -611,7 +611,7 @@ class Testarium:
         # -----------------------------------------------
         # print N commits
         else:
-            if N == -1: N = 5
+            if N == -1: N = None
             return [commits[c] for c in sort_keys[0:N]]
 
     # Where commit selector (expressions for desc and config to select commit)
