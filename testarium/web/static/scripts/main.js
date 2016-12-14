@@ -241,6 +241,9 @@ function newPlot()
 		scope.plot.active='';
 	});
 
+	// position
+
+	//plot.resizable();
 	scope.plot.number++;
 	plot.focusin()
 }

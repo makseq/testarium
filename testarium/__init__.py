@@ -96,6 +96,26 @@ def branch(args):
 def cleanup(args):
     testarium.RemoveBrokenCommitsAndLoad()
 
+def rescore(args):
+    # filter by file info
+    if 'filter' in args:
+        filter = args['filter']
+        cond = filter.replace("['", "[").replace("']", "]").replace("[", "['").replace("]", "']")
+        commit = copy.deepcopy(commit)
+
+        error = 'ok; '
+        for _id in commit.meta.GetAllIds():
+            f = commit.filedb.GetFile(_id)
+            m = commit.meta.meta[_id]
+            try:
+                exec 'if not (' + cond + '): del commit.meta.meta[_id]' in globals(), locals()
+            except Exception as exception:
+                error += str(exception) + '; '
+        msg = error
+
+        # rescore commit by user score
+        if e.user_score:
+            commit.desc.update(e.user_score(commit))
 
 def delete(args):
     if not args.name: log('Commit name is not specified'); return

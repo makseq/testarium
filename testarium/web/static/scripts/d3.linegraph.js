@@ -101,7 +101,7 @@ function d3ShowGraph(plotdata, xAxisName, yAxisName, place, color)
 		.orient("left");
 
 	var zoom = d3.behavior.zoom()
-		.x(x)
+		//.x(x)
 		.y(y)
 		.scaleExtent([1, 150])
 		.on("zoom",
@@ -255,55 +255,56 @@ function d3base(place, xAxisName, yAxisName, obj, data_obj)
 			width = 500 - margin.left - margin.right,
 			height = 500 - margin.top - margin.bottom;
 
-	var x = d3.scale.linear()
+	var x = d3.scaleLinear()
 			.domain([x_scale.min, x_scale.max])
 			.range([0, width]);
 
-	var y = d3.scale.linear()
+	var y = d3.scaleLinear()
 			.domain([y_scale.min, y_scale.max])
 			.range([height, 0]);
 
-	var xAxis = d3.svg.axis()
+	var xAxis = d3.axisBottom()
 			.scale(x)
 			.tickSize(-height)
-			.tickPadding(10)
-			.tickSubdivide(true)
-			.orient("bottom");
+			.tickPadding(10);
 
-	var yAxis = d3.svg.axis()
+	var yAxis = d3.axisLeft()
 			.scale(y)
 			.tickPadding(10)
-			.tickSize(-width)
-			.tickSubdivide(true)
-			.orient("left");
+			.tickSize(-width);
 
-	var zoom = d3.behavior.zoom()
-			.x(x)
-			.y(y)
-			.scaleExtent([1, 150])
-			.on("zoom",
-					function zoomed() {
-						d3.select(this).select(".x.axis").call(xAxis);
-						d3.select(this).select(".y.axis").call(yAxis);
-						d3.select(this).selectAll('path.line').attr('d', obj.line);
 
-						d3.select(this).selectAll('.dots').selectAll('circle').attr("transform", function(d) {
-							return "translate(" + x(d.point.x) + "," + y(d.point.y) + ")"; }
-						);
-					}
-			);
 
 
 	//************************************************************
 	// Generate our SVG object
 	//************************************************************
 
-	svg = d3.select(place).append("svg")
-			.call(zoom)
+
+
+	var zoom = d3.zoom()
+		//.x(x)	
+		//.y(y)
+		.scaleExtent([1, 150])
+		.on("zoom",
+				function zoomed() {
+					d3.select(this).select(".x.axis").call(xAxis);
+					d3.select(this).select(".y.axis").call(yAxis);
+					d3.select(this).selectAll('path.line').attr('d', obj.line);
+
+					d3.select(this).selectAll('.dots').selectAll('circle').attr("transform",
+							function(d) { return "translate(" + x(d.point.x) + "," + y(d.point.y) + ")"; }
+					);
+				}
+		);
+
+	var svg = d3.select(place).append("svg")
 			.attr("width", width + margin.left + margin.right)
 			.attr("height", height + margin.top + margin.bottom)
+			.call(zoom)
 			.append("g")
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
 
 	svg.append("g")
 			.attr("class", "x axis")
@@ -386,8 +387,8 @@ function d3ShowGraphXY(plotdata, xAxisName, yAxisName, place, color)
 	//************************************************************
 	// Create D3 line object and draw data on our SVG object
 	//************************************************************
-	obj.line = d3.svg.line()
-		.interpolate("linear")
+	obj.line = d3.line()
+		.curve(d3.curveLinear)
 		.x(function(d) { return x(d.x); })
 		.y(function(d) { return y(d.y); });
 
@@ -492,8 +493,8 @@ function d3ShowGraphXTYT(plotdata, xAxisName, yAxisName, place, color)
 	//************************************************************
 	// Create D3 line object and draw data on our SVG object
 	//************************************************************
-	obj.line = d3.svg.line()
-		.interpolate("linear")
+	obj.line = d3.line()
+		.curve(d3.curveLinear)
 		.x(function(d) { return x(d.x); })
 		.y(function(d) { return y(d.y); });
 

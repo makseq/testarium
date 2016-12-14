@@ -156,7 +156,6 @@ class WebServer:
                     commit.Save()
                     return answer(status=status, msg=msg, object=res)
 
-
             # filter by file info
             if 'filter' in request.args:
                 filter = request.args['filter']
