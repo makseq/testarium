@@ -152,7 +152,7 @@ class WebServer:
             # modify
             if 'op' in request.args and request.args['op']=='modify':
                 if 'comment' in request.args:
-                    commit.desc['comment'] = request.args['comment']
+                    commit.desc['comment'] = request.args['comment'] #.decode('utf-8')
                     commit.Save()
                     return answer(status=status, msg=msg, object=res)
 

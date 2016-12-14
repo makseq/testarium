@@ -20,9 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os, sys, socket, string, random, base64
 
 # import colorama
-try: 
+try:
 	import colorama
-	colorama.init(); 
+	colorama.init();
 	colored=True
 except: colored=False
 
@@ -43,7 +43,7 @@ except: encryption = False
 
 # colors
 COLOR_DICT = {
-	'COLOR.GREEN'	: colorama.Fore.GREEN if colored else '', 
+	'COLOR.GREEN'	: colorama.Fore.GREEN if colored else '',
 	'COLOR.RED'		: colorama.Fore.RED if colored else '',
 	'COLOR.YELLOW'	: colorama.Fore.YELLOW if colored else ''
 }
@@ -67,14 +67,17 @@ def strtime(t):
 def log(*msg):
 	if colored: sys.stdout.write(colorama.Style.BRIGHT)
 	sys.stdout.write('t> ')
-	
+
 	reset = False
 	for m in msg:
 		if isinstance(m, basestring) and m in COLOR_DICT:
 			if colored: sys.stdout.write(COLOR_DICT[m])
 			reset = True
 		else:
-			sys.stdout.write(str(m))
+			try: sys.stdout.write(str(m))
+			except:
+				try: sys.stdout.write(unicode(m))
+				except: sys.stdout.write(str('?unreadable?'))
 			if reset and colored: sys.stdout.write(colorama.Fore.RESET)
 			reset = False
 			sys.stdout.write(' ')
@@ -85,7 +88,7 @@ def log(*msg):
 # log without 't>' and colors
 def log_simple(*msg):
 	if colored: sys.stdout.write(colorama.Style.BRIGHT)
-	for m in msg: 
+	for m in msg:
 		sys.stdout.write(str(m))
 		sys.stdout.write(' ')
 	sys.stdout.write('\n')
@@ -96,11 +99,11 @@ def log_lines(msg, insertTab=True):
 	lines = msg.split('\n')
 	for c in xrange(len(lines)):
 		s = '\t' if insertTab else ''
-		
+
 		if colored:
 			if c % 2 == 0: s += colorama.Fore.GREEN + lines[c]
 			else: s += colorama.Fore.CYAN + lines[c]
-			s += colorama.Style.RESET_ALL 
+			s += colorama.Style.RESET_ALL
 		else: s += lines[c]
 		s += '\n'
 		sys.stdout.write(s)
@@ -109,24 +112,24 @@ def log_lines(msg, insertTab=True):
 # log python exception
 def log_exception(e):
 	lines = e.split('\n')
-	
+
 	for l in lines[3:-2]: # skip testarium traceback stuff
-		if colored: 
-			if l[0:6]=='  File': 
+		if colored:
+			if l[0:6]=='  File':
 				l = l.replace('line', 'line' + colorama.Fore.YELLOW)
 				l = l.replace(' in ', colorama.Style.RESET_ALL + ' in ' +  colorama.Fore.YELLOW + colorama.Style.BRIGHT)
 				l += colorama.Style.RESET_ALL
 			else:
 				l = colorama.Style.BRIGHT + colorama.Fore.RED + l + colorama.Style.RESET_ALL
 		sys.stdout.write(l + '\n')
-				
+
 # create dir
 def create_dir(d, ex=False):
-	try: 
+	try:
 		os.mkdir(d)
 		return False
 	except:
-		if ex: 
+		if ex:
 			log('Error:', d, ' is not empty, exit')
 			return True
 
@@ -146,7 +149,7 @@ def makehtml(body):
 	s += '<body>\n'
 	s += body
 	s += '\n</body></html>'
-	
+
 	#f = open('tmp.html', 'w')
 	#f.write(s)
 	return s
@@ -156,7 +159,7 @@ def commits2html(header, results):
 	# header text
 	s = '<h1>'+header+'</h1><br/>'
 	if len(results) == 0: return s + 'No commits'
-	
+
 	# body
 	body = ''
 	trueCols = []
@@ -170,7 +173,7 @@ def commits2html(header, results):
 		for o in out: body += '<td>' + str(o) + '</td>'
 		body += '</tr>'
 		count += 1
-	
+
 	# header
 	s += '<table><tbody>'
 	s += '<tr>'
@@ -244,17 +247,17 @@ class ProxySMTP( smtplib.SMTP ):
 		new_socket.sendall("CONNECT {0}:{1} HTTP/1.1\r\n\r\n".format(port,host))
 		for x in xrange(2): recvline(new_socket)
 		return new_socket
-	
+
 # send email
 def send_email(whom, username, password, subject, text, smtp_host='smtp.gmail.com', smtp_port=587, proxy='', porta=8080):
 	if not email: log('COLOR.RED', "Can't import smtplib or email, can't send an email")
-	
+
 	msg = MIMEText(text, 'html')
 	msg['Subject'] = subject
 	msg['To'] = whom
-	
+
 	log('Using', smtp_host, 'and', smtp_port, 'port')
-	if proxy: 
+	if proxy:
 		log('Using proxy:', proxy, porta)
 		s = ProxySMTP('smtp.gmail.com', smtp_port, proxy, porta)
 	else:
@@ -267,20 +270,20 @@ def send_email(whom, username, password, subject, text, smtp_host='smtp.gmail.co
 	s.sendmail(username, [whom], msg.as_string())
 	s.quit()
 
-	
+
 #--- Encryption / Decryption --------------------------------------------------
 class TestariumCipherAES:
-	
+
 	def key_generator(self, size=6, chars=string.ascii_uppercase + string.digits + string.ascii_lowercase):
 		return ''.join(random.choice(chars) for _ in range(size))
 
 	def error_and_exit(self):
 		log('COLOR.RED', 'Please, install hashlib and pycrypto to use encrytion (need to store passwords and other important info)')
 		exit(-1010)
-		
+
 	def __init__(self):
 		if not encryption: self.error_and_exit()
-		
+
 		self.bs = 256
 		self.key = None
 		keyfile = os.path.expanduser('~') + '/testarium.key'
@@ -288,17 +291,17 @@ class TestariumCipherAES:
 			self.key = str()
 			self.key = open(keyfile, 'rb').read()
 
-		if not self.key: 
+		if not self.key:
 			key = self.key_generator(256)
-			self.key = hashlib.sha256(key.encode()).digest()		
+			self.key = hashlib.sha256(key.encode()).digest()
 			open(keyfile, 'wb').write(self.key)
 			os.chmod(keyfile, 0500)
 			log('Cipher AES: Testarium keyfile created:', 'COLOR.GREEN', keyfile)
-		
+
 
 	def encrypt(self, raw):
 		if not encryption: self.error_and_exit()
-		
+
 		raw = self._pad(raw)
 		iv = Random.new().read(AES.block_size)
 		cipher = AES.new(self.key, AES.MODE_CBC, iv)
@@ -306,7 +309,7 @@ class TestariumCipherAES:
 
 	def decrypt(self, enc):
 		if not encryption: self.error_and_exit()
-		
+
 		enc = base64.b64decode(enc)
 		iv = enc[:AES.block_size]
 		cipher = AES.new(self.key, AES.MODE_CBC, iv)
