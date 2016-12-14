@@ -37,18 +37,21 @@ def fafr(pT, pU):
     # FR:               false rejects distribution along thresholds
     # Thresh             thresholds
 
+    step_size = 1000.0
+
     psize = float(pT.shape[0])
     if psize == 0: psize = 1.0
     nsize = float(pU.shape[0])
     if nsize == 0: nsize = 1.0
 
-    con = np.concatenate((pU, pT))
-    #con = np.linspace(np.min(con), np.max(con), 200.0)
-    s = np.sort(con)
-    step = con.shape[0]/200 if len(con) > 200 else 1
-    con = s[::step]
-    if con[-1] != s[-1]:
-        con = np.concatenate([con, [s[-1]]])
+    con_pu = np.linspace(np.min(pU), np.max(pU), step_size)
+    con_pt = np.linspace(np.min(pT), np.max(pT), step_size)
+    con = np.concatenate((con_pu, con_pt))
+    con = np.sort(con)
+    #step = con.shape[0]/200 if len(con) > 200 else 1
+    #con = s[::step]
+    #if con[-1] != s[-1]:
+    #    con = np.concatenate([con, [s[-1]]])
 
     FA = []
     FR = []
