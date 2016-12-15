@@ -23,14 +23,26 @@ for (var i = 0, l = __links.length; i < l; i++) {
 		__links[i].addEventListener('click', __linkClick, false);
 	}
 }*/
+var change_button = typeof testarium_web == 'undefined';
 
 function d3LoadAndPlot(url, place_id, color, done)
 {
 	$.getJSON(url, function (plotdata) {
-		$(place_id).append('<div class="xy_plot"></div>');
-		$(place_id).append('<div class="xtyt_plot"></div>');
-		var place = place_id + ' .xy_plot';
+		if (change_button) {
+			if ($(place_id + ' .change-button').length == 0) {
+				$(place_id).append('<div class="change-button" style="cursor:pointer;text-weight:bold; font-size:150%;">∿</div>');
+				$(place_id + ' .change-button').click(function () {
+					$(place_id + ' .xy_plot').toggle();
+					$(place_id + ' .xtyt_plot').toggle();
+				});
+			}
+		}
 
+		if ($(place_id + ' .xy_plot').length == 0) $(place_id).append('<div class="xy_plot"></div>');
+		if ($(place_id + ' .xtyt_plot').length == 0) $(place_id).append('<div class="xtyt_plot"></div>');
+
+
+		var place = place_id + ' .xy_plot';
 		if ('xAxis' in plotdata && 'yAxis' in plotdata)
 			d3ShowGraphXY(plotdata.data, 'False Alarm', 'False Reject', place, color);
 		else

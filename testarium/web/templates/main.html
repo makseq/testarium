@@ -3,6 +3,7 @@
 <html ng-app=testarium>
 <head>
 	<title>{{ t.name }} | Testarium</title>
+    <script>var testarium_web = true; </script>
 
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link href="{{ url_for('static', filename='fonts/stylesheet.css') }}" rel="stylesheet" type="text/css"/>
@@ -132,7 +133,7 @@
 		<div class='branches window' id={{>id}}>
 		    <div class=header><span class='name'> new branch table</span><a class=close-button>x</a></div>
 		    <div class='body'>
-			    {{props result}} <div class='item'  >{{>prop}}</div> {{/props}}
+			    {{props result}} <div class='item'>{{>prop}}</div> {{/props}}
 			</div>
 		</div>
 	</script>
