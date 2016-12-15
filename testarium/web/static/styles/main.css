@@ -176,6 +176,40 @@ html {
 	height:500px;
 }
 
+.branches {
+	position:absolute;
+	left: 50px;
+	top: 1px;
+	width: 200px;
+	background:rgba(245,245,245,0.8);
+}
+.branches .body {
+	padding:10px;
+}
+
+.branches .header {
+	padding:0;
+	height:30px;
+	background:rgba(245,245,245,0.5);
+	cursor: move;
+}
+.branches .header .close-button {
+	display:block;
+	float:right;
+	padding-right: 1%;
+}
+.branches .header .name {
+	display:block;
+	float:left;
+	padding-left: 1%;
+}
+.branches .item {
+	cursor:pointer;
+}
+.branches .item:hover {
+	color: #0c2454;
+	text-decoration: underline;
+}
 
 
 .title{

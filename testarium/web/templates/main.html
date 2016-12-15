@@ -127,6 +127,15 @@
 		</div>
 	</script>
 
+    <!-- Template for Branch select -->
+	<script id="branchesTemplate" type="text/x-jsrender">
+		<div class='branches window' id={{>id}}>
+		    <div class=header><span class='name'> new branch table</span><a class=close-button>x</a></div>
+		    <div class='body'>
+			    {{props result}} <div class='item'  >{{>prop}}</div> {{/props}}
+			</div>
+		</div>
+	</script>
 
 	<!-- Template for Info -->
 	<div class='info window' id="info">

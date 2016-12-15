@@ -58,6 +58,9 @@ var scope = {
 		number: 0,
 		active: '',
 		plot_btn_number: 0
+	},
+	branches: {
+		number: 0
 	}
 };
 
@@ -114,6 +117,11 @@ function commitUpdate(commits_id) {
 	})
 }
 
+function updateThisCommit()
+{
+	commitUpdate($(this).data('commits-table-id'))
+}
+
 function commitFilter()
 {
 	commitUpdate($(this).data('commits-table-id'))
@@ -127,15 +135,15 @@ function newCommitTableByBranch(branch)
 		data.header = Object.keys(data.result[0]);
 		$('body').append($("#commitsDivTemplate").render(data, true));
 
-		commits = $('#' + data.id);
+		var commits = $('#' + data.id);
 		commits.data('scope', data);
 		commits.data('active-branch', data.active_branch);
 		commits.data('window-type', 'commits');
 		commits.find('.body').append($("#commitsTableTemplate").render(data, true));
 
 		// table body and footer widths
-		body = commits.children('.body').find('td');
-		footer = commits.children('.footer').find('th');
+		var body = commits.children('.body').find('td');
+		var footer = commits.children('.footer').find('th');
 		for (var i = 0; i < body.length; i++) {
 			var j = i % (footer.length-1); // -1 is for close X
 			if ($(body.get(i)).outerWidth() > $(footer.get(j)).outerWidth())
@@ -146,8 +154,10 @@ function newCommitTableByBranch(branch)
 
 		// header widths and input filter setup
 		commits.draggable({ handle: ".header" });
-		span = commits.find('.header span');
-		input = commits.find('.header input');
+		var span = commits.find('.header span');
+		span.data('commits-table-id', data.id);
+		span.dblclick(updateThisCommit);
+		var input = commits.find('.header input');
 		input.outerWidth(commits.outerWidth()-span.outerWidth()-20);
 		input.height(span.height());
 		input.css({left: span.outerWidth()+20});
@@ -155,8 +165,8 @@ function newCommitTableByBranch(branch)
 		input.keyup(commitFilter);
 
 		// close button
-		btn = commits.find('table th.close-button');
-		width = commits.outerWidth()-(btn.offset().left-commits.offset().left);
+		var btn = commits.find('table th.close-button');
+		var width = commits.outerWidth()-(btn.offset().left-commits.offset().left);
 		btn.width(width);
 		btn.data('commits-table-id', data.id);
 		btn.click(function(){ $('#'+$(this).data('commits-table-id')).remove() });
@@ -172,7 +182,7 @@ function newCommitTableByBranch(branch)
 
 		// remove bind singal
 		commits.bind('remove', function() {
-			scope.commits.number--;
+			//scope.commits.number--;
 			scope.commits.active='';
 		});
 
@@ -185,10 +195,27 @@ function newCommitTableByBranch(branch)
 function newCommitTable()
 {
 	$.getJSON('api/branches', function(info) {
+		info.id = 'branches-'+scope.branches.number;
+		scope.branches.number++;
 
-		var branch = prompt("Please enter branch name", info.result);
-		if (branch == null) return;
-		newCommitTableByBranch(branch)
+		$('body').append($("#branchesTemplate").render(info, true));
+		var branches = $('#'+info.id);
+		branches.draggable({ handle: ".header" });
+
+		var close = branches.find('.close-button');
+		close.data('branches-id', info.id);
+		close.click(function(){ $('#'+$(this).data('branches-id')).remove(); });
+
+		var items = branches.find('.item');
+		items.data('branches-id', info.id);
+		items.click(function(){
+			newCommitTableByBranch($(this).text());
+			 $('#'+$(this).data('branches-id')).remove();
+		});
+
+		//var branch = prompt("Please enter branch name", info.result);
+		//if (branch == null) return;
+		//
 	})
 }
 
@@ -213,17 +240,17 @@ function saveComment(e)
 
 function newPlot()
 {
-	data = { id: 'plot-'+scope.plot.number };
+	var data = { id: 'plot-'+scope.plot.number };
 	$('body').append($("#plotTemplate").render(data, true));
 
-	plot = $('#'+data.id);
+	var plot = $('#'+data.id);
 	plot.data('window-type', 'plot');
 
-	close = plot.find('.close-button');
+	var close = plot.find('.close-button');
 	close.data('plot-id', data.id);
 	close.click(function(){ $('#'+$(this).data('plot-id')).remove(); });
 
-	change_plot = plot.find('.change-plot-button');
+	var change_plot = plot.find('.change-plot-button');
 	change_plot.data('plot-id', data.id);
 	change_plot.click(function(){
 		$('#'+$(this).data('plot-id')+' .xy_plot').toggle();
@@ -238,7 +265,7 @@ function newPlot()
 	// drag
 	plot.draggable({ handle: ".header" });
 	plot.bind('remove', function() {
-		scope.plot.number--;
+		//scope.plot.number--;
 		scope.plot.active='';
 	});
 
@@ -256,19 +283,19 @@ function loadPlot(event, obj)
 		newPlot();
 
 	// random color for plot line
-	to = 255;
-	from = 0;
-	bright = to-from;
-	random = {r: from+Math.floor(Math.random()*bright), g: from+Math.floor(Math.random()*bright), b: from+Math.floor(Math.random()*bright)};
-	backcolor = 'rgb('+random.r+','+random.g+','+random.b+')';
+	var to = 255;
+	var from = 0;
+	var bright = to-from;
+	var random = {r: from+Math.floor(Math.random()*bright), g: from+Math.floor(Math.random()*bright), b: from+Math.floor(Math.random()*bright)};
+	var backcolor = 'rgb('+random.r+','+random.g+','+random.b+')';
 	$(obj).css('background-color', backcolor);
 
 	$(obj).attr('id', 'commit-plot-btn-'+scope.plot.plot_btn_number);
 	scope.plot.plot_btn_number++;
 
-	plot = $('#'+scope.plot.active);
+	var plot = $('#'+scope.plot.active);
 	plot.find('.header .name').text();
-	canvas = $('#'+scope.plot.active+' .canvas');
+	var canvas = $('#'+scope.plot.active+' .canvas');
 	canvas.find('svg').remove();
 
 	// save active buttons in commit table

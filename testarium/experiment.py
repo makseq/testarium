@@ -38,7 +38,7 @@ class Experiment:
 
     # decorator: user score function must take an commit directory
     # and return a dict (eg. {'score':1.0, 'some':0.5})
-    # (it will be kept in Commit.Descrition).
+    # (it will be kept in Commit.Description).
     # 'score' key is strongly required
     def set_score(self, func):
         self.user_score = func
