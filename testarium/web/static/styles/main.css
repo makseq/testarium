@@ -70,6 +70,10 @@ html {
 	font-size: 27px !important;
 }
 
+#control .button.image-btn.fa-image {
+	font-size: 27px !important;
+}
+
 #control .button:hover {
 	color:#0c2454;
 	cursor:pointer;
@@ -149,6 +153,10 @@ html {
 	color:#8C97A8;
 }
 
+.commit-table .fa-image{
+	color:#8C97A8;
+}
+
 /**** Plot ****/
 .plot {
 	position:absolute;
@@ -176,6 +184,42 @@ html {
 	height:500px;
 }
 
+/**** Image ****/
+.image {
+	position:absolute;
+	left: 650px;
+	width:525px;
+	height:500px;
+}
+.image .header {
+	padding:0;
+	height:30px;
+	background:rgba(245,245,245,0.5);
+	cursor: move;
+}
+.image .header .close-button, .image .header .change-image-button {
+	display:block;
+	float:right;
+	padding-right: 1%;
+}
+.image .header .name {
+	display:block;
+	float:left;
+	padding-left: 1%;
+}
+.image .canvas {
+	margin:0px;
+	width:525px;
+	height:500px;
+}
+
+.image .canvas img {
+	max-width: 100%;
+	height:auto;
+}
+
+
+/**** Branches ****/
 .branches {
 	position:absolute;
 	left: 50px;

@@ -44,13 +44,13 @@ function d3LoadAndPlot(url, place_id, color, done)
 
 		var place = place_id + ' .xy_plot';
 		if ('xAxis' in plotdata && 'yAxis' in plotdata)
-			d3ShowGraphXY(plotdata.data, 'False Alarm', 'False Reject', place, color);
+			d3ShowGraphXY(plotdata.data, plotdata.xAxis, plotdata.yAxis, place, color);
 		else
 			d3ShowGraphXY(plotdata, 'X', 'Y', place, color);
 
 		place = place_id + ' .xtyt_plot';
 		if ('xAxis' in plotdata && 'yAxis' in plotdata)
-			d3ShowGraphXTYT(plotdata.data, 'Threshold', 'FA | FR', place, color);
+			d3ShowGraphXTYT(plotdata.data, 'T', plotdata.xAxis + ' | '+  plotdata.yAxis, place, color);
 		else
 			d3ShowGraphXTYT(plotdata, 'T', 'X | Y', place, color);
 
@@ -265,7 +265,7 @@ function d3base(place, xAxisName, yAxisName, obj, data_obj)
 	//************************************************************
 	// Create Margins and Axis and hook our zoom function
 	//************************************************************
-	var margin = {top: 10, right: 10, bottom: 50, left: 50},
+	var margin = {top: 10, right: 10, bottom: 50, left: 70},
 			width = 500 - margin.left - margin.right,
 			height = 500 - margin.top - margin.bottom;
 

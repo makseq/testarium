@@ -20,64 +20,63 @@ from setuptools import setup
 
 data_files = [
 
-	('testarium/web/templates', ['main.html']),
+    ('testarium/web/templates', ['main.html']),
 
-	('testarium/web/static/fonts',
-		['FontAwesome.otf',
-		 'FontAwesome.ttf',
-		 'fontawesome-webfont.eot',
-		 'fontawesome-webfont.svg',
-		 'fontawesome-webfont.ttf',
-		 'fontawesome-webfont.woff',
-		 'fontawesome-webfont.woff2',
-		 'Gudea-Bold.otf',
-		 'Gudea-Bold.ttf',
-		 'Gudea-Italic.otf',
-		 'Gudea-Italic.ttf',
-		 'Gudea-Regular.otf',
-		 'Gudea-Regular.ttf']),
+    ('testarium/web/static/fonts',
+     ['FontAwesome.otf',
+      'FontAwesome.ttf',
+      'fontawesome-webfont.eot',
+      'fontawesome-webfont.svg',
+      'fontawesome-webfont.ttf',
+      'fontawesome-webfont.woff',
+      'fontawesome-webfont.woff2',
+      'Gudea-Bold.otf',
+      'Gudea-Bold.ttf',
+      'Gudea-Italic.otf',
+      'Gudea-Italic.ttf',
+      'Gudea-Regular.otf',
+      'Gudea-Regular.ttf']),
 
-	('testarium/web/static/images', ['back.jpg']),
+    ('testarium/web/static/images', ['back.jpg']),
 
-	('testarium/web/static/scripts', 
-		['d3.linegraph.js', 
-		 'd3.v3.min.js',
-		 'jquery-ui.min.js',
-		 'jsrender.min.js',
-		 'main.js',
-		 'wavesurfer.min.js',
-		 'wavesurfer.regions.js',
-		 'wavesurfer.spectrogram.js']),
+    ('testarium/web/static/scripts',
+     ['d3.linegraph.js',
+      'd3.v3.min.js',
+      'jquery-ui.min.js',
+      'jsrender.min.js',
+      'main.js',
+      'wavesurfer.min.js',
+      'wavesurfer.regions.js',
+      'wavesurfer.spectrogram.js']),
 
-	('testarium/web/static/styles', 
-		['main.css', 
-		'd3.linegraph.css',
-		'jquery-ui.min.css',
-		'font-awesome.css']),
-		
-	('testarium/web/static', ['favicon.ico'])
+    ('testarium/web/static/styles',
+     ['main.css',
+      'd3.linegraph.css',
+      'jquery-ui.min.css',
+      'font-awesome.css']),
+
+    ('testarium/web/static', ['favicon.ico'])
 
 ]
 
-	
 setup(name='testarium',
-	  url='http://testarium.makseq.com',
-	  description='Research tool to perform experiments and store results in the repository',
-	  author='Max Tkachenko, Danila Doroshin',
-	  author_email='makseq@gmail.com',
-	  license='GNU GPLv3',
-      version='0.2.4',
+      url='http://testarium.makseq.com',
+      description='Research tool to perform experiments and store results in the repository. More: http://testarium.makseq.com',
+      author='Max Tkachenko, Danila Doroshin',
+      author_email='makseq@gmail.com',
+      license='GNU GPLv3',
+      version='0.2.6',
       packages=['testarium', 'testarium/score', 'testarium/web'],
-	  install_requires=['flask', 'colorama', 'pycrypto'],
-	  include_package_data=True,
-	  zip_safe=False,
-	  keywords = ['testing', 'logging', 'research', 'science', 'repository'],
-	  classifiers=[
-		"Topic :: Scientific/Engineering",
-		"Development Status :: 3 - Alpha",
-		"License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-		"Operating System :: OS Independent",
-		"Programming Language :: Python",
-        "Intended Audience :: Science/Research"
-	  ]
-    )
+      install_requires=['flask', 'colorama', 'pycrypto'],
+      include_package_data=True,
+      zip_safe=False,
+      keywords=['testing', 'logging', 'research', 'science', 'repository'],
+      classifiers=[
+          "Topic :: Scientific/Engineering",
+          "Development Status :: 3 - Alpha",
+          "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+          "Operating System :: OS Independent",
+          "Programming Language :: Python",
+          "Intended Audience :: Science/Research"
+      ]
+      )

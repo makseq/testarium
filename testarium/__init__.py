@@ -66,7 +66,7 @@ def run(args):
     if stop: return False
 
     experiment.SetSendMail(args.mail)
-    experiment.Search(config=config, comment=args.comment, newParams=c, useTry=True)
+    experiment.Search(config=config, comment=args.comment, newParams=c, useTry=True, runAndRemove=args.remove_after_run)
     return True
 
 
@@ -337,6 +337,8 @@ def main():
     parser_run.add_argument('-c', default='', dest='comment', help='add comment to the commit')
     parser_run.add_argument('-p', default='', dest='newParams',
                             help='json dictionary, used instead of parameters in current config')
+    parser_run.add_argument('-rm', default=False, dest='remove_after_run', action='store_true',
+                            help='remove commit from repository after run')
     parser_run.add_argument('--mail', default=False, dest='mail', action='store_true', help='send report to mail')
 
     # branch
@@ -417,13 +419,13 @@ def main():
     else:
         args = parser.parse_args()
 
-    '''if args.root != '.testarium':
+    if args.root != '.testarium':
         global testarium, experiment
         old = testarium.common
         testarium = kernel.Testarium(rootdir=args.root)
         testarium.common = old
         experiment.testarium = testarium
-        log('Testarium root changed:', args.root)'''
+        log('Testarium root changed:', args.root)
 
     try:
         args.func(args)

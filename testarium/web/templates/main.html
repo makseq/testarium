@@ -35,6 +35,7 @@
 		<div class='button info'>{{ t.name[0] }}</div>
 		<div class='button commits fa-th'></div>
 		<div class='button plot-btn fa-line-chart'></div>
+		<div class='button image-btn fa-image'></div>
 	</div>
 
 {% raw %}
@@ -70,6 +71,8 @@
 								<td><a class='fa fa-file-o' href="{{:~cleanfile(prop)}}" target=blank></a></td>
 							{{else ~checkgraph(prop) }}
 								<td data-url="{{:~cleangraph(prop)}}" onclick='return loadPlot(event, this)'><div class='fa fa-line-chart'></div></td>
+							{{else ~checkimage(prop) }}
+								<td data-url="{{:~cleanimage(prop)}}" onclick='return loadImage(event, this)'><div class='fa fa-image'></div></td>
 							{{else}}
 								<td>{{:prop}}</td>
 							{{/if}}
@@ -124,6 +127,14 @@
 	<script id="waveformTemplate" type="text/x-jsrender">
 		<div class='waveform window' id={{>id}}>
 			<div class=header><span class='name'>waveform</span><a class=close-button>x</a></div>
+			<div class=canvas></div>
+		</div>
+	</script>
+
+	<!-- Template for Picture -->
+	<script id="imageTemplate" type="text/x-jsrender">
+		<div class='image window' id={{>id}}>
+			<div class=header><span class='name'>image</span><a class=close-button>x</a></div>
 			<div class=canvas></div>
 		</div>
 	</script>

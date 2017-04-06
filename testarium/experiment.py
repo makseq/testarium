@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import json, time, traceback, sys, gc, collections
+import json, time, traceback, sys, gc, collections, shutil, os
 import itertools as it
 from utils import *
 import kernel
@@ -72,7 +72,7 @@ class Experiment:
         self.sendmail = send
 
     # --- Advanced experiment run with params search
-    def Search(self, config, comment, newParams, useTry):
+    def Search(self, config, comment, newParams, useTry, runAndRemove=False):
 
         # check newParams for variants number
         max_variants = 1
@@ -88,7 +88,7 @@ class Experiment:
             beginTime = time.time()
             newParams = {key: (newParams[key][0] if hasattr(newParams[key], '__iter__') else newParams[key]) for key in
                          newParams}
-            result = self.Run(config, comment, newParams, useTry)
+            result = self.Run(config, comment, newParams, useTry, runAndRemove)
             duration = time.time() - beginTime
 
             # check experiment duration and make decision about mail sending
@@ -119,7 +119,7 @@ class Experiment:
                 log_simple('\n\n----------------------------------------------')
                 log('Starting experiment: ', count + 1, '/', len(combinations))
 
-                result = self.Run(config, comment, comb, useTry)
+                result = self.Run(config, comment, comb, useTry, runAndRemove)
                 if result[1]:
                     if best_commit < result[0]:
                         best_commit = result[0]
@@ -186,7 +186,12 @@ class Experiment:
         return r, True
 
     # --- Simple experiment run
-    def Run(self, config, comment, newParams, useTry):
+    def Run(self, config, comment, newParams, useTry, runAndRemove=True):
+        '''
+        Run experiment.
+        :arg runAndRemove   True means full remove commit from repository,
+                            False is nothing to remove
+        '''
         # check if user Run function defined
         if self.user_run is None:
             log('COLOR.RED', 'Error: User Run function is not described. Use decorator @Experiment.set_run to set it')
@@ -197,6 +202,11 @@ class Experiment:
             log('COLOR.RED',
                 'Error: User Score function is not described. Use decorator @Experiment.set_score to set it')
             return None, False
+
+        # check commit removing after run and warning it
+        if runAndRemove == True:
+            log('COLOR.YELLOW', 'Commit will be removed!')
+
 
         # form config with newParams
         config = collections.OrderedDict(config)
@@ -215,15 +225,25 @@ class Experiment:
         if len(newParams) > 0: log('Config =', str(newParams))
         beginTime = time.time()
 
+        # remove commit if need
+        def removeCommit():
+            # remove commit if need
+            if runAndRemove == True:
+                shutil.rmtree(c.dir, True)
+                log('COLOR.YELLOW', c.name, 'was removed')
+
         # --- RUN section
         r, ok = self.ExecUserFunc(self.user_run, c, int)
         gc.collect()
-        if not ok: return c, False
+        if not ok:
+            removeCommit()
+            return c, False
 
         # errors check
         if r < 0:
             log('COLOR.RED', 'Error: experiment error code =', r)
             log('Commit skipped')
+            removeCommit()
             return c, False
 
         # duration
@@ -232,7 +252,9 @@ class Experiment:
         # --- SCORE and DESC section
         desc, ok = self.ExecUserFunc(self.user_score, c, dict)
         gc.collect()
-        if not ok: return c, False
+        if not ok:
+            removeCommit()
+            return c, False
 
         # form commit description
         for key in desc: c.desc[key] = desc[key]
@@ -245,4 +267,6 @@ class Experiment:
         c.Save()
         # print results
         log(c)
+
+        removeCommit()
         return c, True

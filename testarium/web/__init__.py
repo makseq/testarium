@@ -64,8 +64,11 @@ class WebServer:
         # -----------------------------------------------
         @self.app.route('/storage/<path:filename>')
         def send_storage(filename):
-            workdir = os.getcwd()
-            return flask.send_from_directory(workdir, filename)
+            if os.path.exists(filename):
+                workdir = os.getcwd()
+                return flask.send_from_directory(workdir, filename)  # load file from root of project
+            else:
+                return flask.send_file(filename)  # load file with absolute path
 
         ###  API ###
 
@@ -178,24 +181,28 @@ class WebServer:
                     commit.desc.update(e.user_score(commit))
 
             # replace meta id to pathes
-            '''new_meta = {}
-            for _id in commit.meta.meta:
-                path = commit.filedb.GetPath(_id)
-                new_meta[path] = commit.meta.meta[_id]
-                value = commit.filedb.GetFile(_id)
-                new_meta[path].update(value)
-            commit.meta.meta = new_meta'''
+            meta = commit.meta.meta
+            if 'replace_id' in request.args:
+                new_meta = {}
+                for _id in commit.meta.meta:
+                    path = commit.filedb.GetPath(_id)
+                    new_meta[path] = commit.meta.meta[_id]
+                    value = commit.filedb.GetFile(_id)
+                    new_meta[path].update(value)
+                meta = new_meta
 
             if 'player' in request.args:
-                media_files = [str(i)+'. '+commit.filedb.GetPath(f)+'<br/><audio controls preload="none" src=/storage/'+commit.filedb.GetPath(f)+'></audio><br/>' 
-                               for i,f in enumerate(commit.meta.meta)]
+                media_files = [str(i)+'. '+commit.filedb.GetPath(f) + '\t' + str(meta[f]['probs']) + '<br/>'
+                                '<audio controls preload="none" src=/storage/'+commit.filedb.GetPath(f)+'></audio><br/>'
+
+                               for i,f in enumerate(meta)]
                 out = '\n'.join(media_files)
                 return out
 
             if 'desc_only' in request.args:
                 res = {'desc': commit.desc}
             else:
-                res = {'config': commit.config, 'desc': commit.desc, 'meta': commit.meta.meta}
+                res = {'config': commit.config, 'desc': commit.desc, 'meta': meta}
             return answer(status=status, msg=msg, object=res)
 
 

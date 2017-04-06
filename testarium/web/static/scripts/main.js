@@ -41,10 +41,16 @@ $.views.helpers({
 	checkgraph: function(s) {
 		return s.slice(0,8) == 'graph://';
 	},
+	checkimage: function(s) {
+		return s.slice(0,8) == 'image://';
+	},
 	cleanfile: function(s) {
 		return s.slice(7);
 	},
 	cleangraph: function(s) {
+		return s.slice(8);
+	},
+	cleanimage: function(s) {
 		return s.slice(8);
 	}
 });
@@ -58,6 +64,11 @@ var scope = {
 		number: 0,
 		active: '',
 		plot_btn_number: 0
+	},
+	image: {
+		number: 0,
+		active: '',
+		image_btn_number: 0
 	},
 	branches: {
 		number: 0
@@ -79,8 +90,8 @@ function focusWindow(e) {
 	switch($(this).data('window-type')) {
 		case 'plot':	scope.plot.active=id; break;
 		case 'commits':	scope.commits.active=id; break;
+		case 'image':	scope.image.active=id; break;
 	}
-
 }
 
 function commitUpdate(commits_id) {
@@ -188,6 +199,7 @@ function newCommitTableByBranch(branch)
 
 		scope.commits.number++;
 		commits.children('.body').resizable();
+		scope.commits.active=commits.attr('id');
 		//setTimeout(commitUpdate, 2000, commits.attr('id'))
 	}); // api/branch/name/commits
 }
@@ -322,11 +334,92 @@ function loadPlot(event, obj)
 	return false
 }
 
+function newImage()
+{
+	var data = { id: 'image-'+scope.image.number };
+	$('body').append($("#imageTemplate").render(data, true));
+
+	var image = $('#'+data.id);
+	image.data('window-type', 'image');
+
+	var close = image.find('.close-button');
+	close.data('image-id', data.id);
+	close.click(function(){ $('#'+$(this).data('image-id')).remove(); });
+
+	// focus
+	image.attr('tabindex',-1);
+	image.on('focusin', focusWindow);
+
+	// drag
+	image.draggable({ handle: ".header" });
+	image.bind('remove', function() {
+		scope.image.active='';
+	});
+
+	// get position of active commit table and set right corner for new image
+	var link = $('#'+scope.commits.active);
+	image.css({top: link.offset().top, left: link.offset().left + link.outerWidth() + 30});
+	scope.image.number++;
+	image.focusin()
+}
+
+function loadImage(event, obj)
+{
+	url = $(obj).data('url');
+	if (scope.image.active == '' )
+		newImage();
+
+	// random color for image line
+	var to = 255;
+	var from = 0;
+	var bright = to-from;
+	var random = {r: from+Math.floor(Math.random()*bright), g: from+Math.floor(Math.random()*bright), b: from+Math.floor(Math.random()*bright)};
+	var backcolor = 'rgb('+random.r+','+random.g+','+random.b+')';
+	$(obj).css('background-color', backcolor);
+
+	$(obj).attr('id', 'commit-image-btn-'+scope.image.image_btn_number);
+	scope.image.image_btn_number++;
+
+	var image = $('#'+scope.image.active);
+	image.find('.header .name').text();
+	var canvas = $('#'+scope.image.active+' .canvas');
+	canvas.find('svg').remove();
+
+	// save active buttons in commit table
+	var buttons = canvas.data('assigned-image-buttons');
+	if (typeof(buttons) != 'undefined')
+		buttons.push($(obj).attr('id'));
+	else
+		buttons = [$(obj).attr('id')];
+	canvas.data('assigned-image-buttons', buttons);
+
+	// disable background of image button in commit table
+	function done() {
+		canvas.bind('remove', function () {
+			var buttons = $(this).data('assigned-image-buttons');
+			for (var i in buttons) {
+				$('#' + buttons[i]).css('background', 'none')
+			}
+		})
+	}
+
+	var parent = '#' + scope.image.active + ' .canvas'
+	$(parent).html('<img src="' + url + '"/>')
+	$(parent).resizable({grid: 50, alsoResize: parent+' img, #'+scope.image.active})
+	//$(parent + ' img').resizable()
+
+	//d3LoadAndImage(url, '#'+scope.image.active+' .canvas', backcolor, done);
+	event.preventDefault();
+	event.stopPropagation();
+	return false
+}
+
 
 $( document ).ready(function() {
 	$('.button.commits').click(newCommitTable);
 	$('.button.info').click(showInfo);
 	$('.button.plot-btn').click(newPlot);
+	$('.button.image-btn').click(newImage);
 
 	$.getJSON('api/branches/active', function(data) {
 		newCommitTableByBranch(data.result);  // load active branch commit table

@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import json
+import json, numpy as np
 import datetime, time
 import os, operator, shutil, collections
 from utils import *
@@ -135,7 +135,6 @@ class Description(collections.OrderedDict):
 	Commit consists of Config and Description
 '''
 
-
 class Commit:
     def __init__(self):
         self.config = Config()
@@ -234,9 +233,6 @@ class Commit:
                     if not 'desc' in cols:
                         cols.append('desc')
                         out.append('file://storage/' + self.dir + '/desc.json')
-                    if not 'fafr' in cols:
-                        cols.append('fafr')
-                        out.append('graph://storage/' + self.dir + '/fafr.txt')
                     return cols, out
                 else:
                     return self.SkipUrls(*self.common.commit_print_func[0](self))
@@ -276,6 +272,37 @@ class Commit:
             out.append('file://storage/' + self.dir + '/desc.json')
 
         return cols, out
+
+    def MakeGraph(self, fname, points, xAxisName, yAxisName):
+        if isinstance(points, list):
+            points = np.array(points)
+
+        if isinstance(points, np.ndarray):
+            if len(points.shape) == 1:
+                x = t = np.arange(len(points))
+                y = points
+            elif len(points.shape) == 2:
+                x = t = points[:, 0]
+                y = points[:, 1]
+            elif len(points.shape) == 3:
+                x = points[:, 0]
+                y = points[:, 1]
+                t = points[:, 2]
+            else:
+                log('COLOR.RED', 'MakeGraph: Unsupported points dim')
+                return -1
+
+        else:
+            log('COLOR.RED', 'Unsupported points type, supported only list and np.array')
+            return -1
+
+        path = self.dir + '/' + fname
+        data = [{'x': x[i], 'y': y[i], 't': t[i]} for i, v in enumerate(x)]
+        j = json.dumps({'xAxis': xAxisName, 'yAxis': yAxisName, 'data': data})
+        try: open(path, 'w').write(j)
+        except: log("MakeGraph: Can't save: " + path)
+
+        return 'graph://storage/' + path
 
     def Load(self, dir):
         self._init = False
@@ -318,8 +345,20 @@ class Commit:
             open(self.dir + '/config.json', 'w').write(config_str)
             if configOnly: return
 
+            # Encoder to save numpy to desc
+            class NumpyEncoder(json.JSONEncoder):
+                def default(self, obj):
+                    if isinstance(obj, np.integer):
+                        return int(obj)
+                    elif isinstance(obj, np.floating):
+                        return float(obj)
+                    elif isinstance(obj, np.ndarray):
+                        return obj.tolist()
+                    else:
+                        return super(NumpyEncoder, self).default(obj)
+
             # desc
-            json.dump(self.desc, open(self.dir + '/desc.json', 'w'), indent=2)
+            json.dump(self.desc, open(self.dir + '/desc.json', 'w'), indent=2, cls=NumpyEncoder)
 
             # file db
             self.branch.filedb.SaveFiles(self.dir + '/../filedb.json')
@@ -474,8 +513,8 @@ class Testarium:
         if self.ReadConfig('coderepos.use', True) == True:
             if os.path.exists('.hg'):
                 self.coderepos = coderepos.Mercurial();
-            elif os.path.exists('.git'):
-                self.coderepos = coderepos.Git();
+            elif os.path.exists('.git') or os.path.exists('../.git'):
+                self.coderepos = coderepos.Git()
 
         # Load failed, reinit testarium
         if not self._init:
