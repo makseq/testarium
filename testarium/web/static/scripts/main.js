@@ -275,9 +275,8 @@ function newPlot()
 	plot.on('focusin', focusWindow);
 
 	// drag
-	plot.draggable({ handle: ".header" });
+	plot.draggable({ handle: ".header", grid: [25, 25] });
 	plot.bind('remove', function() {
-		//scope.plot.number--;
 		scope.plot.active='';
 	});
 
@@ -351,10 +350,49 @@ function newImage()
 	image.on('focusin', focusWindow);
 
 	// drag
-	image.draggable({ handle: ".header" });
+	image.draggable({ handle: ".header", grid: [25, 25] });
 	image.bind('remove', function() {
 		scope.image.active='';
 	});
+
+	// image scrolling
+	var canvas = image.find('.canvas')
+	function image_scrolling(e, increment) {
+		imgs = $(e.find('.canvas')[0]).find('img');
+
+		// found last visible image
+		var i;
+		for (i=0; i<imgs.length; i++)
+			if ($(imgs[i]).is(":visible"))
+				break
+
+		// next image to show
+		next = i+increment;
+		if (next < 0) next = 0
+		if (next >= imgs.length) next = imgs.length-1
+		imgs.hide()
+		$(imgs[next]).show()
+	};
+	// keydown left & right arrows
+	image.keydown(function(e){
+		if(e.keyCode == 37) image_scrolling($(this), -1);
+		if(e.keyCode == 39) image_scrolling($(this), +1);
+	})
+	// mouse wheel
+	image.mousewheel(function(e){
+		if(e.deltaY < 0) image_scrolling($(this), -1);
+		if(e.deltaY > 0) image_scrolling($(this), +1);
+		e.preventDefault();
+		e.stopPropagation();
+	})
+
+	// remove button background on commit table
+	canvas.bind('remove', function () {
+		var buttons = $(this).data('assigned-image-buttons');
+		for (var i in buttons) {
+			$('#' + buttons[i]).css('background', 'none')
+		}
+	})
 
 	// get position of active commit table and set right corner for new image
 	var link = $('#'+scope.commits.active);
@@ -381,9 +419,7 @@ function loadImage(event, obj)
 	scope.image.image_btn_number++;
 
 	var image = $('#'+scope.image.active);
-	image.find('.header .name').text();
 	var canvas = $('#'+scope.image.active+' .canvas');
-	canvas.find('svg').remove();
 
 	// save active buttons in commit table
 	var buttons = canvas.data('assigned-image-buttons');
@@ -393,22 +429,22 @@ function loadImage(event, obj)
 		buttons = [$(obj).attr('id')];
 	canvas.data('assigned-image-buttons', buttons);
 
-	// disable background of image button in commit table
-	function done() {
-		canvas.bind('remove', function () {
-			var buttons = $(this).data('assigned-image-buttons');
-			for (var i in buttons) {
-				$('#' + buttons[i]).css('background', 'none')
-			}
-		})
-	}
+	// add images
+	imgs = canvas.find('img')
+	imgs.hide() // hide all images
+	imgs.each(function(o){
+		if ($(this).attr('src') == url)
+			$(this).remove();
+	})
+	canvas.append(
+			'<a href="' + url + '" target=blank>' +
+			'<img' +
+				' style="border:' + backcolor + ' 1px solid"' +
+				' src="' + url + '"/>' +
+			'</a>')
+	image = $('#'+scope.image.active)
+	image.resizable({grid: 25})
 
-	var parent = '#' + scope.image.active + ' .canvas'
-	$(parent).html('<img src="' + url + '"/>')
-	$(parent).resizable({grid: 50, alsoResize: parent+' img, #'+scope.image.active})
-	//$(parent + ' img').resizable()
-
-	//d3LoadAndImage(url, '#'+scope.image.active+' .canvas', backcolor, done);
 	event.preventDefault();
 	event.stopPropagation();
 	return false

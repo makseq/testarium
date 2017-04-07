@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import kernel, experiment as experiment_module
 from utils import *
-import sys, argparse, json, collections, copy
+import sys, argparse, json, collections, copy, shutil
 
 try: import numpy as np
 except: pass
@@ -130,9 +130,31 @@ def cleanup(args):
 
 
 def delete(args):
-    if not args.name: log('Commit name is not specified'); return
-    commit = testarium.SelectCommits(branch_name=args.branch, name=args.name, N=1)
-    if commit: testarium.DeleteCommit(commit[0])
+    if args.conditions:
+        testarium.Load(loadCommits=True, silent=True)
+        out_commits, error = testarium.Where(args.conditions)
+
+        if out_commits is None:
+            log('No commits in this branch')
+            returnur
+        else:
+            log('Found:', len(out_commits), 'commits')
+            args.print_diff = args.print_config = False
+            print_commits(out_commits, args)
+            if error:
+                log('COLOR.YELLOW', 'Warning: There was an error:', error)
+
+            if len(out_commits) > 0:
+                log('COLOR.YELLOW', 'Do you want to delete it from disk? [Y/n]:')
+                if raw_input() == 'Y':
+                    for c in out_commits:
+                        shutil.rmtree(c.dir, True)
+                        log(c.dir, 'was removed')
+
+    else:
+        if not args.name: log('Commit name is not specified'); return
+        commit = testarium.SelectCommits(branch_name=args.branch, name=args.name, N=1)
+        if commit: testarium.DeleteCommit(commit[0])
 
 
 def differ(args):
@@ -353,6 +375,10 @@ def main():
                                help="name of commit. Use 'best' for the best scored commit. 0 is last, -1 is first commit")
     parser_delete.add_argument('--branch', default='', dest='branch',
                                help='name of branch, leave it empty to use active branch')
+    parser_delete.add_argument('-p', default='', nargs='?', dest='conditions',
+                              help="user conditions: 'c' - config dict, 'd' - description dict. "
+                                   "Where proceeds all commits from all branches")
+
 
     # diff
     parser_differ.add_argument('nameA', default='best', nargs='?',
@@ -388,8 +414,7 @@ def main():
 
     # where
     parser_where.add_argument('conditions', default='True', nargs='+',
-                              help="user conditions: 'c' - config dict, 'd' - descrition dict, count - currect commit "
-                                   "position, found - already found commit number. "
+                              help="user conditions: 'c' - config dict, 'd' - description dict. "
                                    "Where proceeds all commits from all branches")
     parser_where.add_argument('-i', default=False, dest='print_diff', action='store_true',
                               help='print incremental difference between the commit configs')

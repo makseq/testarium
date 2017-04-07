@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import json, numpy as np
+import json
 import datetime, time
 import os, operator, shutil, collections
 from utils import *
@@ -233,6 +233,9 @@ class Commit:
                     if not 'desc' in cols:
                         cols.append('desc')
                         out.append('file://storage/' + self.dir + '/desc.json')
+                    if not 'fafr' in cols and os.path.exists(self.dir+'/fafr.txt'):
+                        cols.append('fafr')
+                        out.append('graph://storage/' + self.dir + '/fafr.txt')
                     return cols, out
                 else:
                     return self.SkipUrls(*self.common.commit_print_func[0](self))
@@ -274,6 +277,8 @@ class Commit:
         return cols, out
 
     def MakeGraph(self, fname, points, xAxisName, yAxisName):
+
+
         if isinstance(points, list):
             points = np.array(points)
 
