@@ -121,9 +121,12 @@ html {
 	font-size:70%;
 	line-height:150%;
 }
+.commit-table .window {
+	width:100%;
+}
 .commit-table .header {
 	font-size:140%;
-	width:100%;
+	max-width:100%;
 	position:relative;
 }
 .commit-table .header span {
@@ -143,11 +146,14 @@ html {
 }
 .commit-table .body {
 	height:200px;
+	margin: 0;
+	padding: 0;
 	overflow-y:scroll;
 	overflow-x:hidden;
 }
 .commit-table .footer {
-
+	font-
+	font-size: 90%;
 }
 .commit-table .fa-line-chart{
 	color:#8C97A8;

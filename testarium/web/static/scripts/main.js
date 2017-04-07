@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 $.ajaxSetup({ cache: false });
 
+var GRID_SIZE = 10
+
 /*** jsRender stuff ***/
 var vars = {};
 $.views.tags({
@@ -164,16 +166,18 @@ function newCommitTableByBranch(branch)
 		}
 
 		// header widths and input filter setup
-		commits.draggable({ handle: ".header" });
+		commits.draggable({ handle: ".header", grid:[GRID_SIZE,GRID_SIZE] });
 		var span = commits.find('.header span');
 		span.data('commits-table-id', data.id);
 		span.dblclick(updateThisCommit);
 		var input = commits.find('.header input');
-		input.outerWidth(commits.outerWidth()-span.outerWidth()-20);
+		//input.outerWidth(commits.outerWidth()-span.outerWidth()-20);
 		input.height(span.height());
 		input.css({left: span.outerWidth()+20});
 		input.data('commits-table-id', data.id);
 		input.keyup(commitFilter);
+		commits.resize(function() { input.outerWidth(commits.outerWidth()-span.outerWidth()-20); })
+		commits.resize()
 
 		// close button
 		var btn = commits.find('table th.close-button');
@@ -186,6 +190,8 @@ function newCommitTableByBranch(branch)
 		commits.attr('tabindex',-1);
 		commits.on('focusin', focusWindow);
 
+
+
 		// selected tr
 		commits.find('.body table tbody tr').click(function(){
 			$(this).toggleClass('selected')
@@ -193,12 +199,12 @@ function newCommitTableByBranch(branch)
 
 		// remove bind singal
 		commits.bind('remove', function() {
-			//scope.commits.number--;
 			scope.commits.active='';
 		});
 
 		scope.commits.number++;
-		commits.children('.body').resizable();
+		also = '#' + data.id
+		commits.children('.body').resizable({alsoResize: also, grid: GRID_SIZE});
 		scope.commits.active=commits.attr('id');
 		//setTimeout(commitUpdate, 2000, commits.attr('id'))
 	}); // api/branch/name/commits
@@ -225,9 +231,6 @@ function newCommitTable()
 			 $('#'+$(this).data('branches-id')).remove();
 		});
 
-		//var branch = prompt("Please enter branch name", info.result);
-		//if (branch == null) return;
-		//
 	})
 }
 
@@ -275,7 +278,7 @@ function newPlot()
 	plot.on('focusin', focusWindow);
 
 	// drag
-	plot.draggable({ handle: ".header", grid: [25, 25] });
+	plot.draggable({ handle: ".header", grid: [GRID_SIZE, GRID_SIZE] });
 	plot.bind('remove', function() {
 		scope.plot.active='';
 	});
