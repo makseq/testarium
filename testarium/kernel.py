@@ -17,12 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import json
-import datetime, time
+import datetime, time, json, numpy as np
 import os, operator, shutil, collections
 from utils import *
-import coderepos
-import filedb
+import coderepos, filedb
 
 CONFIG_COMMIT_DIRECTORY = 'testarium.commitDirectory'
 
@@ -277,7 +275,6 @@ class Commit:
         return cols, out
 
     def MakeGraph(self, fname, points, xAxisName, yAxisName):
-
 
         if isinstance(points, list):
             points = np.array(points)
