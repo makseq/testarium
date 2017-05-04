@@ -31,7 +31,6 @@ version = '0.1'
 testarium = kernel.Testarium()
 experiment = experiment_module.Experiment(testarium)
 
-
 def run(args):
     if args.config_path:
         config_path = args.config_path  # use user config
@@ -223,7 +222,7 @@ def webserver(args):
     if not webOk: log('Web server is disabled. Try to "easy_install flask"'); exit(-101)
 
     w = web.WebServer(testarium, experiment)
-    w.Start(int(args.port))
+    w.Start(int(args.port), args.username, args.password)
 
 
 def mail(args):
@@ -353,7 +352,7 @@ def main():
     parser_web.set_defaults(func=webserver)
     parser_mail.set_defaults(func=mail)
 
-    # run 
+    # run
     parser_run.add_argument('config_path', default='', nargs='?',
                             help='config path to use in the commit; using default branch config if option is empty')
     parser_run.add_argument('-c', default='', dest='comment', help='add comment to the commit')
@@ -422,9 +421,11 @@ def main():
     parser_where.add_argument('-k', default=[], dest='config_keys', nargs='+', help='config keys to show')
 
     # web
-    parser_web.add_argument('-p', default=80, dest='port', help='port')
+    parser_web.add_argument('-p', default=1080, dest='port', help='port')
+    parser_web.add_argument('-u', default='', dest='username', help='username for web interface')
+    parser_web.add_argument('-s', default='', dest='password', help='password for username')
 
-    # mail 
+    # mail
     parser_mail.add_argument('--account', default=None, dest='account', nargs=3, help='"whom@gmail.com username password", \
         recommend to create special email account to send reports\
         and do not endanger password from real account, because password will be kept in testarium config')

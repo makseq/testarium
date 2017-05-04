@@ -18,6 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import flask, os, json, collections, copy, traceback, copy
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
+from functools import wraps
+from flask import request, Response
+import webbrowser, threading
+import time
+
 
 DEBUG = True
 t = 'None'
@@ -36,8 +41,16 @@ def answer(status=0, msg="", object=None):
     if not object is None: a.update({"result": object})
     return json.dumps(a, indent=2)
 
+def authenticate():
+    """Sends a 401 response that enables basic auth"""
+    return Response(
+    'Could not verify your access level for that URL.\n'
+    'You have to login with proper credentials', 401,
+    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
 
 class WebServer:
+
     def __init__(self, testarium, experiment):
         self.app = Flask(__name__)
         self.app.config.from_object(__name__)
@@ -48,8 +61,30 @@ class WebServer:
         global t, e
         t = self.t
         e = self.e
+        self.auth_user = 'admin'
+        self.auth_pass = ''
 
-    def Start(self, port):
+    def Start(self, port, auth_user, auth_pass):
+
+        # -------------------------------------------------
+        def check_auth(username, password):
+            """This function is called to check if a username /
+            password combination is valid.
+            """
+            time.sleep(2)
+            if not auth_pass: return True
+            return username == auth_user and password == auth_pass
+
+        def requires_auth(f):
+            if not auth_pass: return f  # do not use pass
+
+            @wraps(f)
+            def decorated(*args, **kwargs):
+                auth = request.authorization
+                if not auth or not check_auth(auth.username, auth.password):
+                    return authenticate()
+                return f(*args, **kwargs)
+            return decorated
 
         # -----------------------------------------------
         @self.app.route('/static/<path:filename>')
@@ -210,6 +245,7 @@ class WebServer:
 
         # -----------------------------------------------
         @self.app.route('/')
+        @requires_auth
         def root():
             self.t.Load(False)
             self.t.ChangeBranch(self.t.activeBranch.name)
@@ -229,5 +265,13 @@ class WebServer:
             commits = self.t.SelectCommits(t.activeBranch.name, name, number)
             return render_template('main.html', t=self.t)
 
-        # app start
-        self.app.run(port=port, host='0.0.0.0', use_reloader=True, debug=True)
+        # -----------------------------------------------
+        def open_page():  # open page with testarium in web browser
+            url = 'http://localhost:'+str(port)
+            webbrowser.open_new_tab(url)
+            print 'Open in new tab:', url
+
+        threading.Timer(2.0, open_page).start()
+
+        self.app.run(port=port, host='0.0.0.0', use_reloader=False, debug=False)
+

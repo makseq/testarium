@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+# command: setup.py sdist upload -r pypi
+
 from setuptools import setup
 
 data_files = [
@@ -66,7 +68,7 @@ setup(name='testarium',
       author='Max Tkachenko, Danila Doroshin',
       author_email='makseq@gmail.com',
       license='GNU GPLv3',
-      version='0.2.72',
+      version='0.2.73',
       packages=['testarium', 'testarium/score', 'testarium/web'],
       install_requires=['numpy', 'flask', 'colorama', 'pycrypto'],
       include_package_data=True,

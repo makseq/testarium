@@ -663,7 +663,8 @@ class Testarium:
         sort_keys = sorted([k for k in commits], reverse=True)
         if not sort_keys: return None
         cond = ''.join(conditions)
-        cond = cond.replace("['", "[").replace("']", "]").replace("[", "['").replace("]", "']")
+        cond = cond.replace("['", "[", 1).replace("']", "]", 1).replace("[", "['", 1).replace("]", "']", 1)
+        print cond
 
         # where
         error = ''

@@ -357,6 +357,11 @@ function d3base(place, xAxisName, yAxisName, obj, data_obj)
 	//************************************************************
 	// Create D3 line object and draw data on our SVG object
 	//************************************************************
+	function line_clicked() {
+		dash = prompt("Enter dash style for line", "3, 3");
+		d3.select(this).style("stroke-dasharray", (dash));
+	}
+
 	obj.line = d3.svg.line()
 		.interpolate("linear")
 		.x(function(d) { return x(d.x); })
@@ -369,7 +374,8 @@ function d3base(place, xAxisName, yAxisName, obj, data_obj)
 		.attr("class", function(d,i){ return i==0 ? 'axisinner line' : 'line'; })
 		.attr("clip-path", "url(#clip)")
 		.attr('stroke', function(d,i){ return colors[i%colors.length]; })
-		.attr("d", obj.line);
+		.attr("d", obj.line)
+		.on('click', line_clicked);
 
 	//************************************************************
 	// Draw points on SVG object based on the data given
