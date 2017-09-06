@@ -51,9 +51,10 @@ def authenticate():
 
 class WebServer:
 
-    def __init__(self, testarium, experiment):
+    def __init__(self, testarium, experiment, args):
         self.app = Flask(__name__)
         self.app.config.from_object(__name__)
+        self.args = args
 
         self.t = testarium
         self.t.Load(True)
@@ -267,9 +268,13 @@ class WebServer:
 
         # -----------------------------------------------
         def open_page():  # open page with testarium in web browser
-            url = 'http://localhost:'+str(port)
-            webbrowser.open_new_tab(url)
-            print 'Open in new tab:', url
+            try:
+                url = 'http://localhost:'+str(port)
+                webbrowser.open_new_tab(url)
+                print 'Open in new tab:', url
+            except:
+                print "Can't open browser with new tab:", url
+                pass
 
         threading.Timer(2.0, open_page).start()
 
