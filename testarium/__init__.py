@@ -425,7 +425,7 @@ def main():
     parser_web.add_argument('-u', default='', dest='username', help='username for web interface')
     parser_web.add_argument('-s', default='', dest='password', help='password for username')
     parser_web.add_argument('--no-open-tab', default=False, dest='no_open_tab', action="store_true",
-                            help='password for username')
+                            help='do not open new tab in browser at webserver start')
 
     # mail
     parser_mail.add_argument('--account', default=None, dest='account', nargs=3, help='"whom@gmail.com username password", \
