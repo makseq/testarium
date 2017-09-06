@@ -276,7 +276,8 @@ class WebServer:
                 print "Can't open browser with new tab:", url
                 pass
 
-        threading.Timer(2.0, open_page).start()
+        if not self.args.no_open_tab:
+            threading.Timer(2.0, open_page).start()
 
         self.app.run(port=port, host='0.0.0.0', use_reloader=False, debug=False)
 
