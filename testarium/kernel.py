@@ -283,13 +283,13 @@ class Commit:
             if len(points.shape) == 1:
                 x = t = np.arange(len(points))
                 y = points
-            elif len(points.shape[1]) == 1:
+            elif points.shape[1] == 1:
                 x = t = np.arange(len(points))
                 y = points
-            elif len(points.shape[1]) == 2:
+            elif points.shape[1] == 2:
                 x = t = points[:, 0]
                 y = points[:, 1]
-            elif len(points.shape[1]) == 3:
+            elif points.shape[1] == 3:
                 x = points[:, 0]
                 y = points[:, 1]
                 t = points[:, 2]
