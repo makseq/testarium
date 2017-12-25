@@ -309,6 +309,14 @@ class Commit:
 
         return 'graph://storage/' + path
 
+    def MakeLink(self, link_dir='../last'):
+        # link commit dir to 'last'
+        try:
+            os.unlink(link_dir)  # unlink previous link
+        except:
+            pass
+        os.symlink(os.path.abspath(self.dir), link_dir)
+
     def Load(self, dir):
         self._init = False
         self.dir = dir
