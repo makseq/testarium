@@ -302,7 +302,8 @@ class Commit:
             return -1
 
         path = self.dir + '/' + fname
-        data = [{'x': x[i], 'y': y[i], 't': t[i]} for i, v in enumerate(x)]
+        data = [{'x': float(x[i]), 'y': float(y[i]), 't': float(t[i])} for i, v in enumerate(x)]
+        print type(y[0])
         j = json.dumps({'xAxis': xAxisName, 'yAxis': yAxisName, 'data': data})
         try: open(path, 'w').write(j)
         except: log("MakeGraph: Can't save: " + path)
