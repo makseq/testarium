@@ -224,7 +224,10 @@ class Commit:
         if not self.common.commit_print_func is None and not skipUserPrint:
             if not self.common.commit_print_func[0] is None:
                 if web:
-                    cols, out = self.common.commit_print_func[0](self)
+                    try: cols, out = self.common.commit_print_func[0](self)
+                    except:
+                        cols, out = [], []
+
                     if not 'config' in cols:
                         cols.append('config')
                         out.append('file://storage/' + self.dir + '/config.json')
