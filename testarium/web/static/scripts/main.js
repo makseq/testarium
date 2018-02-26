@@ -246,6 +246,20 @@ function showInfo()
 		})
 }
 
+function showTips(e)
+{
+	var tips = $('#tips');
+	tips.toggle();
+	tips.draggable({ handle: ".header", grid: [25, 25] });
+	tips.on('focusin', focusWindow);
+	tips.focusin();
+
+	$(this).dblclick(function(e){ e.stopPropagation() })
+
+	var link = $('#'+scope.commits.active);
+	tips.css({top: link.offset().top + link.outerHeight() + 30, left: link.offset().left});
+}
+
 function saveComment(e)
 {
 	var branch = $(e.currentTarget).closest('.commit-table').data('activeBranch');
@@ -457,6 +471,7 @@ function loadImage(event, obj)
 $( document ).ready(function() {
 	$('.button.commits').click(newCommitTable);
 	$('.button.info').click(showInfo);
+	$('#tips-btn').click(showTips);
 	$('.button.plot-btn').click(newPlot);
 	$('.button.image-btn').click(newImage);
 
@@ -465,8 +480,8 @@ $( document ).ready(function() {
 	});
 
 	$('#control').dblclick(function(e){
-			var tmp = $('html').css('background');
-			$('html').css('background', prev_background);
-			prev_background = tmp;
+		var tmp = $('html').css('background');
+		$('html').css('background', prev_background);
+		prev_background = tmp;
 	})
 });

@@ -36,7 +36,7 @@
 		<div class='button info'>{{ t.name[0] }}</div>
 		<div class='button commits fa-th'></div>
 		<div class='button plot-btn fa-line-chart'></div>
-		<div class='button image-btn fa-image'></div>
+		<div class='button tips-btn fa-lightbulb-o' id="tips-btn"></div>
 	</div>
 
 {% raw %}
@@ -154,6 +154,24 @@
 	<div class='info window' id="info">
 		<h1>info</h1>
 		<pre></pre>
+	</div>
+
+	<!-- Template for Tips -->
+	<div class='tips window' id="tips" style="display: none;">
+		<div class='header'><span class='name'>tips</span><a class='close-button' onclick="$('#tips').hide()">x</a></div>
+		<div class='body'>
+
+            <div class="inline-block"><img src="static/images/tips/help1.jpg"></div>
+            <br/>
+            <div class="inline-block"><img src="static/images/tips/help3.jpg"></div>
+            <br/>
+            <div class="inline-block"><img src="static/images/tips/help2.jpg"></div>
+            <br/>
+            <div class="inline-block"><img src="static/images/tips/help4.jpg"></div>
+            <br/>
+            <div class="inline-block"><img src="static/images/tips/learningrates.jpeg"></div>
+
+        </div>
 	</div>
 {% endraw %}
 

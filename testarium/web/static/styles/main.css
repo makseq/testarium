@@ -116,6 +116,30 @@ html {
 	top:0px;
 }
 
+#tips .header {
+	padding:0;
+	height:30px;
+	background:rgba(245,245,245,0.5);
+	cursor: move;
+}
+#tips .header .close-button, .image .header .change-image-button {
+	display:block;
+	float:right;
+	padding-right: 1%;
+}
+#tips .header .name {
+	display:block;
+	float:left;
+	padding-left: 1%;
+}
+#tips .body {
+	width: 800px;
+	height: 600px;
+	overflow-y: scroll;
+	background: white;
+	opacity: 0.9;
+}
+
 /**** Commit Table ****/
 .commit-table {
 	font-size:70%;
@@ -151,9 +175,9 @@ html {
 	overflow-y:scroll;
 	overflow-x:hidden;
 }
-.commit-table .footer {
-	font-
-	font-size: 90%;
+.commit-table .footer, .commit-table .footer th {
+	font-weight:lighter;
+	color: #3C4758;
 }
 .commit-table .fa-line-chart{
 	color:#8C97A8;
@@ -262,6 +286,9 @@ html {
 	text-decoration: underline;
 }
 
+.inline-block {
+	display: inline-block;
+}
 
 .title{
 	width:1%;
