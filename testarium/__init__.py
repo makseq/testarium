@@ -193,9 +193,14 @@ def print_commits(commits, args):
         else:
             log(commit)
 
-        if args.print_config: log_lines(commit.config.__str__(args.config_keys)); log_simple('')  # print config
-        if args.print_diff: print_diff(commit, prev_commit, 'this', 'prev', args.config_keys); log_simple(
-            '')  # print incremental diff
+        if args.print_config:
+            log_lines(commit.config.__str__(args.config_keys))
+            log_simple('')  # print config
+
+        if args.print_diff:
+            print_diff(commit, prev_commit, 'this', 'prev', args.config_keys)
+            log_simple('')  # print incremental diff
+
         prev_commit = commit
 
 

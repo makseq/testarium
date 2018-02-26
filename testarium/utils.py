@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import os, sys, socket, string, random, base64
+import os, sys, socket, string, random, base64, inspect
 
 # import colorama
 try:
@@ -95,8 +95,12 @@ def log(*msg):
             except:
                 try:
                     sys.stdout.write(unicode(m))
-                except:
-                    sys.stdout.write(str('?unreadable?'))
+                except Exception as e:
+                    if hasattr(m, '__class__') and 'Commit' in str(m.__class__):
+                        sys.stdout.write(m.name)
+                    sys.stdout.write(' ! exception log: ' + repr(e))
+
+
             if reset and colored: sys.stdout.write(colorama.Fore.RESET)
             reset = False
             sys.stdout.write(' ')
