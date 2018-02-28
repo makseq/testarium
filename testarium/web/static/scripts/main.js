@@ -235,6 +235,16 @@ function newCommitTable()
 }
 
 
+function addCloseWindow(obj, data)
+{
+    function close_window() { $('#'+data.id).remove(); }
+	obj.find('.close-button').click(close_window);
+	obj.keydown(function(e) {
+        if (e.keyCode === 27) close_window();
+
+    })
+}
+
 function showInfo()
 {
 	if ($('#info').is(":visible"))
@@ -252,7 +262,7 @@ function showTips(e)
 	tips.toggle();
 	tips.draggable({ handle: ".header", grid: [25, 25] });
 	tips.on('focusin', focusWindow);
-	tips.focusin();
+	tips.focus();
 
 	$(this).dblclick(function(e){ e.stopPropagation() })
 
@@ -267,6 +277,8 @@ function saveComment(e)
 	$.ajax('api/branches/'+branch+'/commits/'+commitName+'?op=modify&comment='+$(e.currentTarget).text())
 }
 
+
+
 function newPlot()
 {
 	var data = { id: 'plot-'+scope.plot.number };
@@ -275,9 +287,8 @@ function newPlot()
 	var plot = $('#'+data.id);
 	plot.data('window-type', 'plot');
 
-	var close = plot.find('.close-button');
-	close.data('plot-id', data.id);
-	close.click(function(){ $('#'+$(this).data('plot-id')).remove(); });
+	// close button handler
+	addCloseWindow(plot, data);
 
 	var change_plot = plot.find('.change-plot-button');
 	change_plot.data('plot-id', data.id);
@@ -301,7 +312,7 @@ function newPlot()
 	var link = $('#'+scope.commits.active);
 	plot.css({top: link.offset().top, left: link.offset().left + link.outerWidth() + 30});
 	scope.plot.number++;
-	plot.focusin()
+	plot.focus()
 }
 
 function loadPlot(event, obj)
@@ -323,6 +334,7 @@ function loadPlot(event, obj)
 
 	var plot = $('#'+scope.plot.active);
 	plot.find('.header .name').text();
+	plot.focus();
 	var canvas = $('#'+scope.plot.active+' .canvas');
 	canvas.find('svg').remove();
 
@@ -358,9 +370,8 @@ function newImage()
 	var image = $('#'+data.id);
 	image.data('window-type', 'image');
 
-	var close = image.find('.close-button');
-	close.data('image-id', data.id);
-	close.click(function(){ $('#'+$(this).data('image-id')).remove(); });
+	// close button handler
+	addCloseWindow(image, data);
 
 	// focus
 	image.attr('tabindex',-1);
@@ -392,6 +403,7 @@ function newImage()
 	};
 	// keydown left & right arrows
 	image.keydown(function(e){
+		if(e.keyCode == 27) close_window();
 		if(e.keyCode == 37) image_scrolling($(this), -1);
 		if(e.keyCode == 39) image_scrolling($(this), +1);
 	})
@@ -415,7 +427,7 @@ function newImage()
 	var link = $('#'+scope.commits.active);
 	image.css({top: link.offset().top, left: link.offset().left + link.outerWidth() + 30});
 	scope.image.number++;
-	image.focusin()
+	image.focus()
 }
 
 function loadImage(event, obj)
