@@ -189,7 +189,7 @@ class Experiment:
     def Run(self, config, comment, newParams, useTry, runAndRemove=True):
         '''
         Run experiment.
-        :arg runAndRemove   True means full remove commit from repository,
+        :arg runAndRemove   True means fully remove commit from repository,
                             False is nothing to remove
         '''
         # check if user Run function defined

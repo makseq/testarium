@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 '''
 Testarium
-Copyright (C) 2014 Danila Doroshin, Maxim Tkachenko
+Copyright (C) 2014 Danila Doroshin, Maxim Tkachenko, Alexander Yamshinin
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,12 +18,60 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import os
-import numpy as np
-import urlparse
 import json
+import numpy as np
+from multiprocessing import Process, Queue
 
 
-class FafrException(Exception): pass
+def fafr_parallel(pT, pU, N, prcount):
+    FA = np.zeros((N + 1,))
+    FR = np.zeros((N + 1,))
+    Thresh = np.zeros((N + 1,))
+
+    indexes = [range(N + 1)[m::prcount] for m in xrange(prcount)]
+    out_q = Queue()
+    prs = []
+    for j in xrange(prcount):
+        p = Process(target=fafr_process, args=(pT, pU, N, indexes[j], j, out_q))
+        p.start()
+        prs.append(p)
+
+    fins = 0
+    while fins < prcount:
+        FA_id, FR_id, Thresh_id, id = out_q.get(True)
+        fins += 1
+        FA[indexes[id]] = FA_id
+        FR[indexes[id]] = FR_id
+        Thresh[indexes[id]] = Thresh_id
+
+    for p in prs:
+        p.join()
+
+    return FA, FR, Thresh
+
+
+def fafr_process(pT, pU, N, inds, pid, outq):
+    psize = pT.shape[0]
+    nsize = pU.shape[0]
+    lb = np.min([np.min(pT), np.min(pU)])
+    ub = np.max([np.max(pT), np.max(pU)])
+    prec = (ub - lb) / N
+
+    cnt = len(inds)
+    FA = np.zeros((cnt,))
+    FR = np.zeros((cnt,))
+    Thresh = np.zeros((cnt,))
+    for id, n in enumerate(inds):
+        a = lb + n * prec
+
+        FP = np.count_nonzero(pU[pU > a])
+        FN = np.count_nonzero(pT[pT <= a])
+
+        FA[id] = float(FP) / nsize
+        FR[id] = float(FN) / psize
+        Thresh[id] = a
+
+    outq.put((FA, FR, Thresh, pid))
 
 
 def fafr(pT, pU):
