@@ -360,7 +360,7 @@ def main():
     # run
     parser_run.add_argument('config_path', default='', nargs='?',
                             help='config path to use in the commit; using default branch config if option is empty')
-    parser_run.add_argument('-c', default='', dest='comment', help='add comment to the commit')
+    parser_run.add_argument('-m', '-c', default='', dest='comment', help='add comment to the commit')
     parser_run.add_argument('-p', default='', dest='newParams',
                             help='json dictionary, used instead of parameters in current config')
     parser_run.add_argument('-rm', default=False, dest='remove_after_run', action='store_true',
