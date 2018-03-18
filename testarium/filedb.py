@@ -134,7 +134,7 @@ class FileDataBase:
                 filename = os.path.normpath(filename)
                 json.dump(self.files, open(filename, 'w'))
                 self._files_saved = True
-                log('FileDB saved to:', filename)
+                # log('FileDB saved to:', filename)
                 return True
             except: return False
         else:

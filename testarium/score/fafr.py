@@ -23,6 +23,34 @@ import numpy as np
 from multiprocessing import Process, Queue
 
 
+def get_pos_neg(model, test, model_labels, test_labels, verbose=False):
+    pos, neg = [], []
+    model_eq_test = id(model) == id(test)  # check if model is the same as test
+
+    # calculate all distances
+    scores = np.dot(model, test.T)
+
+    for i, s in enumerate(model_labels):
+        js = test_labels == s  # positives
+        not_js = np.logical_not(js)  # negatives
+
+        # take only upper triangle of matrix if model == test
+        if model_eq_test:
+            js[0: i+1] = False
+            not_js[0: i+1] = False
+
+        pos += [scores[i, js]]
+        neg += [scores[i, not_js]]
+
+    pos, neg = np.hstack(pos), np.hstack(neg)
+
+    if verbose:
+        print('Positives number: %i' % len(pos))
+        print('Negatives number: %i' % len(neg))
+
+    return neg, pos
+
+
 def fafr_parallel(pT, pU, N, prcount):
     FA = np.zeros((N + 1,))
     FR = np.zeros((N + 1,))
