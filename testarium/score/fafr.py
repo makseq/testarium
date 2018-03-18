@@ -24,6 +24,15 @@ from multiprocessing import Process, Queue
 
 
 def get_pos_neg(model, test, model_labels, test_labels, verbose=False):
+    """ Calculate positive and negative scores by vectors (dvectors, ivectors, embeddings)
+    
+    :param model: model vectors (enroll)
+    :param test: test vectors (eval), if it's the same to model it will be upper triangle matrix taken for positives
+    :param model_labels: model labels 
+    :param test_labels: test labels 
+    :param verbose: print info flag 
+    :return: positive and negative scores
+    """
     pos, neg = [], []
     model_eq_test = id(model) == id(test)  # check if model is the same as test
 
@@ -34,10 +43,9 @@ def get_pos_neg(model, test, model_labels, test_labels, verbose=False):
         js = test_labels == s  # positives
         not_js = np.logical_not(js)  # negatives
 
-        # take only upper triangle of matrix if model == test
+        # take only upper triangle of matrix for positives if model == test
         if model_eq_test:
             js[0: i+1] = False
-            not_js[0: i+1] = False
 
         pos += [scores[i, js]]
         neg += [scores[i, not_js]]
