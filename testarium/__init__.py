@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import kernel, experiment as experiment_module
 from utils import *
 import sys, argparse, json, collections, copy, shutil
+import argcomplete
 
 try: import numpy as np
 except: pass
@@ -447,6 +448,7 @@ def main():
     parser_mail.add_argument('--reset', default=False, dest='reset', action='store_true',
                              help='reset mail settings (account, password and others)')
 
+    argcomplete.autocomplete(parser)
     if len(sys.argv) == 1:
         args = parser.parse_args(['run'])
     else:

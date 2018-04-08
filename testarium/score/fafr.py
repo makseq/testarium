@@ -23,21 +23,31 @@ import numpy as np
 from multiprocessing import Process, Queue
 
 
-def get_pos_neg(model, test, model_labels, test_labels, verbose=False):
+def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='cos'):
     """ Calculate positive and negative scores by vectors (dvectors, ivectors, embeddings)
     
     :param model: model vectors (enroll)
     :param test: test vectors (eval), if it's the same to model it will be upper triangle matrix taken for positives
     :param model_labels: model labels 
     :param test_labels: test labels 
-    :param verbose: print info flag 
+    :param verbose: print info flag
+    :param metric: 'cos' or 'hamming' 
     :return: positive and negative scores
     """
     pos, neg = [], []
     model_eq_test = id(model) == id(test)  # check if model is the same as test
 
-    # calculate all distances
-    scores = np.dot(model, test.T)
+    # calculate hamming distances
+    if metric == 'hamming':
+        model = model > 0
+        test = test > 0
+        scores = partial(lambda A, B: np.sum(np.not_equal(A, B[:, np.newaxis, :]), axis=-1))
+    # calculate cos distances
+    elif metric == 'cos':
+        scores = np.dot(model, test.T)
+    # incorrect distance
+    else:
+        raise Exception('Incorrect distance metric')
 
     for i, s in enumerate(model_labels):
         js = test_labels == s  # positives
