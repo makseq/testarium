@@ -21,6 +21,8 @@ import os
 import json
 import numpy as np
 from multiprocessing import Process, Queue
+from threading import Thread
+from functools import partial
 
 
 def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='cos'):
@@ -41,13 +43,15 @@ def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='c
     if metric == 'hamming':
         model = model > 0
         test = test > 0
-        scores = partial(lambda A, B: np.sum(np.not_equal(A, B[:, np.newaxis, :]), axis=-1))
+        m = partial(lambda A, B: -np.sum(np.not_equal(A, B[:, np.newaxis, :]), axis=-1))
     # calculate cos distances
     elif metric == 'cos':
-        scores = np.dot(model, test.T)
+        m = partial(lambda A, B: np.dot(A, B.T))
     # incorrect distance
     else:
         raise Exception('Incorrect distance metric')
+
+    scores = m(model, test)
 
     for i, s in enumerate(model_labels):
         js = test_labels == s  # positives
@@ -56,9 +60,12 @@ def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='c
         # take only upper triangle of matrix for positives if model == test
         if model_eq_test:
             js[0: i+1] = False
+            not_js[0: i] = False
 
-        pos += [scores[i, js]]
-        neg += [scores[i, not_js]]
+        if np.sum(js) > 0:
+            pos += [scores[i, js]]
+        if np.sum(not_js) > 0:
+            neg += [scores[i, not_js]]
 
     pos, neg = np.hstack(pos), np.hstack(neg)
 
@@ -78,7 +85,7 @@ def fafr_parallel(pT, pU, N, prcount):
     out_q = Queue()
     prs = []
     for j in xrange(prcount):
-        p = Process(target=fafr_process, args=(pT, pU, N, indexes[j], j, out_q))
+        p = Thread(target=fafr_process, args=(pT, pU, N, indexes[j], j, out_q))
         p.start()
         prs.append(p)
 
@@ -101,7 +108,7 @@ def fafr_process(pT, pU, N, inds, pid, outq):
     nsize = pU.shape[0]
     lb = np.min([np.min(pT), np.min(pU)])
     ub = np.max([np.max(pT), np.max(pU)])
-    prec = (ub - lb) / N
+    prec = (ub - lb) / float(N)
 
     cnt = len(inds)
     FA = np.zeros((cnt,))
