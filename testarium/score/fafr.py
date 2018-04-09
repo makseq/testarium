@@ -43,7 +43,13 @@ def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='c
     if metric == 'hamming':
         model = model > 0
         test = test > 0
-        m = partial(lambda A, B: -np.sum(np.not_equal(A, B[:, np.newaxis, :]), axis=-1))
+        def hamming_distance(A, B):
+            import scipy.spatial.distance
+            scores = np.zeros((A.shape[0], B.shape[0]))
+            for i, a in enumerate(A):
+                scores[i] = -np.sum(np.not_equal(a[np.newaxis, :], B), axis=-1)
+            return scores
+        m = hamming_distance
     # calculate cos distances
     elif metric == 'cos':
         m = partial(lambda A, B: np.dot(A, B.T))
