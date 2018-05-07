@@ -25,6 +25,14 @@ from threading import Thread
 from functools import partial
 
 
+def hamming_distance(A, B):
+    import scipy.spatial.distance
+    scores = np.zeros((A.shape[0], B.shape[0]))
+    for i, a in enumerate(A):
+        scores[i] = -np.sum(np.not_equal(a[np.newaxis, :], B), axis=-1)
+    return scores
+
+
 def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='cos'):
     """ Calculate positive and negative scores by vectors (dvectors, ivectors, embeddings)
     
@@ -40,22 +48,27 @@ def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='c
     model_eq_test = id(model) == id(test)  # check if model is the same as test
 
     # calculate hamming distances
-    if metric == 'hamming':
-        model = model > 0
-        test = test > 0
-        def hamming_distance(A, B):
-            import scipy.spatial.distance
-            scores = np.zeros((A.shape[0], B.shape[0]))
-            for i, a in enumerate(A):
-                scores[i] = -np.sum(np.not_equal(a[np.newaxis, :], B), axis=-1)
-            return scores
-        m = hamming_distance
-    # calculate cos distances
-    elif metric == 'cos':
-        m = partial(lambda A, B: np.dot(A, B.T))
-    # incorrect distance
+    if isinstance(metric, str):
+        # hamming
+        if metric == 'hamming':
+            model = model > 0
+            test = test > 0
+            m = hamming_distance
+
+        # calculate cos distances
+        elif metric == 'cos':
+            m = partial(lambda A, B: np.dot(A, B.T))
+
+        # incorrect distance
+        else:
+            raise Exception('Incorrect distance metric')
+
+    # custom user distance function
+    elif callable(metric):
+        m = metric
+
     else:
-        raise Exception('Incorrect distance metric')
+        raise Exception('Incorrect metric')
 
     scores = m(model, test)
 
