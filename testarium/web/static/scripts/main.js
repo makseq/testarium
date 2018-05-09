@@ -190,8 +190,6 @@ function newCommitTableByBranch(branch)
 		commits.attr('tabindex',-1);
 		commits.on('focusin', focusWindow);
 
-
-
 		// selected tr
 		commits.find('.body table tbody tr').click(function(){
 			$(this).toggleClass('selected')
@@ -207,6 +205,31 @@ function newCommitTableByBranch(branch)
 		commits.children('.body').resizable({alsoResize: also, grid: GRID_SIZE});
 		scope.commits.active=commits.attr('id');
 		//setTimeout(commitUpdate, 2000, commits.attr('id'))
+
+        // copy text if ctrl pressed
+        commits.find('td').on('click', function(e){
+             if (e.button==0 && e.ctrlKey) {
+                 var textarea = document.createElement('textarea');
+                 textarea.textContent = $(this).text();
+                 document.body.appendChild(textarea);
+
+                 var selection = document.getSelection();
+                 var range = document.createRange();
+                 //  range.selectNodeContents(textarea);
+                 range.selectNode(textarea);
+                 selection.removeAllRanges();
+                 selection.addRange(range);
+
+                 console.log('copy success', document.execCommand('copy'));
+                 selection.removeAllRanges();
+
+                 document.body.removeChild(textarea);
+
+                 e.preventDefault();
+                 e.stopPropagation();
+                 return false;
+             }
+        })
 	}); // api/branch/name/commits
 }
 

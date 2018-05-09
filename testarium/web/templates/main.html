@@ -61,9 +61,9 @@
 					{{props :}}
 					{{if key!="config" && key!="desc"}}
 						{{if key=="name" }}
-							<td><a href="{{:~getvarfile('path')}}" target=blank>{{:prop}}</a></td>
+							<td><a target="_blank" href="{{:~getvarfile('path')}}" target=blank>{{:prop}}</a></td>
 						{{else key=="score" }}
-							<td><a href="{{:~getvarfile('path_desc')}}" target=blank>{{:prop}}</a></td>
+							<td><a target="_blank" href="{{:~getvarfile('path_desc')}}" target=blank>{{:prop}}</a></td>
 						{{else key=="comment" }}
 						    <td><div contenteditable="true" onkeyup="saveComment(event)">{{:prop}}</div></td>
 						{{else}}
