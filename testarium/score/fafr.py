@@ -20,17 +20,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import json
 import numpy as np
+import threading
 from multiprocessing import Process, Queue
-from threading import Thread
+from multiprocessing.pool import ThreadPool
 from functools import partial
 
-
-def hamming_distance(A, B):
-    import scipy.spatial.distance
-    scores = np.zeros((A.shape[0], B.shape[0]))
-    for i, a in enumerate(A):
-        scores[i] = -np.sum(np.not_equal(a[np.newaxis, :], B), axis=-1)
-    return scores
+threadLocal = threading.local()
 
 
 def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='cos'):
@@ -48,25 +43,33 @@ def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='c
     model_eq_test = id(model) == id(test)  # check if model is the same as test
 
     # calculate hamming distances
-    if isinstance(metric, str):
-        # hamming
+    if isinstance(metric, basestring):
         if metric == 'hamming':
             model = model > 0
             test = test > 0
+            def hamming_distance(A, B):
+                import scipy.spatial.distance
+                scores = np.zeros((A.shape[0], B.shape[0]), dtype=np.int)
+                pool = ThreadPool()
+                def task(i):
+                    out = getattr(threadLocal, 'out', None)
+                    if out is None:
+                        out = np.zeros(A.shape).astype(np.bool)
+                        setattr(threadLocal, 'out', out)
+                    a = A[i]
+                    scores[i] = -np.count_nonzero(np.not_equal(a[np.newaxis, :], B, out=out), axis=-1)
+                pool.map(task, range(A.shape[0]))
+                pool.close()
+                return scores
             m = hamming_distance
-
         # calculate cos distances
         elif metric == 'cos':
             m = partial(lambda A, B: np.dot(A, B.T))
-
         # incorrect distance
         else:
             raise Exception('Incorrect distance metric')
-
-    # custom user distance function
     elif callable(metric):
         m = metric
-
     else:
         raise Exception('Incorrect metric')
 
@@ -104,7 +107,7 @@ def fafr_parallel(pT, pU, N, prcount):
     out_q = Queue()
     prs = []
     for j in xrange(prcount):
-        p = Thread(target=fafr_process, args=(pT, pU, N, indexes[j], j, out_q))
+        p = threading.Thread(target=fafr_process, args=(pT, pU, N, indexes[j], j, out_q))
         p.start()
         prs.append(p)
 
