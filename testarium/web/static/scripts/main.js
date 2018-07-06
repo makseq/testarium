@@ -140,6 +140,25 @@ function commitFilter()
 	commitUpdate($(this).data('commits-table-id'))
 }
 
+function clipboard_copy(o) {
+	var textarea = document.createElement('textarea');
+	textarea.textContent = $(o).text();
+	document.body.appendChild(textarea);
+
+	var selection = document.getSelection();
+	var range = document.createRange();
+	//range.selectNodeContents(textarea);
+	range.selectNode(textarea);
+	selection.removeAllRanges();
+	textarea.focus()
+	textarea.setSelectionRange(0, textarea.value.length);
+
+	console.log('copy success', document.execCommand('copy'));
+	selection.removeAllRanges();
+
+	document.body.removeChild(textarea);
+}
+
 function newCommitTableByBranch(branch)
 {
 	$.getJSON('api/branches/'+branch+'/commits', function (data) {
@@ -209,25 +228,10 @@ function newCommitTableByBranch(branch)
         // copy text if ctrl pressed
         commits.find('td').on('click', function(e){
              if (e.button==0 && e.ctrlKey) {
-                 var textarea = document.createElement('textarea');
-                 textarea.textContent = $(this).text();
-                 document.body.appendChild(textarea);
-
-                 var selection = document.getSelection();
-                 var range = document.createRange();
-                 //  range.selectNodeContents(textarea);
-                 range.selectNode(textarea);
-                 selection.removeAllRanges();
-                 selection.addRange(range);
-
-                 console.log('copy success', document.execCommand('copy'));
-                 selection.removeAllRanges();
-
-                 document.body.removeChild(textarea);
-
+                 clipboard_copy(this);
                  e.preventDefault();
-                 e.stopPropagation();
-                 return false;
+				 e.stopPropagation();
+				 return false;
              }
         })
 	}); // api/branch/name/commits
