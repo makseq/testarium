@@ -92,7 +92,7 @@ def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='c
         print('Positives number: %i' % len(pos))
         print('Negatives number: %i' % len(neg))
 
-    return neg, pos
+    return pos, neg
 
 
 def fafr_parallel(pT, pU, N, prcount):
