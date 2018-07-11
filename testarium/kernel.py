@@ -528,8 +528,8 @@ class Testarium:
         # git / mercurial repository init
         if self.ReadConfig('coderepos.use', True) == True:
             if os.path.exists('.hg'):
-                self.coderepos = coderepos.Mercurial();
-            elif os.path.exists('.git') or os.path.exists('../.git'):
+                self.coderepos = coderepos.Mercurial()
+            else:
                 self.coderepos = coderepos.Git()
 
         # Load failed, reinit testarium

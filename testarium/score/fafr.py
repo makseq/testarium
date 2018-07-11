@@ -98,7 +98,7 @@ def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='c
     return pos, neg
 
 
-def fafr_parallel(pT, pU, N, prcount):
+def fafr_parallel(pos, neg, N, prcount):
     FA = np.zeros((N + 1,))
     FR = np.zeros((N + 1,))
     Thresh = np.zeros((N + 1,))
@@ -107,7 +107,7 @@ def fafr_parallel(pT, pU, N, prcount):
     out_q = Queue()
     prs = []
     for j in xrange(prcount):
-        p = threading.Thread(target=fafr_process, args=(pT, pU, N, indexes[j], j, out_q))
+        p = threading.Thread(target=fafr_process, args=(pos, neg, N, indexes[j], j, out_q))
         p.start()
         prs.append(p)
 
@@ -125,11 +125,11 @@ def fafr_parallel(pT, pU, N, prcount):
     return FA, FR, Thresh
 
 
-def fafr_process(pT, pU, N, inds, pid, outq):
-    psize = pT.shape[0]
-    nsize = pU.shape[0]
-    lb = np.min([np.min(pT), np.min(pU)])
-    ub = np.max([np.max(pT), np.max(pU)])
+def fafr_process(pos, neg, N, inds, pid, outq):
+    psize = pos.shape[0]
+    nsize = neg.shape[0]
+    lb = np.min([np.min(pos), np.min(neg)])
+    ub = np.max([np.max(pos), np.max(neg)])
     prec = (ub - lb) / float(N)
 
     cnt = len(inds)
@@ -139,8 +139,8 @@ def fafr_process(pT, pU, N, inds, pid, outq):
     for id, n in enumerate(inds):
         a = lb + n * prec
 
-        FP = np.count_nonzero(pU[pU > a])
-        FN = np.count_nonzero(pT[pT <= a])
+        FP = np.count_nonzero(neg[neg > a])
+        FN = np.count_nonzero(pos[pos <= a])
 
         FA[id] = float(FP) / nsize
         FR[id] = float(FN) / psize
@@ -149,27 +149,28 @@ def fafr_process(pT, pU, N, inds, pid, outq):
     outq.put((FA, FR, Thresh, pid))
 
 
-def fafr(pT, pU):
+def fafr(pos, neg, step_size=1000.0):
     # computes false alarms, rejects and corresponding thresholds for a given
     # target and background data
     # INPUTS
-    # pT :              target data (where label = +1)
-    # pU :              background data  (where label = -1)
+    # pos :              target data (where label = +1)
+    # neg :              background data  (where label = -1)
     # OUTPUTS
     # FA:               false alarms distribution along thresholds
     # FR:               false rejects distribution along thresholds
     # Thresh             thresholds
 
-    step_size = 1000.0
+    pos = np.array(pos) if isinstance(pos, list) else pos
+    neg = np.array(neg) if isinstance(neg, list) else neg
 
-    psize = float(pT.shape[0])
+    psize = float(pos.shape[0])
     if psize == 0: psize = 1.0
-    nsize = float(pU.shape[0])
+    nsize = float(neg.shape[0])
     if nsize == 0: nsize = 1.0
 
-    con_pu = np.linspace(np.min(pU), np.max(pU), step_size)
-    con_pt = np.linspace(np.min(pT), np.max(pT), step_size)
-    con = np.concatenate((con_pu, con_pt))
+    con_neg = np.linspace(np.min(neg), np.max(neg), step_size)
+    con_pos = np.linspace(np.min(pos), np.max(pos), step_size)
+    con = np.concatenate((con_neg, con_pos))
     con = np.sort(con)
     #step = con.shape[0]/200 if len(con) > 200 else 1
     #con = s[::step]
@@ -184,8 +185,8 @@ def fafr(pT, pU):
     first = True
 
     for a in con:
-        FP = np.count_nonzero(pU[pU > a])
-        FN = np.count_nonzero(pT[pT <= a])
+        FP = np.count_nonzero(neg[neg > a])
+        FN = np.count_nonzero(pos[pos <= a])
         
         if first:
             prevFP = FP
