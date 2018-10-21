@@ -34,13 +34,8 @@ def get_version():
         print 'Current git description: %sError: please commit your changes' % desc
         exit(-100)
 
-    # take os name
-    keys = ('ID=', 'VERSION_ID=', 'RELEASE=')
-    with open('/etc/os-release') as f:
-        os = ''.join(s.split("=", 1)[1].rstrip().strip('"').replace('.', '') for s in f if s.startswith(keys))
-
     # create package version
-    version = desc.lstrip('v').rstrip().replace('-', '+', 1).replace('-', '.') + '.' + os
+    version = desc.lstrip('v').rstrip().replace('-', '.', 1).replace('-', '.') + '.'
     print 'Version:', version
     return version
 
