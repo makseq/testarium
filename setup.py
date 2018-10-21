@@ -35,7 +35,8 @@ def get_version():
         exit(-100)
 
     # create package version
-    version = desc.lstrip('v').rstrip().replace('-', '.', 1).replace('-', '.')
+    version = desc.lstrip('v').rstrip().replace('-', '.')
+    version = '.'.join(version.split('.')[0:-1])
     print 'Version:', version
     return version
 
