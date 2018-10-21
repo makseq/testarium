@@ -16,9 +16,34 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-# command: setup.py sdist upload -r pypi
+# command: setup.py sdist & twine upload dist/*
 
+from subprocess import STDOUT, CalledProcessError, check_output as run
 from setuptools import setup
+
+def get_version():
+    # take version from git
+    try:
+        desc = run('git describe --long --tags --always --dirty', stderr=STDOUT, shell=True)
+    except CalledProcessError as e:
+        print "cmd: %s\nError %s: %s" % (e.cmd, e.returncode, e.output)
+        exit(-101)
+
+    # check if everything is commited
+    if 'dirty' in desc:
+        print 'Current git description: %sError: please commit your changes' % desc
+        exit(-100)
+
+    # take os name
+    keys = ('ID=', 'VERSION_ID=', 'RELEASE=')
+    with open('/etc/os-release') as f:
+        os = ''.join(s.split("=", 1)[1].rstrip().strip('"').replace('.', '') for s in f if s.startswith(keys))
+
+    # create package version
+    version = desc.lstrip('v').rstrip().replace('-', '+', 1).replace('-', '.') + '.' + os
+    print 'Version:', version
+    return version
+
 
 data_files = [
 
@@ -68,7 +93,7 @@ setup(name='testarium',
       author='Max Tkachenko, Danila Doroshin, Alexander Yamshinin',
       author_email='makseq@gmail.com',
       license='GNU GPLv3',
-      version='0.2.73',
+      version=get_version(),
       packages=['testarium', 'testarium/score', 'testarium/web'],
       install_requires=['numpy', 'flask', 'colorama', 'pycrypto', 'argcomplete'],
       include_package_data=True,
@@ -77,7 +102,6 @@ setup(name='testarium',
       classifiers=[
           "Topic :: Scientific/Engineering",
           "Development Status :: 3 - Alpha",
-          "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
           "Operating System :: OS Independent",
           "Programming Language :: Python",
           "Intended Audience :: Science/Research"
