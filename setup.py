@@ -83,9 +83,14 @@ data_files = [
 
 ]
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(name='testarium',
       url='http://testarium.makseq.com',
       description='Research tool to perform experiments and store results in the repository. More: http://testarium.makseq.com',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       author='Max Tkachenko, Danila Doroshin, Alexander Yamshinin',
       author_email='makseq@gmail.com',
       license='GNU GPLv3',
