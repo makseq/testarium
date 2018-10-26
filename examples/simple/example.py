@@ -15,6 +15,8 @@ def my_run(commit):
     neg = open(d + '/neg.txt', 'w')
     [pos.write(str(random.random() * c['a']) + '\n') for _ in xrange(100)]
     [neg.write(str(random.random() * c['a']) + '\n') for _ in xrange(100)]
+    commit.Save()
+    raw_input()
     return 0
 
 
@@ -47,5 +49,5 @@ def my_compare(self, other):
 
 
 if __name__ == '__main__':
-    testarium.testarium.best_score_is_min()
+    testarium.testarium.best_score_is_max()
     testarium.main()
