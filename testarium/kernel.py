@@ -230,12 +230,10 @@ class Commit:
         # user print func
         if self.common.commit_print_func is not None and not skipUserPrint:
             if not self.common.commit_print_func[0] is None:
-                if web:
-                    try:
-                        cols, out = self.common.commit_print_func[0](self)
-                    except:
-                        cols, out = [], []
+                cols, out = self.common.commit_print_func[0](self)
+                out = [str(o) for o in out]
 
+                if web:
                     if 'config' not in cols:
                         cols.append('config')
                         out.append('file://storage/' + self.dir + '/config.json')
@@ -247,10 +245,10 @@ class Commit:
                         out.append('graph://storage/' + self.dir + '/fafr.txt')
                     return cols, out
                 else:
-                    return self.SkipUrls(*self.common.commit_print_func[0](self))
+                    return self.SkipUrls(cols, out)
 
         name = self.desc['name'] if 'name' in self.desc else 'none'
-        score = self.desc['score'] if 'score' in self.desc else 'none'
+        score = str(self.desc['score']) if 'score' in self.desc else 'none'
         time = str('%0.2f' % float(self.desc['duration'])) if 'duration' in self.desc else ''
         comment = self.desc['comment'] if 'comment' in self.desc else ''
 
