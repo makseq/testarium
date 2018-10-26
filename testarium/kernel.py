@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 Testarium
 Copyright (C) 2014 Maxim Tkachenko
 
@@ -15,19 +15,21 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 import datetime, time, json, numpy as np
 import os, operator, shutil, collections
 from utils import *
-import coderepos, filedb
+import coderepos
+import filedb
+import random
 
 CONFIG_COMMIT_DIRECTORY = 'testarium.commitDirectory'
 
 # ------------------------------------------------------------------------------
-'''
-	Common - store common params and working routines
-'''
+"""
+Common - store common params and working routines
+"""
 
 
 class Common:
@@ -40,10 +42,10 @@ class Common:
 
 
 # ------------------------------------------------------------------------------
-''' 
-	Config contains a json config of experiment
-	(parameters and other) 
-'''
+""" 
+Config contains a json config of experiment
+(parameters and other) 
+"""
 
 
 class Config(collections.OrderedDict):
@@ -112,11 +114,11 @@ class Config(collections.OrderedDict):
 
 
 # ------------------------------------------------------------------------------
-''' 
-	Description contains a json desc 
-	(score, time, comment and other) 
-	after commit evaluation 
-'''
+""" 
+Description contains a json desc 
+(score, time, comment and other) 
+after commit evaluation 
+"""
 
 
 class Description(collections.OrderedDict):
@@ -129,9 +131,9 @@ class Description(collections.OrderedDict):
 
 
 # ------------------------------------------------------------------------------
-''' 
-	Commit consists of Config and Description
-'''
+""" 
+Commit consists of Config and Description
+"""
 
 class Commit:
     def __init__(self):
@@ -385,11 +387,9 @@ class Commit:
 
 
 # ------------------------------------------------------------------------------
-'''
-	Branch keeps commits and is associated with subtask
-'''
-
-
+"""        
+Branch keeps commits and is associated with subtask
+"""
 class Branch:
     def __init__(self):
         self._init = True
@@ -405,8 +405,8 @@ class Branch:
 
         # check if commit with this name exists
         count = 1
-        dir = self.common.root + '/' + self.name
-        while os.path.exists(dir + '/' + commit.name):
+        d = self.common.root + '/' + self.name
+        while os.path.exists(d + '/' + commit.name):
             sub = str('%0.3i' % count)
             commit.SetName(commit.GenerateName() + sub)
             count += 1
@@ -417,7 +417,7 @@ class Branch:
 
         # file db
         self.filedb.ResetShuffle()
-        self.filedb.LoadFiles(dir + '/filedb.json')
+        self.filedb.LoadFiles(d + '/filedb.json')
 
         self.commits[commit.name] = commit
         return commit
@@ -494,12 +494,11 @@ class Branch:
 
 
 # ------------------------------------------------------------------------------
-'''
-	Testarium - manage the commits
-'''
-
-
+"""
+Testarium - manage the commits
+"""
 class Testarium:
+
     def best_score_is_max(self):
         self.common.best_score_max = True
 
@@ -526,7 +525,7 @@ class Testarium:
             log('Testarium loading failed. It will be new configurated setup')
 
         # git / mercurial repository init
-        if self.ReadConfig('coderepos.use', True) == True:
+        if self.ReadConfig('coderepos.use', True):
             if os.path.exists('.hg') or os.path.exists('../.hg') or os.path.exists('../../.hg'):
                 self.coderepos = coderepos.Mercurial()
             else:
@@ -578,19 +577,19 @@ class Testarium:
         return self.activeBranch
 
     # Add new commit to active branch
-    def NewCommit(self, config):
+    def NewCommit(self, config, dry_run=False):
         commit = self.activeBranch.NewCommit(config)
+        commit.dry_run = dry_run
         path = self.root + '/' + self.activeBranch.name + '/' + commit.name
-        commit.Save(path, configOnly=True)
 
         # coderepos commit
-        comment = ''
-        try:
-            comment = ' ' + commit.desc['comment']
-        except:
-            pass
-        self.coderepos.commit(commit.name, comment)
+        if not dry_run:
+            comment = ' ' + commit.desc['comment'] if 'comment' in commit.desc else ''
+            repo_hash = self.coderepos.commit(commit.name, comment)
+            commit.desc['coderepos.commit_name'] = repo_hash
 
+        # write to disk
+        commit.Save(path, configOnly=True)
         return commit
 
     # Select commits by branch and name/position/keyword
@@ -729,7 +728,6 @@ class Testarium:
             raise Exception('No testarium description: ' + path)
         self.name = self.config['name']
         self.activeBranch = None
-        self.config = self.config
         return self.config
 
     # Load active branch only
@@ -776,6 +774,16 @@ class Testarium:
         # save testarium info
         self.config['name'] = self.name
         self.config['activeBranch'] = self.activeBranch.name
+
+        # choice background image by random
+        if 'background' not in self.config:
+            d = os.path.dirname(os.path.abspath(__file__)) + '/web/static/images'
+            print d
+            images = [f for f in os.listdir(d) if f.endswith('.jpg')]
+            name = random.choice(images)
+            self.config['background'] = 'static/images/' + name
+            self.config['background.opacity'] = 0.7 if 'back3.jpg' != name else 0.0
+
         path = self.root + '/testarium.json'
         try:
             json.dump(self.config, open(path, 'w'), indent=2)

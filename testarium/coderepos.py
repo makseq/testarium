@@ -36,8 +36,10 @@ class Mercurial(CodeRepos):
 
 
 class Git(CodeRepos):
+
     def commit(self, commitName, comment):
         subprocess.call(['git', 'commit', '-a', '-m', commitName + ' ' + str(comment)], stdout=open(os.devnull, 'w'))
+        return subprocess.check_output('git rev-parse HEAD')  # return commit hash name
 
     def changebranch(self, branchName):
         # self.commit('branch changed to ', branchName)

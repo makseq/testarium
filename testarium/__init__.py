@@ -65,7 +65,7 @@ def run(args):
     if stop: return False
 
     experiment.SetSendMail(args.mail)
-    experiment.Search(config=config, comment=args.comment, newParams=c, useTry=True, runAndRemove=args.remove_after_run)
+    experiment.Search(config=config, comment=args.comment, new_params=c, use_try=True, dry_run=args.dry_run)
     return True
 
 
@@ -363,8 +363,9 @@ def main():
     parser_run.add_argument('-m', '-c', default='', dest='comment', help='add comment to the commit')
     parser_run.add_argument('-p', default='', dest='newParams',
                             help='json dictionary, used instead of parameters in current config')
-    parser_run.add_argument('-rm', default=False, dest='remove_after_run', action='store_true',
-                            help='remove commit from repository after run')
+    parser_run.add_argument('-d', '--dry', default=False, dest='dry_run', action='store_true',
+                            help='Dry run mode: do not repository (git, hg) commit and '
+                                 'remove commit from repository after run')
     parser_run.add_argument('--mail', default=False, dest='mail', action='store_true', help='send report to mail')
 
     # branch

@@ -6,7 +6,7 @@
 }
 
 html {
-	background:url('../images/back.jpg') no-repeat center center fixed;
+	background: no-repeat center center fixed;
 	-webkit-background-size: cover;
 	-moz-background-size: cover;
 	-o-background-size: cover;
@@ -27,10 +27,6 @@ html {
 	height:100%;
 	position:fixed;
 	z-index:-100;
-	-moz-opacity: 0.70; 
-	-khtml-opacity: 0.70; 
-	opacity: 0.70;
-	background-color:rgba(255,255,255,0.7);
 	overflow: hidden;
 }
 

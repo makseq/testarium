@@ -47,10 +47,12 @@ def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='c
         if metric == 'hamming':
             model = model > 0
             test = test > 0
+
             def hamming_distance(A, B):
                 import scipy.spatial.distance
                 scores = np.zeros((A.shape[0], B.shape[0]), dtype=np.int)
                 pool = ThreadPool()
+
                 def task(i):
                     out = getattr(threadLocal, 'out', None)
                     if out is None:
@@ -61,7 +63,9 @@ def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='c
                 pool.map(task, range(A.shape[0]))
                 pool.close()
                 return scores
+
             m = hamming_distance
+
         # calculate cos distances
         elif metric == 'cos':
             m = partial(lambda A, B: np.dot(A, B.T))
@@ -295,8 +299,6 @@ def ScoreCommit(commit):
         common_neg += neg
         open(commit.dir + '/pos.common.txt', 'w').write('\n'.join([str(i) for i in common_pos]))
         open(commit.dir + '/neg.common.txt', 'w').write('\n'.join([str(i) for i in common_neg]))
-
-
 
     eer, minDCF = fafr_cache(common_pos, common_neg, 'fafr.txt', commit)
     return {'score': eer, 'minDCF': minDCF, 'fafr.targets': results, 'pos_number': len(common_pos), 'neg_number': len(common_neg)}

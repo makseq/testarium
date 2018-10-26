@@ -1,6 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <!--suppress ALL -->
-<html ng-app=testarium>
+<html ng-app=testarium
+      style="background-image:url({{ t.ReadConfig('background', 'static/images/back.jpg') }})">
 <head>
 	<title>{{ t.name }} | Testarium</title>
     <script>var testarium_web = true; </script>
@@ -28,7 +29,11 @@
 
 <body>
 
-	<div id=body-back>
+	<div id=body-back style="
+            -moz-opacity: {{ t.ReadConfig('background.opacity', 0.7) }};
+            -khtml-opacity: {{ t.ReadConfig('background.opacity', 0.7) }};
+            opacity: {{ t.ReadConfig('background.opacity', 0.7) }};
+            background-color:rgba(255,255,255, {{ t.ReadConfig('background.opacity', 0.7) }});">
 		<div class=title>{{ t.name }}</div>
 	</div>
 
