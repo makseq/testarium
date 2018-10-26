@@ -27,13 +27,10 @@ def my_score(commit):
 
 @testarium.testarium.set_print
 def my_print(commit):
-    a = str(commit.config['a']) if 'a' in commit.config else ''
-    score = str(commit.desc['score'])
-    test_param = str(commit.desc['test.param'])
-    return ['name', 'a', 'score', 'config', 'test'], \
-           [commit.name, a, score, 'file://storage/.testarium/' +
-            commit.desc['branch'] + '/' + commit.name + '/config.json',
-            commit.desc['test.param']]
+    score = '%0.2f' % (commit.desc['score'] * 100.0)
+
+    return ['name', 'a', 'test', 'score'], \
+           [commit.name, commit.config['a'], commit.desc['test.param'], score]
 
 
 @testarium.testarium.set_compare

@@ -448,8 +448,16 @@ def main():
     parser_mail.add_argument('--reset', default=False, dest='reset', action='store_true',
                              help='reset mail settings (account, password and others)')
 
+    # run by default
     if len(sys.argv) == 1:
         args = parser.parse_args(['run'])
+
+    # user forget run
+    elif sys.argv[1] not in subparsers._name_parser_map.keys():
+        sys.argv.insert(1, 'run')
+        args = parser.parse_args()
+
+    # other subparsers
     else:
         args = parser.parse_args()
 

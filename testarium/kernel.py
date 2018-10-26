@@ -159,16 +159,16 @@ class Commit:
             if self._init:
                 if self.common.best_score_max:
                     if self.desc['score'] > other.desc['score']:
-                        return 1;
+                        return 1
                     elif self.desc['score'] < other.desc['score']:
-                        return -1;
+                        return -1
                     else:
                         return 0
                 else:
                     if self.desc['score'] > other.desc['score']:
-                        return -1;
+                        return -1
                     elif self.desc['score'] < other.desc['score']:
-                        return 1;
+                        return 1
                     else:
                         return 0
             else:
@@ -204,64 +204,58 @@ class Commit:
             return None
 
     def __str__(self):
-        if not self._init: return 'No init'
+        if not self._init:
+            return 'No init'
+
         cols, out = self.Print()
-        if len(cols) != len(out): return 'Wrong cols or out afer Description.Print()'
+        if len(cols) != len(out):
+            return 'Wrong cols or out after Description.Print()'
 
         msg = ''
-        nohead = ['name', 'comment', '']
+        no_head = ['name', 'comment', '']
         for i, c in enumerate(cols):
-            if out[i] != '': msg += ('\t> ' if i != 0 else '') + ('' if c in nohead else c + ': ') + out[i] + ' '
+            part = str(out[i])
+            if part:
+                msg += ('\t> ' if i != 0 else '') + ('' if c in no_head else c + ': ') + part + ' '
 
         return msg
 
     def SkipUrls(self, cols, out):
-        new = [c for c in zip(cols, out) if not UrlGraph(c[1]) and not UrlFile(c[1])]
+        new = [c for c in zip(cols, out) if not url_graph(c[1]) and not url_file(c[1])]
         return zip(*new)
 
     def Print(self, skipUserPrint=False, web=False):
         if not self._init: return [], []
 
         # user print func
-        if not self.common.commit_print_func is None and not skipUserPrint:
+        if self.common.commit_print_func is not None and not skipUserPrint:
             if not self.common.commit_print_func[0] is None:
                 if web:
-                    try: cols, out = self.common.commit_print_func[0](self)
+                    try:
+                        cols, out = self.common.commit_print_func[0](self)
                     except:
                         cols, out = [], []
 
-                    if not 'config' in cols:
+                    if 'config' not in cols:
                         cols.append('config')
                         out.append('file://storage/' + self.dir + '/config.json')
-                    if not 'desc' in cols:
+                    if 'desc' not in cols:
                         cols.append('desc')
                         out.append('file://storage/' + self.dir + '/desc.json')
-                    if not 'fafr' in cols and os.path.exists(self.dir+'/fafr.txt'):
+                    if 'fafr' not in cols and os.path.exists(self.dir+'/fafr.txt'):
                         cols.append('fafr')
                         out.append('graph://storage/' + self.dir + '/fafr.txt')
                     return cols, out
                 else:
                     return self.SkipUrls(*self.common.commit_print_func[0](self))
 
-        try:
-            name = self.desc['name']
-        except:
-            name = 'none'
-        try:
-            score = str("%0.5f" % float(self.desc['score']))
-        except:
-            score = 'none'
-        try:
-            time = str("%0.2f" % float(self.desc['duration']))
-        except:
-            time = ''
-        try:
-            comment = self.desc['comment']
-        except:
-            comment = ''
+        name = self.desc['name'] if 'name' in self.desc else 'none'
+        score = self.desc['score'] if 'score' in self.desc else 'none'
+        time = str('%0.2f' % float(self.desc['duration'])) if 'duration' in self.desc else ''
+        comment = self.desc['comment'] if 'comment' in self.desc else ''
 
         # make much pretty commits have sub name (eg. 20140506.120001003)
-        if len(name) > 15: name = name[:15] + ' ' + name[15:]
+        name = (name[:15] + ' ' + name[15:]) if len(name) > 15 else name
 
         cols = ['name', 'score', 'time', 'comment']
         out = [name, score, time, comment]
@@ -570,7 +564,7 @@ class Testarium:
             return
 
         # coderepos change branch
-        self.coderepos.changebranch(name)
+        self.coderepos.change_branch(name)
 
     # Return active branch
     def ActiveBranch(self):
