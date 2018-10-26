@@ -528,7 +528,7 @@ class Testarium:
         if self.ReadConfig('coderepos.use', True):
             if os.path.exists('.hg') or os.path.exists('../.hg') or os.path.exists('../../.hg'):
                 self.coderepos = coderepos.Mercurial()
-            else:
+            elif os.path.exists('.git') or os.path.exists('../.git') or os.path.exists('../../.git'):
                 self.coderepos = coderepos.Git()
 
         # Load failed, reinit testarium
