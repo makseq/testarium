@@ -204,6 +204,9 @@ class Commit:
         else:
             return None
 
+    def GetDesc(self, key, format):
+        return format % self.desc[key] if key in self.desc else ''
+
     def __str__(self):
         if not self._init:
             return 'No init'
