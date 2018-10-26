@@ -774,7 +774,7 @@ class Testarium:
             images = [f for f in os.listdir(d) if f.endswith('.jpg')]
             name = random.choice(images)
             self.config['background'] = 'static/images/' + name
-            self.config['background.opacity'] = 0.7 if 'back3.jpg' != name else 0.0
+            self.config['background.opacity'] = 0.7 if 'back3.jpg' != name else 0.5
 
         path = self.root + '/testarium.json'
         try:
