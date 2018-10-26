@@ -16,9 +16,31 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-# command: setup.py sdist upload -r pypi
+# command: setup.py sdist & twine upload dist/*
 
+from subprocess import STDOUT, CalledProcessError, check_output as run
 from setuptools import setup
+
+
+def get_version():
+    # take version from git
+    try:
+        desc = run('git describe --long --tags --always --dirty', stderr=STDOUT, shell=True)
+    except CalledProcessError as e:
+        print "cmd: %s\nError %s: %s" % (e.cmd, e.returncode, e.output)
+        exit(-101)
+
+    # check if everything is commited
+    if 'dirty' in desc:
+        print 'Current git description: %sError: please commit your changes' % desc
+        exit(-100)
+
+    # create package version
+    version = desc.lstrip('v').rstrip().replace('-', '.')
+    version = '.'.join(version.split('.')[0:-1])
+    print 'Version:', version
+    return version
+
 
 data_files = [
 
@@ -62,13 +84,18 @@ data_files = [
 
 ]
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(name='testarium',
       url='http://testarium.makseq.com',
       description='Research tool to perform experiments and store results in the repository. More: http://testarium.makseq.com',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       author='Max Tkachenko, Danila Doroshin, Alexander Yamshinin',
       author_email='makseq@gmail.com',
       license='GNU GPLv3',
-      version='0.2.73',
+      version=get_version(),
       packages=['testarium', 'testarium/score', 'testarium/web'],
       install_requires=['numpy', 'flask', 'colorama', 'pycrypto', 'argcomplete'],
       include_package_data=True,
@@ -77,7 +104,6 @@ setup(name='testarium',
       classifiers=[
           "Topic :: Scientific/Engineering",
           "Development Status :: 3 - Alpha",
-          "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
           "Operating System :: OS Independent",
           "Programming Language :: Python",
           "Intended Audience :: Science/Research"
