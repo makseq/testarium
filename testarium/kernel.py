@@ -145,6 +145,7 @@ class Commit:
         self.meta = filedb.MetaDataBase()
         self.filedb = filedb.FileDataBase()
         self.branch = None
+        self.begin_time = None
 
     def __nonzero__(self):
         return self._init

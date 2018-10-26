@@ -215,17 +215,22 @@ class Experiment:
         if config_path is None: raise Exception("Something wrong with new commit path in Experiment.Run()")
         c.desc['params'] = str(new_params)
 
+        # comment
+        c.desc['comment'] = comment
+        if len(new_params) > 0:
+            c.desc['comment'] = (c.desc['comment'] + ' ' if c.desc['comment'] else '') + json.dumps(new_params)
+
         # log output
         log('New commit:', c.name, '[' + c.branch.name + ']')
         if len(new_params) > 0: log('Config =', str(new_params))
-        beginTime = time.time()
+        c.begin_time = time.time()
 
         # remove commit if need
         def removeCommit():
             # remove commit if need
             if dry_run:
                 shutil.rmtree(c.dir, True)
-                log('COLOR.YELLOW', c.name, 'was removed')
+                log('COLOR.YELLOW', c.name, 'was removed due to dry-run')
 
         # --- RUN section
         r, ok = self.ExecUserFunc(self.user_run, c, int)
@@ -242,21 +247,18 @@ class Experiment:
             return c, False
 
         # duration
-        duration = time.time() - beginTime
+        duration = time.time() - c.begin_time
 
         # --- SCORE and DESC section
         desc, ok = self.ExecUserFunc(self.user_score, c, dict)
         gc.collect()
         if not ok:
-            # removeCommit()
+            removeCommit()
             return c, False
 
         # form commit description
-        for key in desc: c.desc[key] = desc[key]
         c.desc['duration'] = duration
-        c.desc['comment'] = comment
-        if len(new_params) > 0:
-            c.desc['comment'] = (c.desc['comment'] + ' ' if c.desc['comment'] else '') + json.dumps(new_params)
+        c.desc.update(desc)
 
         # resave commit with the new description
         c.Save()
