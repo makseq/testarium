@@ -296,8 +296,6 @@ def ScoreCommit(commit):
         open(commit.dir + '/pos.common.txt', 'w').write('\n'.join([str(i) for i in common_pos]))
         open(commit.dir + '/neg.common.txt', 'w').write('\n'.join([str(i) for i in common_neg]))
 
-
-
     eer, minDCF = fafr_cache(common_pos, common_neg, 'fafr.txt', commit)
     return {'score': eer, 'minDCF': minDCF, 'fafr.targets': results, 'pos_number': len(common_pos), 'neg_number': len(common_neg)}
 
