@@ -26,13 +26,12 @@ import random
 
 CONFIG_COMMIT_DIRECTORY = 'testarium.commitDirectory'
 
+
 # ------------------------------------------------------------------------------
-"""
-Common - store common params and working routines
-"""
-
-
 class Common:
+    """
+    Common - store common params and working routines
+    """
     def __init__(self):
         self.root = None
         self.best_score_max = False
@@ -42,13 +41,12 @@ class Common:
 
 
 # ------------------------------------------------------------------------------
-""" 
-Config contains a json config of experiment
-(parameters and other) 
-"""
-
-
 class Config(collections.OrderedDict):
+    """ 
+    Config contains a json config of experiment
+    (parameters and other) 
+    """
+
     def __init__(self, *arg, **kw):
         self._init = True
         super(Config, self).__init__(*arg, **kw)
@@ -114,28 +112,29 @@ class Config(collections.OrderedDict):
 
 
 # ------------------------------------------------------------------------------
-""" 
-Description contains a json desc 
-(score, time, comment and other) 
-after commit evaluation 
-"""
-
-
 class Description(collections.OrderedDict):
+    """ 
+    Description contains a json desc 
+    (score, time, comment and other) 
+    after commit evaluation 
+    """
     def __init__(self, *arg, **kw):
-        self._init = True
         super(Description, self).__init__(*arg, **kw)
+        self._init = True
+        self.setdefault('score', 0)
 
-    def Score(self):
-        return self.desc['score']
+    def __getitem__(self, item):
+        if item in self:
+            return super(Description, self).__getitem__(item)
+        else:
+            return None
 
 
 # ------------------------------------------------------------------------------
-""" 
-Commit consists of Config and Description
-"""
-
 class Commit:
+    """ 
+    Commit consists of Config and Description
+    """
     def __init__(self):
         self.config = Config()
         self.desc = Description()
@@ -146,13 +145,14 @@ class Commit:
         self.meta = filedb.MetaDataBase()
         self.filedb = filedb.FileDataBase()
         self.branch = None
+        self.begin_time = None
 
     def __nonzero__(self):
         return self._init
 
     def __cmp__(self, other):
         # user compare
-        if not self.common.commit_cmp_func is None:
+        if self.common.commit_cmp_func is not None:
             if not self.common.commit_cmp_func[0] is None:
                 return self.common.commit_cmp_func[0](self, other)
 
@@ -187,6 +187,7 @@ class Commit:
 
     def SetCommon(self, common):
         self.common = common
+        self.desc['score'] = float('-inf') if common.best_score_max else float('+inf')
 
     def SetBranch(self, branch):
         self.branch = branch
@@ -436,8 +437,8 @@ class Branch:
         # load commits
         removed = 0
         for d in subdirs:
-            if d in self.commits:
-                continue
+            # if d in self.commits:
+            #    continue
 
             commit = Commit()
             commit.SetBranch(self)
@@ -774,7 +775,7 @@ class Testarium:
             images = [f for f in os.listdir(d) if f.endswith('.jpg')]
             name = random.choice(images)
             self.config['background'] = 'static/images/' + name
-            self.config['background.opacity'] = 0.7 if 'back3.jpg' != name else 0.0
+            self.config['background.opacity'] = 0.7 if 'back3.jpg' != name else 0.5
 
         path = self.root + '/testarium.json'
         try:
