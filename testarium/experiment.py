@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 Testarium
 Copyright (C) 2014 Maxim Tkachenko
 
@@ -15,7 +15,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 import json, time, traceback, sys, gc, collections, shutil, os
 import itertools as it
@@ -72,46 +72,47 @@ class Experiment:
         self.sendmail = send
 
     # --- Advanced experiment run with params search
-    def Search(self, config, comment, newParams, useTry, runAndRemove=False):
+    def Search(self, config, comment, new_params, use_try, dry_run=False):
 
         # check newParams for variants number
         max_variants = 1
-        for key in newParams:
-            if hasattr(newParams[key], '__iter__'):  # object is iterable
-                variants = len(newParams[key])
+        for key in new_params:
+            if hasattr(new_params[key], '__iter__'):  # object is iterable
+                variants = len(new_params[key])
                 if max_variants < variants:
                     max_variants = variants
 
         # start simple Run(), if here is 1 variant
         if max_variants == 1:
             # convert to dict without values like lists
-            beginTime = time.time()
-            newParams = {key: (newParams[key][0] if hasattr(newParams[key], '__iter__') else newParams[key]) for key in
-                         newParams}
-            result = self.Run(config, comment, newParams, useTry, runAndRemove)
-            duration = time.time() - beginTime
+            begin_time = time.time()
+            new_params = {key: (new_params[key][0] if hasattr(new_params[key], '__iter__')
+                                else new_params[key]) for key in new_params}
+            result = self.Run(config, comment, new_params, use_try, dry_run)
+            duration = time.time() - begin_time
 
             # check experiment duration and make decision about mail sending
             autotime = try_get(self.testarium.config, 'mail.autoreport.time', -1)
-            if duration > autotime and autotime >= 0: self.sendmail = True
+            self.sendmail = True if duration > autotime >= 0 else self.sendmail
             self._send_mail(makehtml(commits2html('Experiment report', [result])))  # send report mail to user if need
 
         # perform search
         else:
             # convert to dict with all the list values
-            newParams = {key: (newParams[key] if hasattr(newParams[key], '__iter__') else [newParams[key]]) for key in
-                         newParams}
+            new_params = {key: (new_params[key] if hasattr(new_params[key], '__iter__') else [new_params[key]]) for key
+                          in
+                          new_params}
 
             # combine params
-            varNames = sorted(newParams)
-            combinations = [collections.OrderedDict(zip(varNames, prod)) for prod in
-                            it.product(*(newParams[varName] for varName in varNames))]
+            var_names = sorted(new_params)
+            combinations = [collections.OrderedDict(zip(var_names, prod)) for prod in
+                            it.product(*(new_params[varName] for varName in var_names))]
 
             # init vars
             results = []
             count = 0
             fault = 0
-            beginTime = time.time()
+            begin_time = time.time()
             best_commit = kernel.Commit()  # not inited commit with the worst score
 
             # main loop
@@ -119,7 +120,7 @@ class Experiment:
                 log_simple('\n\n----------------------------------------------')
                 log('Starting experiment: ', count + 1, '/', len(combinations))
 
-                result = self.Run(config, comment, comb, useTry, runAndRemove)
+                result = self.Run(config, comment, comb, use_try, dry_run)
                 if result[1]:
                     if best_commit < result[0]:
                         best_commit = result[0]
@@ -140,12 +141,12 @@ class Experiment:
             if fault > 0: log('COLOR.RED', 'Fault commits: ' + str(fault) + ' / ' + str(count))
 
             # mail
-            duration = time.time() - beginTime
+            duration = time.time() - begin_time
             autotime = try_get(self.testarium.config, 'mail.autoreport.time', -1)
-            if duration > autotime and autotime >= 0: self.sendmail = True
-            text = makehtml(
-                commits2html('Best experiment', [(best_commit, True)]) + commits2html('All the experiment reports',
-                                                                                      results))
+            self.sendmail = True if duration > autotime >= 0 else self.sendmail
+            body = commits2html('Best experiment', [(best_commit, True)]) + \
+                   commits2html('All the experiment reports', results)
+            text = makehtml(body)
             self._send_mail(text)  # send report mail to user if need
 
     # --- Execute user defined function and catch exceptions and check return value
@@ -186,12 +187,7 @@ class Experiment:
         return r, True
 
     # --- Simple experiment run
-    def Run(self, config, comment, newParams, useTry, runAndRemove=True):
-        '''
-        Run experiment.
-        :arg runAndRemove   True means fully remove commit from repository,
-                            False is nothing to remove
-        '''
+    def Run(self, config, comment, new_params, use_try, dry_run=True):
         # check if user Run function defined
         if self.user_run is None:
             log('COLOR.RED', 'Error: User Run function is not described. Use decorator @Experiment.set_run to set it')
@@ -204,31 +200,30 @@ class Experiment:
             return None, False
 
         # check commit removing after run and warning it
-        if runAndRemove == True:
+        if dry_run:
             log('COLOR.YELLOW', 'Commit will be removed!')
-
 
         # form config with newParams
         config = collections.OrderedDict(config)
-        for key in newParams:
-            if not key in config: log('COLOR.YELLOW', 'Warning:', "new key '" + key + "' is not in config")
-            config[key] = newParams[key]
+        for key in new_params:
+            if key not in config: log('COLOR.YELLOW', 'Warning:', "new key '" + key + "' is not in config")
+            config[key] = new_params[key]
 
         # prepare commit and store it into testarium
-        c = self.testarium.NewCommit(config)  # save commit to provide access to config as file
+        c = self.testarium.NewCommit(config, dry_run=dry_run)  # save commit to provide access to config as file
         config_path = c.GetConfigPath()
         if config_path is None: raise Exception("Something wrong with new commit path in Experiment.Run()")
-        c.desc['params'] = str(newParams)
+        c.desc['params'] = str(new_params)
 
         # log output
         log('New commit:', c.name, '[' + c.branch.name + ']')
-        if len(newParams) > 0: log('Config =', str(newParams))
+        if len(new_params) > 0: log('Config =', str(new_params))
         beginTime = time.time()
 
         # remove commit if need
         def removeCommit():
             # remove commit if need
-            if runAndRemove == True:
+            if dry_run:
                 shutil.rmtree(c.dir, True)
                 log('COLOR.YELLOW', c.name, 'was removed')
 
@@ -253,15 +248,15 @@ class Experiment:
         desc, ok = self.ExecUserFunc(self.user_score, c, dict)
         gc.collect()
         if not ok:
-            removeCommit()
+            # removeCommit()
             return c, False
 
         # form commit description
         for key in desc: c.desc[key] = desc[key]
         c.desc['duration'] = duration
         c.desc['comment'] = comment
-        if len(newParams) > 0:
-            c.desc['comment'] = (c.desc['comment'] + ' ' if c.desc['comment'] else '') + json.dumps(newParams)
+        if len(new_params) > 0:
+            c.desc['comment'] = (c.desc['comment'] + ' ' if c.desc['comment'] else '') + json.dumps(new_params)
 
         # resave commit with the new description
         c.Save()

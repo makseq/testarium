@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 Testarium
 Copyright (C) 2014 Maxim Tkachenko
 
@@ -15,19 +15,21 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 import datetime, time, json, numpy as np
 import os, operator, shutil, collections
 from utils import *
-import coderepos, filedb
+import coderepos
+import filedb
+import random
 
 CONFIG_COMMIT_DIRECTORY = 'testarium.commitDirectory'
 
 # ------------------------------------------------------------------------------
-'''
-	Common - store common params and working routines
-'''
+"""
+Common - store common params and working routines
+"""
 
 
 class Common:
@@ -40,10 +42,10 @@ class Common:
 
 
 # ------------------------------------------------------------------------------
-''' 
-	Config contains a json config of experiment
-	(parameters and other) 
-'''
+""" 
+Config contains a json config of experiment
+(parameters and other) 
+"""
 
 
 class Config(collections.OrderedDict):
@@ -112,11 +114,11 @@ class Config(collections.OrderedDict):
 
 
 # ------------------------------------------------------------------------------
-''' 
-	Description contains a json desc 
-	(score, time, comment and other) 
-	after commit evaluation 
-'''
+""" 
+Description contains a json desc 
+(score, time, comment and other) 
+after commit evaluation 
+"""
 
 
 class Description(collections.OrderedDict):
@@ -129,9 +131,9 @@ class Description(collections.OrderedDict):
 
 
 # ------------------------------------------------------------------------------
-''' 
-	Commit consists of Config and Description
-'''
+""" 
+Commit consists of Config and Description
+"""
 
 class Commit:
     def __init__(self):
@@ -157,16 +159,16 @@ class Commit:
             if self._init:
                 if self.common.best_score_max:
                     if self.desc['score'] > other.desc['score']:
-                        return 1;
+                        return 1
                     elif self.desc['score'] < other.desc['score']:
-                        return -1;
+                        return -1
                     else:
                         return 0
                 else:
                     if self.desc['score'] > other.desc['score']:
-                        return -1;
+                        return -1
                     elif self.desc['score'] < other.desc['score']:
-                        return 1;
+                        return 1
                     else:
                         return 0
             else:
@@ -202,64 +204,56 @@ class Commit:
             return None
 
     def __str__(self):
-        if not self._init: return 'No init'
+        if not self._init:
+            return 'No init'
+
         cols, out = self.Print()
-        if len(cols) != len(out): return 'Wrong cols or out afer Description.Print()'
+        if len(cols) != len(out):
+            return 'Wrong cols or out after Description.Print()'
 
         msg = ''
-        nohead = ['name', 'comment', '']
+        no_head = ['name', 'comment', '']
         for i, c in enumerate(cols):
-            if out[i] != '': msg += ('\t> ' if i != 0 else '') + ('' if c in nohead else c + ': ') + out[i] + ' '
+            part = str(out[i])
+            if part:
+                msg += ('\t> ' if i != 0 else '') + ('' if c in no_head else c + ': ') + part + ' '
 
         return msg
 
     def SkipUrls(self, cols, out):
-        new = [c for c in zip(cols, out) if not UrlGraph(c[1]) and not UrlFile(c[1])]
+        new = [c for c in zip(cols, out) if not url_graph(c[1]) and not url_file(c[1])]
         return zip(*new)
 
     def Print(self, skipUserPrint=False, web=False):
         if not self._init: return [], []
 
         # user print func
-        if not self.common.commit_print_func is None and not skipUserPrint:
+        if self.common.commit_print_func is not None and not skipUserPrint:
             if not self.common.commit_print_func[0] is None:
-                if web:
-                    try: cols, out = self.common.commit_print_func[0](self)
-                    except:
-                        cols, out = [], []
+                cols, out = self.common.commit_print_func[0](self)
+                out = [str(o) for o in out]
 
-                    if not 'config' in cols:
+                if web:
+                    if 'config' not in cols:
                         cols.append('config')
                         out.append('file://storage/' + self.dir + '/config.json')
-                    if not 'desc' in cols:
+                    if 'desc' not in cols:
                         cols.append('desc')
                         out.append('file://storage/' + self.dir + '/desc.json')
-                    if not 'fafr' in cols and os.path.exists(self.dir+'/fafr.txt'):
+                    if 'fafr' not in cols and os.path.exists(self.dir+'/fafr.txt'):
                         cols.append('fafr')
                         out.append('graph://storage/' + self.dir + '/fafr.txt')
                     return cols, out
                 else:
-                    return self.SkipUrls(*self.common.commit_print_func[0](self))
+                    return self.SkipUrls(cols, out)
 
-        try:
-            name = self.desc['name']
-        except:
-            name = 'none'
-        try:
-            score = str("%0.5f" % float(self.desc['score']))
-        except:
-            score = 'none'
-        try:
-            time = str("%0.2f" % float(self.desc['duration']))
-        except:
-            time = ''
-        try:
-            comment = self.desc['comment']
-        except:
-            comment = ''
+        name = self.desc['name'] if 'name' in self.desc else 'none'
+        score = str(self.desc['score']) if 'score' in self.desc else 'none'
+        time = str('%0.2f' % float(self.desc['duration'])) if 'duration' in self.desc else ''
+        comment = self.desc['comment'] if 'comment' in self.desc else ''
 
         # make much pretty commits have sub name (eg. 20140506.120001003)
-        if len(name) > 15: name = name[:15] + ' ' + name[15:]
+        name = (name[:15] + ' ' + name[15:]) if len(name) > 15 else name
 
         cols = ['name', 'score', 'time', 'comment']
         out = [name, score, time, comment]
@@ -385,11 +379,9 @@ class Commit:
 
 
 # ------------------------------------------------------------------------------
-'''
-	Branch keeps commits and is associated with subtask
-'''
-
-
+"""        
+Branch keeps commits and is associated with subtask
+"""
 class Branch:
     def __init__(self):
         self._init = True
@@ -405,8 +397,8 @@ class Branch:
 
         # check if commit with this name exists
         count = 1
-        dir = self.common.root + '/' + self.name
-        while os.path.exists(dir + '/' + commit.name):
+        d = self.common.root + '/' + self.name
+        while os.path.exists(d + '/' + commit.name):
             sub = str('%0.3i' % count)
             commit.SetName(commit.GenerateName() + sub)
             count += 1
@@ -417,7 +409,7 @@ class Branch:
 
         # file db
         self.filedb.ResetShuffle()
-        self.filedb.LoadFiles(dir + '/filedb.json')
+        self.filedb.LoadFiles(d + '/filedb.json')
 
         self.commits[commit.name] = commit
         return commit
@@ -494,12 +486,11 @@ class Branch:
 
 
 # ------------------------------------------------------------------------------
-'''
-	Testarium - manage the commits
-'''
-
-
+"""
+Testarium - manage the commits
+"""
 class Testarium:
+
     def best_score_is_max(self):
         self.common.best_score_max = True
 
@@ -526,10 +517,10 @@ class Testarium:
             log('Testarium loading failed. It will be new configurated setup')
 
         # git / mercurial repository init
-        if self.ReadConfig('coderepos.use', True) == True:
+        if self.ReadConfig('coderepos.use', True):
             if os.path.exists('.hg') or os.path.exists('../.hg') or os.path.exists('../../.hg'):
                 self.coderepos = coderepos.Mercurial()
-            else:
+            elif os.path.exists('.git') or os.path.exists('../.git') or os.path.exists('../../.git'):
                 self.coderepos = coderepos.Git()
 
         # Load failed, reinit testarium
@@ -571,26 +562,26 @@ class Testarium:
             return
 
         # coderepos change branch
-        self.coderepos.changebranch(name)
+        self.coderepos.change_branch(name)
 
     # Return active branch
     def ActiveBranch(self):
         return self.activeBranch
 
     # Add new commit to active branch
-    def NewCommit(self, config):
+    def NewCommit(self, config, dry_run=False):
         commit = self.activeBranch.NewCommit(config)
+        commit.dry_run = dry_run
         path = self.root + '/' + self.activeBranch.name + '/' + commit.name
-        commit.Save(path, configOnly=True)
 
         # coderepos commit
-        comment = ''
-        try:
-            comment = ' ' + commit.desc['comment']
-        except:
-            pass
-        self.coderepos.commit(commit.name, comment)
+        if not dry_run:
+            comment = ' ' + commit.desc['comment'] if 'comment' in commit.desc else ''
+            repo_hash = self.coderepos.commit(commit.name, comment)
+            commit.desc['coderepos.commit_name'] = repo_hash
 
+        # write to disk
+        commit.Save(path, configOnly=True)
         return commit
 
     # Select commits by branch and name/position/keyword
@@ -729,7 +720,6 @@ class Testarium:
             raise Exception('No testarium description: ' + path)
         self.name = self.config['name']
         self.activeBranch = None
-        self.config = self.config
         return self.config
 
     # Load active branch only
@@ -776,6 +766,16 @@ class Testarium:
         # save testarium info
         self.config['name'] = self.name
         self.config['activeBranch'] = self.activeBranch.name
+
+        # choice background image by random
+        if 'background' not in self.config:
+            d = os.path.dirname(os.path.abspath(__file__)) + '/web/static/images'
+            print d
+            images = [f for f in os.listdir(d) if f.endswith('.jpg')]
+            name = random.choice(images)
+            self.config['background'] = 'static/images/' + name
+            self.config['background.opacity'] = 0.7 if 'back3.jpg' != name else 0.0
+
         path = self.root + '/testarium.json'
         try:
             json.dump(self.config, open(path, 'w'), indent=2)

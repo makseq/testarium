@@ -56,17 +56,17 @@ COLOR_DICT = {
 
 
 # check and return graph url
-def UrlGraph(string):
-    if string[0:8] == 'graph://':
-        return string
+def url_graph(s):
+    if (isinstance(s, str) or isinstance(s, unicode)) and s[0:8] == 'graph://':
+        return s
     else:
         return ''
 
 
 # check and return file url
-def UrlFile(string):
-    if string[0:7] == 'file://':
-        return string
+def url_file(s):
+    if (isinstance(s, str) or isinstance(s, unicode)) and s[0:7] == 'file://':
+        return s
     else:
         return ''
 
@@ -100,8 +100,8 @@ def log(*msg):
                         sys.stdout.write(m.name)
                     sys.stdout.write(' ! exception log: ' + repr(e))
 
-
-            if reset and colored: sys.stdout.write(colorama.Fore.RESET)
+            if reset and colored:
+                sys.stdout.write(colorama.Fore.RESET)
             reset = False
             sys.stdout.write(' ')
 
