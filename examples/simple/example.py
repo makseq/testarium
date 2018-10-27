@@ -16,6 +16,8 @@ def my_run(commit):
     [pos.write(str(random.random() * c['a']) + '\n') for _ in xrange(100)]
     [neg.write(str(random.random() * c['a']) + '\n') for _ in xrange(100)]
     commit.Save()
+    # pos.close()
+    # neg.close()
     raw_input('press enter')
     return 0
 
