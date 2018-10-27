@@ -39,7 +39,7 @@ class Git(CodeRepos):
 
     def commit(self, commit_name, comment):
         subprocess.call(['git', 'commit', '-a', '-m', commit_name + ' ' + str(comment)], stdout=open(os.devnull, 'w'))
-        return subprocess.check_output('git rev-parse HEAD', shell=True)  # return commit hash name
+        return subprocess.check_output('git rev-parse HEAD', shell=True).strip()  # return commit hash name
 
     def change_branch(self, branch_name):
         # self.commit('branch changed to ', branchName)

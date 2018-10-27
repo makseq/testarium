@@ -318,21 +318,21 @@ class Commit:
             pass
         os.symlink(os.path.abspath(self.dir), link_dir)
 
-    def Load(self, dir):
+    def Load(self, d):
         self._init = False
-        self.dir = dir
+        self.dir = d
 
         # desc
         try:
             self.desc = json.load(open(self.dir + '/desc.json'), object_pairs_hook=Description)
         except:
-            raise Exception("Can't load commit description: " + dir)
+            raise Exception("Can't load commit description: " + d)
 
         # config
         try:
             self.config = json.load(open(self.dir + '/config.json'), object_pairs_hook=Config)
         except:
-            raise Exception("Can't load commit config: " + dir)
+            raise Exception("Can't load commit config: " + d)
 
         # file db
         self.meta.LoadMeta(self.dir + '/filedb.meta.json')
@@ -383,10 +383,10 @@ class Commit:
 
 
 # ------------------------------------------------------------------------------
-"""        
-Branch keeps commits and is associated with subtask
-"""
 class Branch:
+    """        
+    Branch keeps commits and is associated with subtask
+    """
     def __init__(self):
         self._init = True
         self.name = 'default'
@@ -450,19 +450,26 @@ class Branch:
             # file db
             self.filedb.LoadFiles(dir + '/filedb.json')
 
+            bad = False
+            dry_run = False
             try:
                 commit.Load(dir + '/' + d)
             except:
-                if self.common.allow_remove_commits:
-                    try:
-                        shutil.rmtree(dir + '/' + d)
-                    except:
-                        log("Can't remove:", dir + '/' + d)
-                    else:
-                        log('Commit removed:', dir + '/' + d)
-                        removed += 1
+                bad = True
             else:
-                self.commits[commit.name] = commit
+                if commit.desc['dry_run']:
+                    dry_run = True
+                else:
+                    self.commits[commit.name] = commit
+
+            if (bad or dry_run) and self.common.allow_remove_commits:
+                try:
+                    shutil.rmtree(dir + '/' + d)
+                except:
+                    log("Can't remove:", dir + '/' + d)
+                else:
+                    log('Commit removed:', dir + '/' + d, '(dry-run)' if dry_run else '')
+                    removed += 1
 
         if removed > 0: log('Total removed commits:', removed)
         self._init = True
@@ -578,10 +585,11 @@ class Testarium:
         commit.dry_run = dry_run
         path = self.root + '/' + self.activeBranch.name + '/' + commit.name
 
-        # coderepos commit
-        if not dry_run:
+        if dry_run:
+            commit.desc['dry_run'] = True
+        else:
             comment = ' ' + commit.desc['comment'] if 'comment' in commit.desc else ''
-            repo_hash = self.coderepos.commit(commit.name, comment)
+            repo_hash = self.coderepos.commit(commit.name, comment)  # commit in repository (git/hg)
             commit.desc['coderepos.commit_name'] = repo_hash
 
         # write to disk

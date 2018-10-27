@@ -82,6 +82,10 @@ def strtime(t):
 
 # log with 't>' and color features
 def log(*msg):
+    if len(msg) == 0:
+        sys.stdout.write('\n')
+        return
+
     if colored: sys.stdout.write(colorama.Style.BRIGHT)
     sys.stdout.write('t> ')
 

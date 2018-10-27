@@ -31,6 +31,7 @@ version = '0.1'
 testarium = kernel.Testarium()
 experiment = experiment_module.Experiment(testarium)
 
+
 def run(args):
     if args.config_path:
         config_path = args.config_path  # use user config
@@ -64,8 +65,8 @@ def run(args):
             stop = True
     if stop: return False
 
-    experiment.SetSendMail(args.mail)
-    experiment.Search(config=config, comment=args.comment, new_params=c, use_try=True, dry_run=args.dry_run)
+    experiment.set_send_mail(args.mail)
+    experiment.search(config=config, comment=args.comment, new_params=c, use_try=True, dry_run=args.dry_run)
     return True
 
 
@@ -135,7 +136,7 @@ def delete(args):
 
         if out_commits is None:
             log('No commits in this branch')
-            returnur
+            return
         else:
             log('Found:', len(out_commits), 'commits')
             args.print_diff = args.print_config = False

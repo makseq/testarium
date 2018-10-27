@@ -68,11 +68,11 @@ class Experiment:
 
         return True
 
-    def SetSendMail(self, send):
+    def set_send_mail(self, send):
         self.sendmail = send
 
     # --- Advanced experiment run with params search
-    def Search(self, config, comment, new_params, use_try, dry_run=False):
+    def search(self, config, comment, new_params, use_try, dry_run=False):
 
         # check newParams for variants number
         max_variants = 1
@@ -82,13 +82,13 @@ class Experiment:
                 if max_variants < variants:
                     max_variants = variants
 
-        # start simple Run(), if here is 1 variant
+        # start simple run(), if here is 1 variant
         if max_variants == 1:
             # convert to dict without values like lists
             begin_time = time.time()
             new_params = {key: (new_params[key][0] if hasattr(new_params[key], '__iter__')
                                 else new_params[key]) for key in new_params}
-            result = self.Run(config, comment, new_params, use_try, dry_run)
+            result = self.run(config, comment, new_params, dry_run)
             duration = time.time() - begin_time
 
             # check experiment duration and make decision about mail sending
@@ -120,7 +120,7 @@ class Experiment:
                 log_simple('\n\n----------------------------------------------')
                 log('Starting experiment: ', count + 1, '/', len(combinations))
 
-                result = self.Run(config, comment, comb, use_try, dry_run)
+                result = self.run(config, comment, comb, dry_run)
                 if result[1]:
                     if best_commit < result[0]:
                         best_commit = result[0]
@@ -150,9 +150,9 @@ class Experiment:
             self._send_mail(text)  # send report mail to user if need
 
     # --- Execute user defined function and catch exceptions and check return value
-    def ExecUserFunc(self, func, params, returnType, useTry=True):
+    def exec_user_func(self, func, params, return_type, use_try=True):
         # use try
-        if useTry:
+        if use_try:
             try:
                 r = func(params)
             except MemoryError as e:
@@ -176,9 +176,9 @@ class Experiment:
             r = self.func(params)
 
         # check: r is returnType
-        if not type(r) is returnType:
+        if not type(r) is return_type:
             log('COLOR.RED', 'Error: Return value of', 'COLOR.YELLOW', func.__name__ + '()', \
-                'COLOR.RED', 'must be', 'COLOR.YELLOW', returnType.__name__, 'COLOR.RED', \
+                'COLOR.RED', 'must be', 'COLOR.YELLOW', return_type.__name__, 'COLOR.RED', \
                 '(but', 'COLOR.YELLOW', type(r).__name__, 'COLOR.RED', 'is given)')
             log('Commit skipped')
             return r, False
@@ -186,84 +186,115 @@ class Experiment:
         # alright, ok
         return r, True
 
-    # --- Simple experiment run
-    def Run(self, config, comment, new_params, use_try, dry_run=True):
+    # remove commit if dry run
+    @staticmethod
+    def remove_commit(c, dry_run):
+        if not dry_run or c is None:
+            return
+        try:
+            shutil.rmtree(c.dir, False)
+            log()
+            log('COLOR.YELLOW', c.name, 'COLOR.YELLOW', 'was removed due to dry-run')
+        except OSError:
+            log()
+            log('COLOR.YELLOW', c.name,
+                'COLOR.RED', 'dry-run is enabled, but it is not possible to delete commit directory.\n'
+                             'Did you forget close file descriptor inside of commit directory? \nSee error below:')
+            log(traceback.format_exc())
+
+    # run one experiment
+    def run(self, config, comment, new_params, dry_run=True):
+        c, result = None, False
+
         # check if user Run function defined
         if self.user_run is None:
             log('COLOR.RED', 'Error: User Run function is not described. Use decorator @Experiment.set_run to set it')
-            return None, False
+            return c, result
 
         # check if user Score function defined
         if self.user_score is None:
             log('COLOR.RED',
                 'Error: User Score function is not described. Use decorator @Experiment.set_score to set it')
-            return None, False
+            return c, result
 
         # check commit removing after run and warning it
         if dry_run:
-            log('COLOR.YELLOW', 'Commit will be removed!')
+            log('COLOR.YELLOW', 'Commit will be removed, please use CTRL+C to proper commit removing!')
 
         # form config with newParams
         config = collections.OrderedDict(config)
         for key in new_params:
-            if key not in config: log('COLOR.YELLOW', 'Warning:', "new key '" + key + "' is not in config")
+            if key not in config:
+                log('COLOR.YELLOW', 'Warning:', "new key '" + key + "' is not in config")
             config[key] = new_params[key]
 
-        # prepare commit and store it into testarium
-        c = self.testarium.NewCommit(config, dry_run=dry_run)  # save commit to provide access to config as file
-        config_path = c.GetConfigPath()
-        if config_path is None: raise Exception("Something wrong with new commit path in Experiment.Run()")
-        c.desc['params'] = str(new_params)
+        # we use double try to close all file descriptors inside of run & score
+        try:
+            try:
+                # prepare commit and store it into testarium
+                c = self.testarium.NewCommit(config, dry_run=dry_run)  # save commit to provide access to config as file
+                config_path = c.GetConfigPath()
+                if config_path is None:
+                    raise Exception("Something wrong with new commit path in Experiment.run()")
+                c.desc['params'] = str(new_params)
 
-        # comment
-        c.desc['comment'] = comment
-        if len(new_params) > 0:
-            c.desc['comment'] = (c.desc['comment'] + ' ' if c.desc['comment'] else '') + json.dumps(new_params)
+                # comment
+                c.desc['comment'] = comment
+                if len(new_params) > 0:
+                    c.desc['comment'] = (c.desc['comment'] + ' ' if c.desc['comment'] else '') + json.dumps(new_params)
 
-        # log output
-        log('New commit:', c.name, '[' + c.branch.name + ']')
-        if len(new_params) > 0: log('Config =', str(new_params))
+                # log output
+                log('New commit:', c.name, '[' + c.branch.name + ']')
+                if len(new_params) > 0:
+                    log('Config =', str(new_params))
+
+                # run and score
+                result = self._run_body(c)
+
+            # grab CTRL + C
+            except KeyboardInterrupt as e:
+                raise e
+
+        except KeyboardInterrupt as e:
+            self.remove_commit(c, dry_run)
+            raise e
+
+        # remove commit if dry-run and CTRL+C
+        self.remove_commit(c, dry_run)
+        return c, result
+
+    # Body of experiment run
+    def _run_body(self, c):
         c.begin_time = time.time()
 
-        # remove commit if need
-        def removeCommit():
-            # remove commit if need
-            if dry_run:
-                shutil.rmtree(c.dir, True)
-                log('COLOR.YELLOW', c.name, 'was removed due to dry-run')
-
         # --- RUN section
-        r, ok = self.ExecUserFunc(self.user_run, c, int)
+        r, ok = self.exec_user_func(self.user_run, c, int)
         gc.collect()
         if not ok:
-            removeCommit()
-            return c, False
+            return False
 
         # errors check
         if r < 0:
             log('COLOR.RED', 'Error: experiment error code =', r)
             log('Commit skipped')
-            removeCommit()
-            return c, False
+            return False
 
         # duration
         duration = time.time() - c.begin_time
 
         # --- SCORE and DESC section
-        desc, ok = self.ExecUserFunc(self.user_score, c, dict)
+        desc, ok = self.exec_user_func(self.user_score, c, dict)
         gc.collect()
         if not ok:
-            removeCommit()
-            return c, False
+            return False
 
         # form commit description
         c.desc['duration'] = duration
         c.desc.update(desc)
 
-        # resave commit with the new description
+        # save commit with the new description
         c.Save()
+
         # print results
         log(c)
-
-        removeCommit()
-        return c, True
+        return True
