@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime, time, json, numpy as np
 import os, operator, shutil, collections
+import traceback
 from utils import *
 import coderepos
 import filedb
@@ -37,7 +38,7 @@ class Common:
         self.best_score_max = False
         self.commit_print_func = [None]
         self.commit_cmp_func = [None]
-        self.allow_remove_commits = False
+        self.allow_remove_commits = ''
 
 
 # ------------------------------------------------------------------------------
@@ -457,19 +458,28 @@ class Branch:
             except:
                 bad = True
             else:
-                if commit.desc['dry_run']:
+                if 'dry_run' in commit.desc and commit.desc['dry_run']:
                     dry_run = True
                 else:
                     self.commits[commit.name] = commit
 
+            # remove commit
             if (bad or dry_run) and self.common.allow_remove_commits:
-                try:
-                    shutil.rmtree(dir + '/' + d)
-                except:
-                    log("Can't remove:", dir + '/' + d)
+                # check is anything else in this directory?
+                system_files = ['config.json', 'desc.json', 'filedb.json']
+                path = dir + '/' + d
+                files = [f for f in os.listdir(path) if f not in system_files]
+
+                if len(files) > 0 and self.common.allow_remove_commits != 'hard':
+                    log("Commit incorrect, but there are user files (--hard to remove it):", dir + '/' + d)
                 else:
-                    log('Commit removed:', dir + '/' + d, '(dry-run)' if dry_run else '')
-                    removed += 1
+                    try:
+                        shutil.rmtree(path)
+                    except:
+                        log("Can't remove:", dir + '/' + d)
+                    else:
+                        log('Commit removed:', dir + '/' + d, '(dry-run)' if dry_run else '')
+                        removed += 1
 
         if removed > 0: log('Total removed commits:', removed)
         self._init = True
@@ -524,7 +534,7 @@ class Testarium:
         self.common.root = rootdir
         try:
             self.Load(loadCommits, silent=True)
-        except:
+        except Exception as e:
             log('Testarium loading failed. It will be new configurated setup')
 
         # git / mercurial repository init
@@ -547,12 +557,7 @@ class Testarium:
             self._init = True
 
     def ReadConfig(self, key, default):
-        val = default
-        try:
-            val = self.config[key]
-        except:
-            pass
-        return val
+        return self.config.get(key, default)
 
     def SetRootDir(self, dir):
         self.root = dir
@@ -611,9 +616,10 @@ class Testarium:
 
         # commits
         commits = branch.commits
-        #sort_keys = sorted([k for k in commits], reverse=True)
         sort_keys = sorted(commits.keys(), reverse=True)
-        if not sort_keys: log('No commits in this branch:', branch.name); return
+        if not sort_keys:
+            log('No commits in this branch:', branch.name)
+            return
 
         # -----------------------------------------------
         # print only one commit
@@ -700,10 +706,10 @@ class Testarium:
         return out_commits, error
 
     # Remove bad commits while load
-    def RemoveBrokenCommitsAndLoad(self):
-        self.common.allow_remove_commits = True
+    def RemoveBrokenCommitsAndLoad(self, hard=False):
+        self.common.allow_remove_commits = 'hard' if hard else 'soft'
         self.Load(True)
-        self.common.allow_remove_commits = False
+        self.common.allow_remove_commits = ''
 
     # Load branches and commits
     # if loadCommits == False than branch descriptions will be loaded only
@@ -720,6 +726,7 @@ class Testarium:
         self.activeBranch = self.branches[j['activeBranch']]
 
         self._init = True
+        # self.SaveTestariumOnly()
         if not silent: log('Loaded', len(self.branches), 'branches and', commitsCount, 'commits')
 
     # Load Testarium class only
@@ -782,11 +789,18 @@ class Testarium:
         # choice background image by random
         if 'background' not in self.config:
             d = os.path.dirname(os.path.abspath(__file__)) + '/web/static/images'
-            print d
             images = [f for f in os.listdir(d) if f.endswith('.jpg')]
             name = random.choice(images)
             self.config['background'] = 'static/images/' + name
-            self.config['background.opacity'] = 0.7 if 'back3.jpg' != name else 0.5
+            self.config['background.opacity'] = 0.7
+
+        # dry run params
+        if 'dry_run.max_duration' not in self.config:
+            self.config['dry_run.max_duration'] = 300.0
+
+        # dry run params
+        if 'coderepos.use' not in self.config:
+            self.config['coderepos.use'] = True
 
         path = self.root + '/testarium.json'
         try:

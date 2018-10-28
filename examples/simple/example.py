@@ -15,7 +15,7 @@ def my_run(commit):
     neg = open(d + '/neg.txt', 'w')
     [pos.write(str(random.random() * c['a']) + '\n') for _ in xrange(100)]
     [neg.write(str(random.random() * c['a']) + '\n') for _ in xrange(100)]
-    commit.Save()
+
     # pos.close()
     # neg.close()
     raw_input('press enter')
