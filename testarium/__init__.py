@@ -126,7 +126,7 @@ def rescore(args):
 
 
 def cleanup(args):
-    testarium.RemoveBrokenCommitsAndLoad()
+    testarium.RemoveBrokenCommitsAndLoad(hard=args.hard)
 
 
 def delete(args):
@@ -366,7 +366,8 @@ def main():
                             help='json dictionary, used instead of parameters in current config')
     parser_run.add_argument('-d', '--dry', default=False, dest='dry_run', action='store_true',
                             help='Dry run mode: do not repository (git, hg) commit and '
-                                 'remove commit from repository after run')
+                                 'remove commit from repository after run. '
+                                 'Dry run will be disabled for experiment more than 10 min')
     parser_run.add_argument('--mail', default=False, dest='mail', action='store_true', help='send report to mail')
 
     # branch
@@ -448,6 +449,11 @@ def main():
     parser_mail.add_argument('--test', default=False, dest='test', action='store_true', help='send testing email')
     parser_mail.add_argument('--reset', default=False, dest='reset', action='store_true',
                              help='reset mail settings (account, password and others)')
+
+    parser_cleanup.add_argument('--hard', default=False, dest='hard', action='store_true',
+                                help='hard cleanup will remove ALL commits without desc.json or with incorrect loading.'
+                                     'By default soft cleanup is in use. Use hard cleanup very carefully!')
+
 
     # run by default
     if len(sys.argv) == 1:

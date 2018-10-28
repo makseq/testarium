@@ -187,10 +187,21 @@ class Experiment:
         return r, True
 
     # remove commit if dry run
-    @staticmethod
-    def remove_commit(c, dry_run):
+    def remove_commit(self, c, dry_run):
+        # check dry run and commit correct
         if not dry_run or c is None:
             return
+
+        # check duration, skip if duration is long
+        duration = time.time() - c.begin_time
+        max_dur = self.testarium.config.get('dry_run.max_duration', 300)
+        if duration > max_dur:
+            log()
+            log('COLOR.GREEN', c.name, 'COLOR.GREEN',
+                'duration %0.0fs is too long for dry-run,' % duration, 'COLOR.GREEN', 'commit saved!')
+            return
+
+        # remove otherwise
         try:
             shutil.rmtree(c.dir, False)
             log()
@@ -219,7 +230,9 @@ class Experiment:
 
         # check commit removing after run and warning it
         if dry_run:
-            log('COLOR.YELLOW', 'Commit will be removed, please use CTRL+C to proper commit removing!')
+            max_dur = self.testarium.config.get('dry_run.max_duration', 300)
+            log('COLOR.YELLOW', 'Commit will be removed if run duration is less %0.0fs, ' % max_dur +
+                                'please use CTRL+C to proper commit removing!')
 
         # form config with newParams
         config = collections.OrderedDict(config)

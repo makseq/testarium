@@ -259,7 +259,8 @@ class WebServer:
             except:
                 pass
             try:
-                name = request.args['name']; number = -1
+                name = request.args['name']
+                number = -1
             except:
                 pass
 
