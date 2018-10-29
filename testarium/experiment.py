@@ -209,12 +209,13 @@ class Experiment:
             c.Delete()
             log()
             log('COLOR.YELLOW', c.name, 'COLOR.YELLOW', 'was removed due to dry-run')
-        except OSError:
+        except OSError as e:
             log()
             log('COLOR.YELLOW', c.name,
                 'COLOR.RED', 'dry-run is enabled, but it is not possible to delete commit directory.\n'
                              'Did you forget close file descriptor inside of commit directory? \nSee error below:')
-            log(traceback.format_exc())
+            # log(traceback.format_exc())
+            log(e)
 
     # run one experiment
     def run(self, config, comment, new_params, dry_run=True):

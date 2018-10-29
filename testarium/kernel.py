@@ -329,19 +329,30 @@ class Commit:
 
     def Delete(self):
         # remove resources linked to this commit
+        ok = True
         if 'resources' in self.desc:
             log()
             for r in self.desc['resources']:
                 name, paths = r['name'], r['paths']
                 for path in paths:
                     try:
-                        shutil.rmtree(path) if os.path.isdir(path) else os.unlink(path)
+                        if os.path.isdir(path):
+                            shutil.rmtree(path)
+                        else:
+                            os.unlink(path)
                         log('link-resource removed: [' + name + ']', path)
                     except OSError as e:
-                        log('link-resource removing error [' + name + ']', path, ':', e)
+                        if e.errno == 2:  # No such file - it's already removed
+                            log('link-resource not found: [' + name + ']', path)
+                        else:
+                            ok = False
+                            log('link-resource removing error [' + name + ']', path, ':', e)
 
         # remove commit
-        shutil.rmtree(self.dir)
+        if ok:
+            shutil.rmtree(self.dir)
+        else:
+            raise OSError("Can't remove commit, because resources could not be deleted")
 
     def MakeLink(self, link_dir='../last'):
         # link commit dir to 'last'
@@ -495,7 +506,7 @@ class Branch:
             # remove commit
             if (bad or dry_run) and self.common.allow_remove_commits:
                 # check is anything else in this directory?
-                system_files = ['config.json', 'desc.json', 'filedb.json']
+                system_files = ['config.json', 'desc.json', 'filedb.meta.json']
                 path = dir + '/' + d
                 files = [f for f in os.listdir(path) if f not in system_files]
 
