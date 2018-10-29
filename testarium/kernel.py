@@ -311,6 +311,12 @@ class Commit:
 
         return 'graph://storage/' + path
 
+    def RemoveDryRun(self):
+        del self.desc['dry_run']
+
+    def Delete(self):
+        shutil.rmtree(self.dir)
+
     def MakeLink(self, link_dir='../last'):
         # link commit dir to 'last'
         try:
@@ -441,9 +447,6 @@ class Branch:
         # load commits
         removed = 0
         for d in subdirs:
-            # if d in self.commits:
-            #    continue
-
             commit = Commit()
             commit.SetBranch(self)
             commit.SetCommon(self.common)
@@ -816,9 +819,8 @@ class Testarium:
 
     def DeleteCommit(self, commit):
         name = commit.name
-        if commit.name in self.activeBranch.commits:
-            shutil.rmtree(self.root + '/' + self.activeBranch.name + '/' + name)
-            del self.activeBranch.commits[name]
-            log('Commit', name, 'has been deleted from branch', self.activeBranch.name)
-        else:
-            log("Can't find commit", name, 'in branch', self.activeBranch.name)
+        try:
+            commit.Delete()
+            log('Commit', name, 'has been deleted')
+        except Exception as e:
+            log('COLOR.RED', 'Commit ' + name + ' can not be deleted:', traceback.format_exc())

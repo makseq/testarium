@@ -27,7 +27,6 @@ except: pass
 try: import web; webOk = True
 except: webOk = False
 
-version = '0.1'
 testarium = kernel.Testarium()
 experiment = experiment_module.Experiment(testarium)
 

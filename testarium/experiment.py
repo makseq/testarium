@@ -16,8 +16,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-import json, time, traceback, sys, gc, collections, shutil, os
+import gc
+import json
+import time
+import collections
 import itertools as it
 from utils import *
 import kernel
@@ -196,6 +198,7 @@ class Experiment:
         duration = time.time() - c.begin_time
         max_dur = self.testarium.config.get('dry_run.max_duration', 300)
         if duration > max_dur:
+            c.RemoveDryRun()
             log()
             log('COLOR.GREEN', c.name, 'COLOR.GREEN',
                 'duration %0.0fs is too long for dry-run,' % duration, 'COLOR.GREEN', 'commit saved!')
@@ -203,7 +206,7 @@ class Experiment:
 
         # remove otherwise
         try:
-            shutil.rmtree(c.dir, False)
+            c.Delete()
             log()
             log('COLOR.YELLOW', c.name, 'COLOR.YELLOW', 'was removed due to dry-run')
         except OSError:
