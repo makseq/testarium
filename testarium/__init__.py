@@ -55,14 +55,14 @@ def run(args):
 
     # parser: param=value; => (param, value)
     import re
-    p = re.compile(ur'(([^=|^;]+)?=([^;]*(?=;|)))')
+    p = re.compile(ur'([^=|^;]+)?=([^;]*(?=;|))')
     groups = re.findall(p, args.newParams)
 
     # apply newParams to dict c
     c = collections.OrderedDict()
     stop = False
     for g in groups:
-        cmd = "c['" + g[1] + "'] = " + g[2]
+        cmd = "c['" + g[0] + "'] = " + g[1]
         try:
             exec cmd
         except Exception, e:
