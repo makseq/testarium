@@ -311,6 +311,33 @@ class Commit:
 
         return 'graph://storage/' + path
 
+    def AddResources(self, name, files_or_dirs):
+        # init
+        if 'resources' not in self.desc:
+            self.desc['resources'] = []
+        # add
+        if not isinstance(files_or_dirs, list):
+            files_or_dirs = [files_or_dirs]
+        self.desc['resources'] += [{"name": name, "paths": files_or_dirs}]
+
+    def RemoveDryRun(self):
+        del self.desc['dry_run']
+
+    def Delete(self):
+        shutil.rmtree(self.dir)
+
+        # remove resources linked to this commit
+        if 'resources' in self.desc:
+            log()
+            for r in self.desc['resources']:
+                name, paths = r['name'], r['paths']
+                for path in paths:
+                    try:
+                        shutil.rmtree(path) if os.path.isdir(path) else os.unlink(path)
+                        log('link-resource removed: [' + name + ']', path)
+                    except OSError:
+                        log('link-resource removing error [' + name + ']', path)
+
     def MakeLink(self, link_dir='../last'):
         # link commit dir to 'last'
         try:
@@ -441,9 +468,6 @@ class Branch:
         # load commits
         removed = 0
         for d in subdirs:
-            # if d in self.commits:
-            #    continue
-
             commit = Commit()
             commit.SetBranch(self)
             commit.SetCommon(self.common)
@@ -816,9 +840,8 @@ class Testarium:
 
     def DeleteCommit(self, commit):
         name = commit.name
-        if commit.name in self.activeBranch.commits:
-            shutil.rmtree(self.root + '/' + self.activeBranch.name + '/' + name)
-            del self.activeBranch.commits[name]
-            log('Commit', name, 'has been deleted from branch', self.activeBranch.name)
-        else:
-            log("Can't find commit", name, 'in branch', self.activeBranch.name)
+        try:
+            commit.Delete()
+            log('Commit', name, 'has been deleted')
+        except Exception as e:
+            log('COLOR.RED', 'Commit ' + name + ' can not be deleted:', traceback.format_exc())

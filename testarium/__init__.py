@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 Testarium
 Copyright (C) 2014 Maxim Tkachenko
 
@@ -15,19 +15,25 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
-import kernel, experiment as experiment_module
+import argparse
+import json
+import copy
+import shutil
+import collections
+
+import kernel
+import experiment as experiment_module
 from utils import *
-import sys, argparse, json, collections, copy, shutil
 
+# using it for parameter grid search
 try: import numpy as np
 except: pass
 
 try: import web; webOk = True
 except: webOk = False
 
-version = '0.1'
 testarium = kernel.Testarium()
 experiment = experiment_module.Experiment(testarium)
 
@@ -47,16 +53,16 @@ def run(args):
         log('COLOR.RED', "Error: can't open config file:", config_path, '(' + str(e) + ')')
         return False
 
-    # parser: c[param]=value; => (param, value)
+    # parser: param=value; => (param, value)
     import re
-    p = re.compile(ur'(c\[[\'|"]?([^\]|\'|"]+)[\'|"]?\]=([^;]*(?=;|)))')
+    p = re.compile(ur'([^=|^;]+)?=([^;]*(?=;|))')
     groups = re.findall(p, args.newParams)
 
     # apply newParams to dict c
     c = collections.OrderedDict()
     stop = False
     for g in groups:
-        cmd = "c['" + g[1] + "'] = " + g[2]
+        cmd = "c['" + g[0] + "'] = " + g[1]
         try:
             exec cmd
         except Exception, e:
@@ -379,19 +385,21 @@ def main():
 
     # delete
     parser_delete.add_argument('name', default='', nargs='?',
-                               help="name of commit. Use 'best' for the best scored commit. 0 is last, -1 is first commit")
+                               help="name of commit. Use 'best' for the best scored commit. "
+                                    "0 is last, -1 is first commit")
     parser_delete.add_argument('--branch', default='', dest='branch',
                                help='name of branch, leave it empty to use active branch')
     parser_delete.add_argument('-p', default='', nargs='?', dest='conditions',
-                              help="user conditions: 'c' - config dict, 'd' - description dict. "
-                                   "Where proceeds all commits from all branches")
-
+                               help="user conditions: 'c' - config dict, 'd' - description dict. "
+                                    "Where proceeds all commits from all branches")
 
     # diff
     parser_differ.add_argument('nameA', default='best', nargs='?',
-                               help="name of commit to diff to. Use 'best' for the best scored commit. 0 is last, -1 is first commit")
+                               help="name of commit to diff to. Use 'best' for the best scored commit. "
+                                    "0 is last, -1 is first commit")
     parser_differ.add_argument('nameB', default='', nargs='?',
-                               help="name of commit to diff with. Use 'best' for the best scored commit. 0 is last, -1 is first commit")
+                               help="name of commit to diff with. Use 'best' for the best scored commit. "
+                                    "0 is last, -1 is first commit")
     parser_differ.add_argument('--branch', default='', dest='branch',
                                help='name of common branch to operate, stay it empty to use active branch')
     parser_differ.add_argument('--branchA', default='', dest='branchA', help='name of branch A to operate')
@@ -453,7 +461,6 @@ def main():
     parser_cleanup.add_argument('--hard', default=False, dest='hard', action='store_true',
                                 help='hard cleanup will remove ALL commits without desc.json or with incorrect loading.'
                                      'By default soft cleanup is in use. Use hard cleanup very carefully!')
-
 
     # run by default
     if len(sys.argv) == 1:
