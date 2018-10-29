@@ -320,12 +320,14 @@ class Commit:
             files_or_dirs = [files_or_dirs]
         self.desc['resources'] += [{"name": name, "paths": files_or_dirs}]
 
+        # save changes
+        self.Save()
+
     def RemoveDryRun(self):
         del self.desc['dry_run']
+        self.Save()
 
     def Delete(self):
-        shutil.rmtree(self.dir)
-
         # remove resources linked to this commit
         if 'resources' in self.desc:
             log()
@@ -335,8 +337,11 @@ class Commit:
                     try:
                         shutil.rmtree(path) if os.path.isdir(path) else os.unlink(path)
                         log('link-resource removed: [' + name + ']', path)
-                    except OSError:
-                        log('link-resource removing error [' + name + ']', path)
+                    except OSError as e:
+                        log('link-resource removing error [' + name + ']', path, ':', e)
+
+        # remove commit
+        shutil.rmtree(self.dir)
 
     def MakeLink(self, link_dir='../last'):
         # link commit dir to 'last'
@@ -495,10 +500,11 @@ class Branch:
                 files = [f for f in os.listdir(path) if f not in system_files]
 
                 if len(files) > 0 and self.common.allow_remove_commits != 'hard':
-                    log("Commit incorrect, but there are user files (--hard to remove it):", dir + '/' + d)
+                    log("User files found (--hard to remove it):", dir + '/' + d)
                 else:
                     try:
-                        shutil.rmtree(path)
+                        commit.Delete()
+                        shutil.rmtree(path, ignore_errors=True)
                     except:
                         log("Can't remove:", dir + '/' + d)
                     else:
