@@ -6,9 +6,15 @@ import testarium.score.fafr
 
 @testarium.experiment.set_run
 def my_run(commit):
+    """ 
+    :testarium.Commit commit: object
+    """
+
     # prepare
     d = commit.dir
     c = commit.config
+
+    commit.AddResources('test', ['test1', 'test2'])
 
     # run experiment
     pos = open(d + '/pos.txt', 'w')

@@ -311,12 +311,14 @@ class Commit:
 
         return 'graph://storage/' + path
 
-    def AddResources(self, name, path_to_file_or_dir):
+    def AddResources(self, name, files_or_dirs):
         # init
-        if 'resources' not in self.desc['resources']:
+        if 'resources' not in self.desc:
             self.desc['resources'] = []
         # add
-        self.desc['resources'] += [{"name": name, "path": path_to_file_or_dir}]
+        if not isinstance(files_or_dirs, list):
+            files_or_dirs = [files_or_dirs]
+        self.desc['resources'] += [{"name": name, "paths": files_or_dirs}]
 
     def RemoveDryRun(self):
         del self.desc['dry_run']
@@ -326,10 +328,15 @@ class Commit:
 
         # remove resources linked to this commit
         if 'resources' in self.desc:
+            log()
             for r in self.desc['resources']:
-                name, path = r['name'], r['path']
-                shutil.rmtree(path) if os.path.isdir(path) else os.unlink(path)
-                log('COLOR.GREY', ' linked resource removed:', name + ':', path)
+                name, paths = r['name'], r['paths']
+                for path in paths:
+                    try:
+                        shutil.rmtree(path) if os.path.isdir(path) else os.unlink(path)
+                        log('link-resource removed: [' + name + ']', path)
+                    except OSError:
+                        log('link-resource removing error [' + name + ']', path)
 
     def MakeLink(self, link_dir='../last'):
         # link commit dir to 'last'

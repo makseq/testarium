@@ -234,8 +234,8 @@ class Experiment:
         # check commit removing after run and warning it
         if dry_run:
             max_dur = self.testarium.config.get('dry_run.max_duration', 300)
-            log('COLOR.YELLOW', 'Commit will be removed if run duration is less %0.0fs, ' % max_dur +
-                                'please use CTRL+C to proper commit removing!')
+            log('COLOR.YELLOW', 'Commit removing if run is less %0.0fs, ' % max_dur +
+                                'use CTRL+C to proper commit removing!')
 
         # form config with newParams
         config = collections.OrderedDict(config)
