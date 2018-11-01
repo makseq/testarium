@@ -75,7 +75,7 @@ class Experiment:
         self.sendmail = send
 
     # --- Advanced experiment run with params search
-    def search(self, config, comment, new_params, use_try, dry_run=False):
+    def search(self, config, comment, new_params, branch_name, dry_run=False):
 
         # check newParams for variants number
         max_variants = 1
@@ -91,7 +91,7 @@ class Experiment:
             begin_time = time.time()
             new_params = {key: (new_params[key][0] if hasattr(new_params[key], '__iter__')
                                 else new_params[key]) for key in new_params}
-            result = self.run(config, comment, new_params, dry_run)
+            result = self.run(config, comment, new_params, branch_name, dry_run)
             duration = time.time() - begin_time
 
             # check experiment duration and make decision about mail sending
@@ -123,7 +123,7 @@ class Experiment:
                 log_simple('\n\n----------------------------------------------')
                 log('Starting experiment: ', count + 1, '/', len(combinations))
 
-                result = self.run(config, comment, comb, dry_run)
+                result = self.run(config, comment, comb, branch_name, dry_run)
                 if result[1]:
                     if best_commit < result[0]:
                         best_commit = result[0]
@@ -219,7 +219,7 @@ class Experiment:
             log(e)
 
     # run one experiment
-    def run(self, config, comment, new_params, dry_run=True):
+    def run(self, config, comment, new_params, branch_name, dry_run=True):
         c, result = None, False
 
         # check if user Run function defined
@@ -251,7 +251,7 @@ class Experiment:
         try:
             try:
                 # prepare commit and store it into testarium
-                c = self.testarium.NewCommit(config, dry_run=dry_run)  # save commit to provide access to config as file
+                c = self.testarium.NewCommit(config, branch_name=branch_name, dry_run=dry_run)
                 config_path = c.GetConfigPath()
                 if config_path is None:
                     raise Exception("Something wrong with new commit path in Experiment.run()")

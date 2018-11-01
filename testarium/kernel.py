@@ -549,10 +549,10 @@ class Branch:
 
 
 # ------------------------------------------------------------------------------
-"""
-Testarium - manage the commits
-"""
 class Testarium:
+    """
+    Testarium - manage the commits
+    """
 
     def best_score_is_max(self):
         self.common.best_score_max = True
@@ -627,10 +627,11 @@ class Testarium:
         return self.activeBranch
 
     # Add new commit to active branch
-    def NewCommit(self, config, dry_run=False):
-        commit = self.activeBranch.NewCommit(config)
+    def NewCommit(self, config, branch_name='', dry_run=False):
+        branch = self.branches[branch_name] if branch_name else self.activeBranch
+        commit = branch.NewCommit(config)
         commit.dry_run = dry_run
-        path = self.root + '/' + self.activeBranch.name + '/' + commit.name
+        path = self.root + '/' + branch.name + '/' + commit.name
 
         if dry_run:
             commit.desc['dry_run'] = True
