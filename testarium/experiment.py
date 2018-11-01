@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import gc
 import json
 import time
+import threading
 import collections
 import itertools as it
 from utils import *
@@ -74,7 +75,7 @@ class Experiment:
         self.sendmail = send
 
     # --- Advanced experiment run with params search
-    def search(self, config, comment, new_params, use_try, dry_run=False):
+    def search(self, config, comment, new_params, branch_name, dry_run=False):
 
         # check newParams for variants number
         max_variants = 1
@@ -90,7 +91,7 @@ class Experiment:
             begin_time = time.time()
             new_params = {key: (new_params[key][0] if hasattr(new_params[key], '__iter__')
                                 else new_params[key]) for key in new_params}
-            result = self.run(config, comment, new_params, dry_run)
+            result = self.run(config, comment, new_params, branch_name, dry_run)
             duration = time.time() - begin_time
 
             # check experiment duration and make decision about mail sending
@@ -122,7 +123,7 @@ class Experiment:
                 log_simple('\n\n----------------------------------------------')
                 log('Starting experiment: ', count + 1, '/', len(combinations))
 
-                result = self.run(config, comment, comb, dry_run)
+                result = self.run(config, comment, comb, branch_name, dry_run)
                 if result[1]:
                     if best_commit < result[0]:
                         best_commit = result[0]
@@ -218,7 +219,7 @@ class Experiment:
             log(e)
 
     # run one experiment
-    def run(self, config, comment, new_params, dry_run=True):
+    def run(self, config, comment, new_params, branch_name, dry_run=True):
         c, result = None, False
 
         # check if user Run function defined
@@ -233,9 +234,10 @@ class Experiment:
             return c, result
 
         # check commit removing after run and warning it
+        timer = None
+        dry_run_dur = self.testarium.config.get('dry_run.max_duration', 300)
         if dry_run:
-            max_dur = self.testarium.config.get('dry_run.max_duration', 300)
-            log('COLOR.YELLOW', 'Commit removing if run is less %0.0fs, ' % max_dur +
+            log('COLOR.YELLOW', 'Commit removing if run is less %0.0fs, ' % dry_run_dur +
                                 'use CTRL+C to proper commit removing!')
 
         # form config with newParams
@@ -249,11 +251,20 @@ class Experiment:
         try:
             try:
                 # prepare commit and store it into testarium
-                c = self.testarium.NewCommit(config, dry_run=dry_run)  # save commit to provide access to config as file
+                c = self.testarium.NewCommit(config, branch_name=branch_name, dry_run=dry_run)
                 config_path = c.GetConfigPath()
                 if config_path is None:
                     raise Exception("Something wrong with new commit path in Experiment.run()")
                 c.desc['params'] = str(new_params)
+
+                # start timer to disable dry-run
+                if dry_run:
+                    def disable_dry():
+                        log()
+                        log('COLOR.GREEN', 'Dry-run disabled due to duration')
+                        c.RemoveDryRun()
+                    timer = threading.Timer(dry_run_dur, disable_dry)
+                    timer.start()
 
                 # comment
                 c.desc['comment'] = comment
@@ -273,11 +284,14 @@ class Experiment:
                 raise e
 
         except KeyboardInterrupt as e:
-            self.remove_commit(c, dry_run)
             raise e
 
-        # remove commit if dry-run and CTRL+C
-        self.remove_commit(c, dry_run)
+        finally:
+            # remove commit if dry-run and CTRL+C
+            self.remove_commit(c, dry_run)
+            if timer is not None:
+                timer.cancel()
+
         return c, result
 
     # Body of experiment run

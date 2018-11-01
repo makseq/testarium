@@ -39,13 +39,19 @@ experiment = experiment_module.Experiment(testarium)
 
 
 def run(args):
-    if args.config_path:
-        config_path = args.config_path  # use user config
-    else:
+    if args.config_path in testarium.branches:  # user specified branch only
+        config_path = testarium.branches[args.config_path].config_path
+        branch_name = args.config_path
+
+    elif args.config_path:
+        config_path = args.config_path  # use user config file
+        branch_name = testarium.activeBranch.name
+
+    elif not args.config_path:  # empty config
         config_path = testarium.activeBranch.config_path  # use default branch config
+        branch_name = testarium.activeBranch.name
 
     # try to load main config
-    config = collections.OrderedDict()
     try:
         config = json.loads(open(os.getcwd() + '/' + config_path, 'r').read(),
                             object_pairs_hook=collections.OrderedDict)
@@ -69,10 +75,12 @@ def run(args):
             msg = str(e).replace(' (<string>, line 1)', '')
             log('COLOR.RED', msg + ':', 'COLOR.RED', '"' + cmd + '"')
             stop = True
-    if stop: return False
+    if stop:
+        return False
 
+    # run experiments
     experiment.set_send_mail(args.mail)
-    experiment.search(config=config, comment=args.comment, new_params=c, use_try=True, dry_run=args.dry_run)
+    experiment.search(config=config, comment=args.comment, new_params=c, branch_name=branch_name, dry_run=args.dry_run)
     return True
 
 
@@ -154,7 +162,7 @@ def delete(args):
                 log('COLOR.YELLOW', 'Do you want to delete it from disk? [Y/n]:')
                 if raw_input() == 'Y':
                     for c in out_commits:
-                        shutil.rmtree(c.dir, True)
+                        c.Delete()
                         log(c.dir, 'was removed')
 
     else:
@@ -386,7 +394,7 @@ def main():
     # delete
     parser_delete.add_argument('name', default='', nargs='?',
                                help="name of commit. Use 'best' for the best scored commit. "
-                                    "0 is last, -1 is first commit")
+                                    "head or HEAD or last or 0 for the last commit")
     parser_delete.add_argument('--branch', default='', dest='branch',
                                help='name of branch, leave it empty to use active branch')
     parser_delete.add_argument('-p', default='', nargs='?', dest='conditions',

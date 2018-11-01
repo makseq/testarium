@@ -324,8 +324,9 @@ class Commit:
         self.Save()
 
     def RemoveDryRun(self):
-        del self.desc['dry_run']
-        self.Save()
+        if 'dry_run' in self.desc:
+            del self.desc['dry_run']
+            self.Save()
 
     def Delete(self):
         # remove resources linked to this commit
@@ -548,10 +549,10 @@ class Branch:
 
 
 # ------------------------------------------------------------------------------
-"""
-Testarium - manage the commits
-"""
 class Testarium:
+    """
+    Testarium - manage the commits
+    """
 
     def best_score_is_max(self):
         self.common.best_score_max = True
@@ -626,10 +627,11 @@ class Testarium:
         return self.activeBranch
 
     # Add new commit to active branch
-    def NewCommit(self, config, dry_run=False):
-        commit = self.activeBranch.NewCommit(config)
+    def NewCommit(self, config, branch_name='', dry_run=False):
+        branch = self.branches[branch_name] if branch_name else self.activeBranch
+        commit = branch.NewCommit(config)
         commit.dry_run = dry_run
-        path = self.root + '/' + self.activeBranch.name + '/' + commit.name
+        path = self.root + '/' + branch.name + '/' + commit.name
 
         if dry_run:
             commit.desc['dry_run'] = True
@@ -666,11 +668,13 @@ class Testarium:
         # print only one commit
         if name:
             # replace last to 0
-            if name == 'last': name = '0'
+            if name == 'last' or name == 'head' or name == 'HEAD':
+                name = '0'
 
             # print the best commit
             if name == 'best':
-                if N > 0: sort_keys = sort_keys[0:N]
+                if N > 0:
+                    sort_keys = sort_keys[0:N]
                 commits_list = [commits[k] for k in sort_keys]
                 return [max(commits_list)]
 
@@ -678,16 +682,21 @@ class Testarium:
             # take commit by number
             try:
                 number = int(name)
+                if number < 0:
+                    raise Exception('Only positive numbers can be used')
             except:
                 pass
             else:
                 # check number bounds
                 error = False
                 if number < 0:
-                    if abs(number) > len(sort_keys): error = True
+                    error = True if abs(number) > len(sort_keys) else error
                 else:
-                    if number >= len(sort_keys): error = True
-                if error: log('COLOR.RED', 'Error: incorrect commit number:', number, '/', len(sort_keys)); return
+                    error = True if number >= len(sort_keys) else error
+
+                if error:
+                    log('COLOR.RED', 'Error: incorrect commit number:', number, '/', len(sort_keys))
+                    return
 
                 # print
                 return [commits[sort_keys[number]]]

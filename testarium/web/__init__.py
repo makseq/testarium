@@ -41,6 +41,7 @@ def answer(status=0, msg="", object=None):
     if not object is None: a.update({"result": object})
     return json.dumps(a, indent=2)
 
+
 def authenticate():
     """Sends a 401 response that enables basic auth"""
     return Response(
