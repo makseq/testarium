@@ -107,11 +107,11 @@ class WebServer:
             else:
                 return flask.send_file(filename)  # load file with absolute path
 
-        ###  API ###
+        # API #
 
         # -----------------------------------------------
         @self.app.route('/api/info')
-        def API_info():
+        def api_info():
             t.Load(False)
             cfg = copy.deepcopy(t.config)
             try:
@@ -132,23 +132,27 @@ class WebServer:
 
         # -----------------------------------------------
         @self.app.route('/api/branches')
-        def API_branches():
+        def api_branches():
             t.Load(False)
             res = [b.replace('.', '-') for b in t.branches]
             return answer(object=res)
 
         # -----------------------------------------------
         @self.app.route('/api/branches/active')
-        def API_branches_active():
+        def api_branches_active():
             t.Load(False)
             return answer(object=t.ActiveBranch().name)
 
         # -----------------------------------------------
         @self.app.route('/api/branches/<branch_name>/commits')
-        def API_branches_commits(branch_name):
+        def api_branches_commits(branch_name):
             t.Load(True)
-            if branch_name.replace('-', '.') in t.branches: branch_name = branch_name.replace('-', '.')
-            if branch_name == '~': branch_name = t.ActiveBranch().name
+            if branch_name.replace('-', '.') in t.branches:
+                branch_name = branch_name.replace('-', '.')
+
+            if branch_name == '~':
+                branch_name = t.ActiveBranch().name
+
             t.ChangeBranch(branch_name, new=False)
 
             number = 100
@@ -178,7 +182,7 @@ class WebServer:
 
         # -----------------------------------------------
         @self.app.route('/api/branches/<branch_name>/commits/<commit_name>')
-        def API_commit(branch_name, commit_name):
+        def api_commit(branch_name, commit_name):
             global e
             status = 0
             msg = "ok"
@@ -186,7 +190,8 @@ class WebServer:
 
             # get commit
             commit = t.SelectCommits(branch_name, commit_name, 1)
-            if not commit: return answer(-151, 'no commit with this name ' + commit_name)
+            if not commit:
+                return answer(-151, 'no commit with this name ' + commit_name)
             commit = commit[0]
 
             # modify
@@ -195,7 +200,6 @@ class WebServer:
                     commit.desc['comment'] = request.args['comment'] #.decode('utf-8')
                     commit.Save()
                     return answer(status=status, msg=msg, object=res)
-
 
             # filter by file info
             if 'filter' in request.args:
@@ -230,7 +234,7 @@ class WebServer:
 
             if 'player' in request.args:
                 media_files = [str(i)+'. '+commit.filedb.GetPath(f) + '\t' + str(meta[f]['probs']) + '<br/>'
-                                '<audio controls preload="none" src=/storage/'+commit.filedb.GetPath(f)+'></audio><br/>'
+                               '<audio controls preload="none" src=/storage/'+commit.filedb.GetPath(f)+'></audio><br/>'
 
                                for i,f in enumerate(meta)]
                 out = '\n'.join(media_files)
@@ -242,8 +246,7 @@ class WebServer:
                 res = {'config': commit.config, 'desc': commit.desc, 'meta': meta}
             return answer(status=status, msg=msg, object=res)
 
-
-        ### ROOT ###
+        # ROOT #
 
         # -----------------------------------------------
         @self.app.route('/')

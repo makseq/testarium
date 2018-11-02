@@ -466,6 +466,7 @@ class Branch:
     def Load(self, dir, loadCommits):
         self._init = False
         self.dir = dir
+        self.commits = {}
 
         # load branch description
         path = dir + '/branch.json'
@@ -777,7 +778,8 @@ class Testarium:
 
         self._init = True
         # self.SaveTestariumOnly()
-        if not silent: log('Loaded', len(self.branches), 'branches and', commitsCount, 'commits')
+        if not silent:
+            log('Loaded', len(self.branches), 'branches and', commitsCount, 'commits')
 
     # Load Testarium class only
     def LoadTestariumOnly(self):
