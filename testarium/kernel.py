@@ -466,7 +466,6 @@ class Branch:
     def Load(self, dir, loadCommits):
         self._init = False
         self.dir = dir
-        self.commits = {}
 
         # load branch description
         path = dir + '/branch.json'
@@ -484,6 +483,7 @@ class Branch:
         subdirs = [d for d in os.listdir(dir) if os.path.isdir(dir + '/' + d)]
 
         # load commits
+        self.commits = {}
         removed = 0
         for d in subdirs:
             commit = Commit()
