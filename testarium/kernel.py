@@ -24,6 +24,7 @@ from utils import *
 import coderepos
 import filedb
 import random
+import codecs
 
 CONFIG_COMMIT_DIRECTORY = 'testarium.commitDirectory'
 
@@ -175,6 +176,23 @@ class Commit:
             else:
                 return -1 if not self.common.best_score_max else 1
 
+    def __str__(self):
+        if not self._init:
+            return 'No init'
+
+        cols, out = self.Print()
+        if len(cols) != len(out):
+            return 'Wrong cols or out after Description.Print()'
+
+        msg = ''
+        no_head = ['name', 'comment', '']
+        for i, c in enumerate(cols):
+            part = out[i]
+            if part:
+                msg += ('\t> ' if i != 0 else '') + ('' if c in no_head else c + ': ') + part + ' '
+
+        return msg
+
     def GenerateName(self):
         d = datetime.datetime.now()
         self.name = strtime(d.year) + strtime(d.month) + strtime(d.day) + \
@@ -208,23 +226,6 @@ class Commit:
     def GetDesc(self, key, format):
         return format % self.desc[key] if key in self.desc else ''
 
-    def __str__(self):
-        if not self._init:
-            return 'No init'
-
-        cols, out = self.Print()
-        if len(cols) != len(out):
-            return 'Wrong cols or out after Description.Print()'
-
-        msg = ''
-        no_head = ['name', 'comment', '']
-        for i, c in enumerate(cols):
-            part = str(out[i])
-            if part:
-                msg += ('\t> ' if i != 0 else '') + ('' if c in no_head else c + ': ') + part + ' '
-
-        return msg
-
     def SkipUrls(self, cols, out):
         new = [c for c in zip(cols, out) if not url_graph(c[1]) and not url_file(c[1])]
         return zip(*new)
@@ -236,7 +237,7 @@ class Commit:
         if self.common.commit_print_func is not None and not skipUserPrint:
             if not self.common.commit_print_func[0] is None:
                 cols, out = self.common.commit_print_func[0](self)
-                out = [str(o) for o in out]
+                out = [o for o in out]
 
                 if web:
                     if 'config' not in cols:
@@ -252,10 +253,10 @@ class Commit:
                 else:
                     return self.SkipUrls(cols, out)
 
-        name = self.desc['name'] if 'name' in self.desc else 'none'
+        name = self.desc.get('name', 'none')
         score = str(self.desc['score']) if 'score' in self.desc else 'none'
         time = str('%0.2f' % float(self.desc['duration'])) if 'duration' in self.desc else ''
-        comment = self.desc['comment'] if 'comment' in self.desc else ''
+        comment = self.desc.get('comment', '')
 
         # make much pretty commits have sub name (eg. 20140506.120001003)
         name = (name[:15] + ' ' + name[15:]) if len(name) > 15 else name
@@ -369,7 +370,8 @@ class Commit:
 
         # desc
         try:
-            self.desc = json.load(open(self.dir + '/desc.json'), object_pairs_hook=Description)
+            with codecs.open(self.dir + '/desc.json', 'r', encoding='utf-8') as f:
+                self.desc = json.load(f, object_pairs_hook=Description)
         except:
             raise Exception("Can't load commit description: " + d)
 
@@ -417,7 +419,9 @@ class Commit:
                         return super(NumpyEncoder, self).default(obj)
 
             # desc
-            json.dump(self.desc, open(self.dir + '/desc.json', 'w'), indent=2, cls=NumpyEncoder)
+            with codecs.open(self.dir + '/desc.json', 'w', encoding='utf-8') as f:
+                json.dump(self.desc, f, ensure_ascii=False, sort_keys=True, indent=2,
+                          separators=(',', ': '), cls=NumpyEncoder)
 
             # file db
             self.branch.filedb.SaveFiles(self.dir + '/../filedb.json')
@@ -513,7 +517,7 @@ class Branch:
                 files = [f for f in os.listdir(path) if f not in system_files]
 
                 if len(files) > 0 and self.common.allow_remove_commits != 'hard':
-                    log("User files found (--hard to remove it):", dir + '/' + d)
+                    log("Broken commit," if bad else "Dry-run commit,", "but user files found (--hard to remove it):", dir + '/' + d)
                 else:
                     try:
                         commit.Delete()
@@ -591,7 +595,12 @@ class Testarium:
         if not self._init:
             if not colored: log("Do 'easy_install colorama' to color testarium logs")
             self._init = False
+
+            # generate name
+            bad_names = ['research', 'work', 'test']
             self.name = os.path.basename(os.getcwd())
+            self.name = os.path.basename(os.path.dirname(os.getcwd())) if self.name in bad_names else self.name
+            self.name = 'T' if not self.name else self.name
             self.SetRootDir(rootdir)
 
             self.ChangeBranch('default')
@@ -637,7 +646,7 @@ class Testarium:
         if dry_run:
             commit.desc['dry_run'] = True
         else:
-            comment = ' ' + commit.desc['comment'] if 'comment' in commit.desc else ''
+            comment = ' ' + commit.desc.get('comment', '')
             repo_hash = self.coderepos.commit(commit.name, comment)  # commit in repository (git/hg)
             commit.desc['coderepos.commit_name'] = repo_hash
 
@@ -749,7 +758,7 @@ class Testarium:
 
             show = False
             try:
-                exec 'if ' + cond + ': show = True';
+                exec 'if ' + cond + ': show = True'
             except Exception as e:
                 error += str(e) + '; '
 

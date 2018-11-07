@@ -1,4 +1,4 @@
-'''
+"""
 Testarium
 Copyright (C) 2014 Maxim Tkachenko
 
@@ -14,40 +14,30 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
-
-import flask, os, json, collections, copy, traceback, copy
-from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
-from functools import wraps
-from flask import request, Response
-import webbrowser, threading
+"""
+import os
+import copy
 import time
+import threading
+import webbrowser
+import collections
 
+import flask
+from flask import Flask, Response, request, render_template
+from functools import wraps
+
+from base import answer, exception_treatment
 
 DEBUG = True
 t = 'None'
 e = 'None'
 
 
-# answer for api
-def answer(status=0, msg="", object=None):
-    if status == 0 and not msg and object is None:
-        status = -1000
-        msg = "nothing happened"
-
-    a = {"status": status, "msg": msg}
-    a.update({'request': request.args})
-
-    if not object is None: a.update({"result": object})
-    return json.dumps(a, indent=2)
-
-
 def authenticate():
-    """Sends a 401 response that enables basic auth"""
-    return Response(
-    'Could not verify your access level for that URL.\n'
-    'You have to login with proper credentials', 401,
-    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+    """ Sends a 401 response that enables basic auth """
+    return Response('Could not verify your access level for that URL.\n'
+                    'You have to login with proper credentials', 401,
+                    {'WWW-Authenticate': 'Basic realm="Login Required"'})
 
 
 class WebServer:
@@ -66,7 +56,7 @@ class WebServer:
         self.auth_user = 'admin'
         self.auth_pass = ''
 
-    def Start(self, port, auth_user, auth_pass):
+    def start(self, port, auth_user, auth_pass):
 
         # -------------------------------------------------
         def check_auth(username, password):
@@ -128,20 +118,20 @@ class WebServer:
                 "branches": [b.replace('.', '-') for b in t.branches],
                 "active_branch": t.ActiveBranch().name
             }
-            return answer(object=res)
+            return answer(result=res)
 
         # -----------------------------------------------
         @self.app.route('/api/branches')
         def api_branches():
             t.Load(False)
             res = [b.replace('.', '-') for b in t.branches]
-            return answer(object=res)
+            return answer(result=res)
 
         # -----------------------------------------------
         @self.app.route('/api/branches/active')
         def api_branches_active():
             t.Load(False)
-            return answer(object=t.ActiveBranch().name)
+            return answer(result=t.ActiveBranch().name)
 
         # -----------------------------------------------
         @self.app.route('/api/branches/<branch_name>/commits')
@@ -178,10 +168,11 @@ class WebServer:
             if error:
                 status = -150
                 msg = "There was error: '" + str(error) + "'"
-            return answer(status=status, msg=msg, object=res)
+            return answer(status=status, msg=msg, result=res)
 
         # -----------------------------------------------
-        @self.app.route('/api/branches/<branch_name>/commits/<commit_name>')
+        @self.app.route('/api/branches/<branch_name>/commits/<commit_name>', methods=['GET', 'POST'])
+        @exception_treatment
         def api_commit(branch_name, commit_name):
             global e
             status = 0
@@ -195,16 +186,16 @@ class WebServer:
             commit = commit[0]
 
             # modify
-            if 'op' in request.args and request.args['op']=='modify':
-                if 'comment' in request.args:
-                    commit.desc['comment'] = request.args['comment'] #.decode('utf-8')
+            if request.args.get('op', '') == 'modify':
+                if 'comment' in request.form:
+                    commit.desc['comment'] = request.form['comment']
                     commit.Save()
-                    return answer(status=status, msg=msg, object=res)
+                    return answer(status=status, msg=msg, result=res)
 
             # filter by file info
             if 'filter' in request.args:
-                filter = request.args['filter']
-                cond = filter.replace("['", "[").replace("']", "]").replace("[", "['").replace("]", "']")
+                f = request.args['filter']
+                cond = f.replace("['", "[").replace("']", "]").replace("[", "['").replace("]", "']")
                 commit = copy.deepcopy(commit)
 
                 error = 'ok; '
@@ -244,7 +235,7 @@ class WebServer:
                 res = {'desc': commit.desc}
             else:
                 res = {'config': commit.config, 'desc': commit.desc, 'meta': meta}
-            return answer(status=status, msg=msg, object=res)
+            return answer(status=status, msg=msg, result=res)
 
         # ROOT #
 
@@ -254,21 +245,6 @@ class WebServer:
         def root():
             self.t.Load(False)
             self.t.ChangeBranch(self.t.activeBranch.name)
-
-            number = 100
-            name = ''
-
-            try:
-                number = int(request.args['n'])
-            except:
-                pass
-            try:
-                name = request.args['name']
-                number = -1
-            except:
-                pass
-
-            commits = self.t.SelectCommits(t.activeBranch.name, name, number)
             return render_template('main.html', t=self.t)
 
         # -----------------------------------------------
@@ -278,7 +254,7 @@ class WebServer:
                 webbrowser.open_new_tab(url)
                 print 'Open in new tab:', url
             except:
-                print "Can't open browser with new tab:", url
+                print "Can't open browser with new tab"
                 pass
 
         if not self.args.no_open_tab:

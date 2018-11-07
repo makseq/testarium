@@ -300,11 +300,20 @@ function showTips(e)
 function saveComment(e)
 {
 	var branch = $(e.currentTarget).closest('.commit-table').data('activeBranch');
-	var commitName = $(e.currentTarget).closest('.commit-name').data('commit-name')
-	$.ajax('api/branches/'+branch+'/commits/'+commitName+'?op=modify&comment='+$(e.currentTarget).text())
+	var commitName = $(e.currentTarget).closest('.commit-name').data('commit-name');
+	$.ajax({
+			url:'api/branches/'+branch+'/commits/'+commitName+'?op=modify',
+            data: {
+			    comment: $(e.currentTarget).text()
+            },
+            method: 'POST',
+			dataType: 'json'
+        })
+		.done(function(d) {
+			if (d.status !== 0)
+				alert('Something wrong in your comment. Do you use ASCII symbols only?\n\n' + JSON.stringify(d));
+		})
 }
-
-
 
 function newPlot()
 {
@@ -344,7 +353,7 @@ function newPlot()
 
 function loadPlot(event, obj)
 {
-	url = $(obj).data('url');
+	var url = $(obj).data('url');
 	if (scope.plot.active == '' )
 		newPlot();
 

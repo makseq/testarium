@@ -1,7 +1,7 @@
 * {
 	margin: 0;
 	padding: 0;
-	font-family: 'Gudea', Univers;
+	font-family: 'Gudea', Univers, monospace;
 	color:#4C5768;
 }
 
@@ -11,8 +11,7 @@ html {
 	-moz-background-size: cover;
 	-o-background-size: cover;
 	background-size: cover;
-	min-width:600px;
-	font-family: 'Gudea', Univers;
+	font-family: 'Gudea', Univers, monospace;
 	font-size: 20px;
 	color:#4C5768;
 	width:100%;
@@ -59,7 +58,7 @@ html {
 
 	-webkit-transition: color 500ms ease, text-shadow 500ms ease, background 500ms ease;
 	transition: color 500ms ease, text-shadow 500ms ease, background 500ms ease;
-	text-shadow: 0px 1px 2px rgba(0,0,0,0.2);
+	text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 #control .button.plot-btn.fa-line-chart {
@@ -84,8 +83,8 @@ html {
 	width:46px;
 	height:36px;
 	background: rgba(200,200,10, 0.6);
-	color:white;
-	text-shadow: 0px 1px 3px rgba(0,0,0,0.3);
+	color:#111;
+	font-family: 'Gudea', Univers, monospace;
 }
 #control .button.info:hover {
 	background: rgba(200,200,10, 0.9);

@@ -68,7 +68,7 @@ def run(args):
     c = collections.OrderedDict()
     stop = False
     for g in groups:
-        cmd = "c['" + g[0] + "'] = " + g[1]
+        cmd = "c['" + g[0].replace(' ', '').replace('\t', '') + "'] = " + g[1]
         try:
             exec cmd
         except Exception, e:
@@ -221,7 +221,8 @@ def print_commits(commits, args):
 
 def logs(args):
     commits = testarium.SelectCommits(branch_name=args.branch, name=args.name, N=args.n)
-    if commits: print_commits(commits, args)
+    if commits:
+        print_commits(commits, args)
 
 
 def where(args):
@@ -242,7 +243,7 @@ def webserver(args):
     if not webOk: log('Web server is disabled. Try to "easy_install flask"'); exit(-101)
 
     w = web.WebServer(testarium, experiment, args)
-    w.Start(int(args.port), args.username, args.password)
+    w.start(int(args.port), args.username, args.password)
 
 
 def mail(args):
@@ -417,7 +418,8 @@ def main():
 
     # log
     parser_log.add_argument('name', default='', nargs='?',
-                            help="name of commit to display. Use 'best' for the best scored commit. 0 is last, -1 is first commit")
+                            help="name of commit to display. Use 'best' for the best scored commit. "
+                                 "0 is last, -1 is first commit")
     parser_log.add_argument('-i', default=False, dest='print_diff', action='store_true',
                             help='print incremental difference between the commit configs')
     parser_log.add_argument('-c', default=False, dest='print_config', action='store_true', help='print configs')
