@@ -27,6 +27,7 @@ from flask import Flask, Response, request, render_template
 from functools import wraps
 
 from base import answer, exception_treatment
+from ..utils import TestariumException
 
 DEBUG = True
 t = 'None'
@@ -160,7 +161,7 @@ class WebServer:
                 commits = t.SelectCommits(branch_name, commitName, number)
                 error = None
 
-            printing = [c.Print(web=True) for c in commits]
+            printing = [c.Print(web=True) for c in commits] if commits is not None else []
             res = [collections.OrderedDict(zip(col, val)) for col, val in printing]
 
             status = 0
@@ -191,6 +192,14 @@ class WebServer:
                     commit.desc['comment'] = request.form['comment']
                     commit.Save()
                     return answer(status=status, msg=msg, result=res)
+
+            # remove
+            if request.args.get('op', '') == 'delete':
+                try:
+                    commit.Delete()
+                except TestariumException as e:
+                    return answer(-152, e)
+                return answer(0, "deleted")
 
             # filter by file info
             if 'filter' in request.args:

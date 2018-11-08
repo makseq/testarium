@@ -332,8 +332,8 @@ class Commit:
     def Delete(self):
         # remove resources linked to this commit
         ok = True
+        msg = ''
         if 'resources' in self.desc:
-            log()
             for r in self.desc['resources']:
                 name, paths = r['name'], r['paths']
                 for path in paths:
@@ -342,19 +342,19 @@ class Commit:
                             shutil.rmtree(path)
                         else:
                             os.unlink(path)
-                        log('link-resource removed: [' + name + ']', path)
+                        log('resource removed: [' + name + ']', path)
                     except OSError as e:
                         if e.errno == 2:  # No such file - it's already removed
-                            log('link-resource not found: [' + name + ']', path)
+                            msg = 'resource not found: [' + name + '] ' + path
                         else:
                             ok = False
-                            log('link-resource removing error [' + name + ']', path, ':', e)
+                            msg = 'resource removing error [' + name + '] ' + path + ': ' + str(e)
 
         # remove commit
         if ok:
             shutil.rmtree(self.dir)
         else:
-            raise OSError("Can't remove commit, because resources could not be deleted")
+            raise TestariumException("Can't remove commit: " + msg)
 
     def MakeLink(self, link_dir='../last'):
         # link commit dir to 'last'
@@ -373,13 +373,13 @@ class Commit:
             with codecs.open(self.dir + '/desc.json', 'r', encoding='utf-8') as f:
                 self.desc = json.load(f, object_pairs_hook=Description)
         except:
-            raise Exception("Can't load commit description: " + d)
+            raise TestariumException("Can't load commit description: " + d)
 
         # config
         try:
             self.config = json.load(open(self.dir + '/config.json'), object_pairs_hook=Config)
         except:
-            raise Exception("Can't load commit config: " + d)
+            raise TestariumException("Can't load commit config: " + d)
 
         # file db
         self.meta.LoadMeta(self.dir + '/filedb.meta.json')
@@ -393,7 +393,8 @@ class Commit:
         if dir:
             self.dir = dir
         else:
-            if not dir and not self.dir: raise Exception('dir is not set in commit')
+            if not dir and not self.dir:
+                raise TestariumException('dir is not set in commit')
             dir = self.dir
 
         try:
@@ -427,7 +428,7 @@ class Commit:
             self.branch.filedb.SaveFiles(self.dir + '/../filedb.json')
             self.meta.SaveMeta(self.dir + '/filedb.meta.json')
         except Exception as e:
-            raise Exception("Can't save the commit: " + dir + ", " + str(e))
+            raise TestariumException("Can't save the commit: " + dir + ", " + str(e))
         self._init = True
 
 
@@ -476,7 +477,7 @@ class Branch:
         try:
             j = json.loads(open(path, 'r').read())
         except:
-            raise Exception('No branch description: ' + path)
+            raise TestariumException('No branch description: ' + path)
 
         self.name = j['name']
         self.config_path = j['config_path']
@@ -544,7 +545,7 @@ class Branch:
         try:
             json.dump(desc, open(path, 'w'), indent=2)
         except:
-            raise Exception("Can't save the branch description: " + path)
+            raise TestariumException("Can't save the branch description: " + path)
 
         if not saveCommits: return
 
@@ -693,7 +694,7 @@ class Testarium:
             try:
                 number = int(name)
                 if number < 0:
-                    raise Exception('Only positive numbers can be used')
+                    raise TestariumException('Only positive numbers can be used')
             except:
                 pass
             else:
@@ -797,7 +798,7 @@ class Testarium:
         try:
             self.config = json.loads(open(path, 'r').read())
         except:
-            raise Exception('No testarium description: ' + path)
+            raise TestariumException('No testarium description: ' + path)
         self.name = self.config['name']
         self.activeBranch = None
         return self.config
@@ -867,7 +868,7 @@ class Testarium:
         try:
             json.dump(self.config, open(path, 'w'), indent=2)
         except:
-            raise Exception("Can't save the testarium: " + path)
+            raise TestariumException("Can't save the testarium: " + path)
 
     # Save branches and commits
     def SaveActiveBranch(self, saveCommits):
