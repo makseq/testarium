@@ -355,8 +355,10 @@ function deleteCommit(branch, commitName)
 			dataType: 'json'
         })
 		.done(function(d) {
-			if (d.status !== 0)
-				alert('Something wrong with commit:\n' + d.msg);
+			if (d.status !== 0) {
+			    console.log(d);
+				alert('Something wrong with commit:\n\n' + d.msg);
+			}
 		})
 }
 
@@ -552,9 +554,9 @@ function loadImage(event, obj)
 			'<img' +
 				' style="border:' + backcolor + ' 1px solid"' +
 				' src="' + url + '"/>' +
-			'</a>')
-	image = $('#'+scope.image.active)
-	image.resizable({grid: 25})
+			'</a>');
+	image = $('#'+scope.image.active);
+	image.resizable({grid: 25});
 
 	event.preventDefault();
 	event.stopPropagation();

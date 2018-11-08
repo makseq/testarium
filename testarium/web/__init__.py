@@ -198,7 +198,7 @@ class WebServer:
                 try:
                     commit.Delete()
                 except TestariumException as e:
-                    return answer(-152, e)
+                    return answer(-152, str(e))
                 return answer(0, "deleted")
 
             # filter by file info

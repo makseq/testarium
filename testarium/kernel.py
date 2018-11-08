@@ -223,8 +223,8 @@ class Commit:
         else:
             return None
 
-    def GetDesc(self, key, format):
-        return format % self.desc[key] if key in self.desc else ''
+    def GetDesc(self, key, format, default=''):
+        return format % self.desc[key] if key in self.desc else default
 
     def SkipUrls(self, cols, out):
         new = [c for c in zip(cols, out) if not url_graph(c[1]) and not url_file(c[1])]
