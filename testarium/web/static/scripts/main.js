@@ -140,20 +140,18 @@ function commitFilter()
 	commitUpdate($(this).data('commits-table-id'))
 }
 
-function clipboard_copy(o) {
+function clipboard_copy(text) {
 	var textarea = document.createElement('textarea');
-	textarea.textContent = $(o).text();
+	textarea.textContent = text;
 	document.body.appendChild(textarea);
 
 	var selection = document.getSelection();
 	var range = document.createRange();
-	//range.selectNodeContents(textarea);
 	range.selectNode(textarea);
 	selection.removeAllRanges();
-	textarea.focus()
+	textarea.focus();
 	textarea.setSelectionRange(0, textarea.value.length);
-
-	console.log('copy success', document.execCommand('copy'));
+    document.execCommand('copy');
 	selection.removeAllRanges();
 
 	document.body.removeChild(textarea);
@@ -162,6 +160,11 @@ function clipboard_copy(o) {
 function newCommitTableByBranch(branch)
 {
 	$.getJSON('api/branches/'+branch+'/commits', function (data) {
+	    if (data.result.length === 0) {
+	        alert('No commits in branch ' + branch);
+	        return -1
+        }
+
 		data.id = 'commits-table-'+branch+scope.commits.number;
 		data.active_branch = branch;
 		data.header = Object.keys(data.result[0]);
@@ -196,7 +199,7 @@ function newCommitTableByBranch(branch)
 		input.data('commits-table-id', data.id);
 		input.keyup(commitFilter);
 		commits.resize(function() { input.outerWidth(commits.outerWidth()-span.outerWidth()-20); })
-		commits.resize()
+		commits.resize();
 
 		// close button
 		var btn = commits.find('table th.close-button');
@@ -220,20 +223,49 @@ function newCommitTableByBranch(branch)
 		});
 
 		scope.commits.number++;
-		also = '#' + data.id
+		var also = '#' + data.id;
 		commits.children('.body').resizable({alsoResize: also, grid: GRID_SIZE});
 		scope.commits.active=commits.attr('id');
 		//setTimeout(commitUpdate, 2000, commits.attr('id'))
 
         // copy text if ctrl pressed
         commits.find('td').on('click', function(e){
-             if (e.button==0 && e.ctrlKey) {
-                 clipboard_copy(this);
+             if (e.button === 0 && e.ctrlKey) {
+                 clipboard_copy($(this).text());
                  e.preventDefault();
 				 e.stopPropagation();
 				 return false;
              }
-        })
+        });
+
+        // add right click menu
+        commits.contextMenu({
+            selector: 'tr',
+            items: {
+                copy_name: {name: "Copy name", icon: "fa-copy", "accesskey": "n",
+                            callback: function(itemKey, opt, e) {
+                                clipboard_copy($(opt.$trigger[0]).data("commit-name"));
+                            }
+                },
+                copy_line: {name: "Copy line", icon: "fa-copy", "accesskey": "l",
+                            callback: function(itemKey, opt, e) {
+                                var cp = $(opt.$trigger[0]).text().replace(/\r?\n|\r/g, '');
+                                clipboard_copy(cp);
+                            }
+                },
+                sep1: "---------",
+                delete: {name: "Delete commit", icon: "fa-trash", "accesskey": "d",
+                         callback: function(itemKey, opt, e) {
+                            var table = $(opt.$trigger[0]).closest('.commit-table');
+                            var branch = table.data("activeBranch");
+                            var name = $(opt.$trigger[0]).data("commit-name");
+                            deleteCommit(branch, name);
+                            commitUpdate(table.attr('id'));
+                         }
+                }
+            }
+        });
+
 	}); // api/branch/name/commits
 }
 
@@ -300,11 +332,35 @@ function showTips(e)
 function saveComment(e)
 {
 	var branch = $(e.currentTarget).closest('.commit-table').data('activeBranch');
-	var commitName = $(e.currentTarget).closest('.commit-name').data('commit-name')
-	$.ajax('api/branches/'+branch+'/commits/'+commitName+'?op=modify&comment='+$(e.currentTarget).text())
+	var commitName = $(e.currentTarget).closest('.commit-name').data('commit-name');
+	$.ajax({
+			url:'api/branches/'+branch+'/commits/'+commitName+'?op=modify',
+            data: {
+			    comment: $(e.currentTarget).text()
+            },
+            method: 'POST',
+			dataType: 'json'
+        })
+		.done(function(d) {
+			if (d.status !== 0)
+				alert('Something wrong in your comment. Do you use ASCII symbols only?\n\n' + JSON.stringify(d));
+		})
 }
 
-
+function deleteCommit(branch, commitName)
+{
+	$.ajax({
+			url:'api/branches/'+branch+'/commits/'+commitName+'?op=delete',
+            method: 'POST',
+			dataType: 'json'
+        })
+		.done(function(d) {
+			if (d.status !== 0) {
+			    console.log(d);
+				alert('Something wrong with commit:\n\n' + d.msg);
+			}
+		})
+}
 
 function newPlot()
 {
@@ -344,7 +400,7 @@ function newPlot()
 
 function loadPlot(event, obj)
 {
-	url = $(obj).data('url');
+	var url = $(obj).data('url');
 	if (scope.plot.active == '' )
 		newPlot();
 
@@ -427,20 +483,21 @@ function newImage()
 		if (next >= imgs.length) next = imgs.length-1
 		imgs.hide()
 		$(imgs[next]).show()
-	};
+	}
+
 	// keydown left & right arrows
 	image.keydown(function(e){
 		if(e.keyCode == 27) close_window();
 		if(e.keyCode == 37) image_scrolling($(this), -1);
 		if(e.keyCode == 39) image_scrolling($(this), +1);
-	})
+	});
 	// mouse wheel
 	image.mousewheel(function(e){
 		if(e.deltaY < 0) image_scrolling($(this), -1);
 		if(e.deltaY > 0) image_scrolling($(this), +1);
 		e.preventDefault();
 		e.stopPropagation();
-	})
+	});
 
 	// remove button background on commit table
 	canvas.bind('remove', function () {
@@ -448,7 +505,7 @@ function newImage()
 		for (var i in buttons) {
 			$('#' + buttons[i]).css('background', 'none')
 		}
-	})
+	});
 
 	// get position of active commit table and set right corner for new image
 	var link = $('#'+scope.commits.active);
@@ -459,7 +516,7 @@ function newImage()
 
 function loadImage(event, obj)
 {
-	url = $(obj).data('url');
+	var url = $(obj).data('url');
 	if (scope.image.active == '' )
 		newImage();
 
@@ -486,20 +543,20 @@ function loadImage(event, obj)
 	canvas.data('assigned-image-buttons', buttons);
 
 	// add images
-	imgs = canvas.find('img')
+	var imgs = canvas.find('img')
 	imgs.hide() // hide all images
 	imgs.each(function(o){
 		if ($(this).attr('src') == url)
 			$(this).remove();
-	})
+	});
 	canvas.append(
 			'<a href="' + url + '" target=blank>' +
 			'<img' +
 				' style="border:' + backcolor + ' 1px solid"' +
 				' src="' + url + '"/>' +
-			'</a>')
-	image = $('#'+scope.image.active)
-	image.resizable({grid: 25})
+			'</a>');
+	image = $('#'+scope.image.active);
+	image.resizable({grid: 25});
 
 	event.preventDefault();
 	event.stopPropagation();

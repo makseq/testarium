@@ -24,6 +24,7 @@ from utils import *
 import coderepos
 import filedb
 import random
+import codecs
 
 CONFIG_COMMIT_DIRECTORY = 'testarium.commitDirectory'
 
@@ -175,6 +176,23 @@ class Commit:
             else:
                 return -1 if not self.common.best_score_max else 1
 
+    def __str__(self):
+        if not self._init:
+            return 'No init'
+
+        cols, out = self.Print()
+        if len(cols) != len(out):
+            return 'Wrong cols or out after Description.Print()'
+
+        msg = ''
+        no_head = ['name', 'comment', '']
+        for i, c in enumerate(cols):
+            part = out[i]
+            if part:
+                msg += ('\t> ' if i != 0 else '') + ('' if c in no_head else c + ': ') + part + ' '
+
+        return msg
+
     def GenerateName(self):
         d = datetime.datetime.now()
         self.name = strtime(d.year) + strtime(d.month) + strtime(d.day) + \
@@ -205,25 +223,8 @@ class Commit:
         else:
             return None
 
-    def GetDesc(self, key, format):
-        return format % self.desc[key] if key in self.desc else ''
-
-    def __str__(self):
-        if not self._init:
-            return 'No init'
-
-        cols, out = self.Print()
-        if len(cols) != len(out):
-            return 'Wrong cols or out after Description.Print()'
-
-        msg = ''
-        no_head = ['name', 'comment', '']
-        for i, c in enumerate(cols):
-            part = str(out[i])
-            if part:
-                msg += ('\t> ' if i != 0 else '') + ('' if c in no_head else c + ': ') + part + ' '
-
-        return msg
+    def GetDesc(self, key, format, default=''):
+        return format % self.desc[key] if key in self.desc else default
 
     def SkipUrls(self, cols, out):
         new = [c for c in zip(cols, out) if not url_graph(c[1]) and not url_file(c[1])]
@@ -236,7 +237,7 @@ class Commit:
         if self.common.commit_print_func is not None and not skipUserPrint:
             if not self.common.commit_print_func[0] is None:
                 cols, out = self.common.commit_print_func[0](self)
-                out = [str(o) for o in out]
+                out = [o for o in out]
 
                 if web:
                     if 'config' not in cols:
@@ -252,10 +253,10 @@ class Commit:
                 else:
                     return self.SkipUrls(cols, out)
 
-        name = self.desc['name'] if 'name' in self.desc else 'none'
+        name = self.desc.get('name', 'none')
         score = str(self.desc['score']) if 'score' in self.desc else 'none'
         time = str('%0.2f' % float(self.desc['duration'])) if 'duration' in self.desc else ''
-        comment = self.desc['comment'] if 'comment' in self.desc else ''
+        comment = self.desc.get('comment', '')
 
         # make much pretty commits have sub name (eg. 20140506.120001003)
         name = (name[:15] + ' ' + name[15:]) if len(name) > 15 else name
@@ -331,8 +332,8 @@ class Commit:
     def Delete(self):
         # remove resources linked to this commit
         ok = True
+        msg = ''
         if 'resources' in self.desc:
-            log()
             for r in self.desc['resources']:
                 name, paths = r['name'], r['paths']
                 for path in paths:
@@ -341,19 +342,19 @@ class Commit:
                             shutil.rmtree(path)
                         else:
                             os.unlink(path)
-                        log('link-resource removed: [' + name + ']', path)
+                        log('resource removed: [' + name + ']', path)
                     except OSError as e:
                         if e.errno == 2:  # No such file - it's already removed
-                            log('link-resource not found: [' + name + ']', path)
+                            msg = 'resource not found: [' + name + '] ' + path
                         else:
                             ok = False
-                            log('link-resource removing error [' + name + ']', path, ':', e)
+                            msg = 'resource removing error [' + name + '] ' + path + ': ' + str(e)
 
         # remove commit
         if ok:
             shutil.rmtree(self.dir)
         else:
-            raise OSError("Can't remove commit, because resources could not be deleted")
+            raise TestariumException("Can't remove commit: " + msg)
 
     def MakeLink(self, link_dir='../last'):
         # link commit dir to 'last'
@@ -369,15 +370,16 @@ class Commit:
 
         # desc
         try:
-            self.desc = json.load(open(self.dir + '/desc.json'), object_pairs_hook=Description)
+            with codecs.open(self.dir + '/desc.json', 'r', encoding='utf-8') as f:
+                self.desc = json.load(f, object_pairs_hook=Description)
         except:
-            raise Exception("Can't load commit description: " + d)
+            raise TestariumException("Can't load commit description: " + d)
 
         # config
         try:
             self.config = json.load(open(self.dir + '/config.json'), object_pairs_hook=Config)
         except:
-            raise Exception("Can't load commit config: " + d)
+            raise TestariumException("Can't load commit config: " + d)
 
         # file db
         self.meta.LoadMeta(self.dir + '/filedb.meta.json')
@@ -391,7 +393,8 @@ class Commit:
         if dir:
             self.dir = dir
         else:
-            if not dir and not self.dir: raise Exception('dir is not set in commit')
+            if not dir and not self.dir:
+                raise TestariumException('dir is not set in commit')
             dir = self.dir
 
         try:
@@ -417,13 +420,15 @@ class Commit:
                         return super(NumpyEncoder, self).default(obj)
 
             # desc
-            json.dump(self.desc, open(self.dir + '/desc.json', 'w'), indent=2, cls=NumpyEncoder)
+            with codecs.open(self.dir + '/desc.json', 'w', encoding='utf-8') as f:
+                json.dump(self.desc, f, ensure_ascii=False, sort_keys=True, indent=2,
+                          separators=(',', ': '), cls=NumpyEncoder)
 
             # file db
             self.branch.filedb.SaveFiles(self.dir + '/../filedb.json')
             self.meta.SaveMeta(self.dir + '/filedb.meta.json')
         except Exception as e:
-            raise Exception("Can't save the commit: " + dir + ", " + str(e))
+            raise TestariumException("Can't save the commit: " + dir + ", " + str(e))
         self._init = True
 
 
@@ -472,7 +477,7 @@ class Branch:
         try:
             j = json.loads(open(path, 'r').read())
         except:
-            raise Exception('No branch description: ' + path)
+            raise TestariumException('No branch description: ' + path)
 
         self.name = j['name']
         self.config_path = j['config_path']
@@ -513,7 +518,7 @@ class Branch:
                 files = [f for f in os.listdir(path) if f not in system_files]
 
                 if len(files) > 0 and self.common.allow_remove_commits != 'hard':
-                    log("User files found (--hard to remove it):", dir + '/' + d)
+                    log("Broken commit," if bad else "Dry-run commit,", "but user files found (--hard to remove it):", dir + '/' + d)
                 else:
                     try:
                         commit.Delete()
@@ -540,7 +545,7 @@ class Branch:
         try:
             json.dump(desc, open(path, 'w'), indent=2)
         except:
-            raise Exception("Can't save the branch description: " + path)
+            raise TestariumException("Can't save the branch description: " + path)
 
         if not saveCommits: return
 
@@ -591,7 +596,12 @@ class Testarium:
         if not self._init:
             if not colored: log("Do 'easy_install colorama' to color testarium logs")
             self._init = False
+
+            # generate name
+            bad_names = ['research', 'work', 'test']
             self.name = os.path.basename(os.getcwd())
+            self.name = os.path.basename(os.path.dirname(os.getcwd())) if self.name in bad_names else self.name
+            self.name = 'T' if not self.name else self.name
             self.SetRootDir(rootdir)
 
             self.ChangeBranch('default')
@@ -637,7 +647,7 @@ class Testarium:
         if dry_run:
             commit.desc['dry_run'] = True
         else:
-            comment = ' ' + commit.desc['comment'] if 'comment' in commit.desc else ''
+            comment = ' ' + commit.desc.get('comment', '')
             repo_hash = self.coderepos.commit(commit.name, comment)  # commit in repository (git/hg)
             commit.desc['coderepos.commit_name'] = repo_hash
 
@@ -684,7 +694,7 @@ class Testarium:
             try:
                 number = int(name)
                 if number < 0:
-                    raise Exception('Only positive numbers can be used')
+                    raise TestariumException('Only positive numbers can be used')
             except:
                 pass
             else:
@@ -749,7 +759,7 @@ class Testarium:
 
             show = False
             try:
-                exec 'if ' + cond + ': show = True';
+                exec 'if ' + cond + ': show = True'
             except Exception as e:
                 error += str(e) + '; '
 
@@ -788,7 +798,7 @@ class Testarium:
         try:
             self.config = json.loads(open(path, 'r').read())
         except:
-            raise Exception('No testarium description: ' + path)
+            raise TestariumException('No testarium description: ' + path)
         self.name = self.config['name']
         self.activeBranch = None
         return self.config
@@ -858,7 +868,7 @@ class Testarium:
         try:
             json.dump(self.config, open(path, 'w'), indent=2)
         except:
-            raise Exception("Can't save the testarium: " + path)
+            raise TestariumException("Can't save the testarium: " + path)
 
     # Save branches and commits
     def SaveActiveBranch(self, saveCommits):
