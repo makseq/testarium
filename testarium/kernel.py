@@ -238,7 +238,7 @@ class Commit:
         if self.common.commit_print_func is not None and not skipUserPrint:
             if not self.common.commit_print_func[0] is None:
                 cols, out = self.common.commit_print_func[0](self)
-                out = [o for o in out]
+                out = [unicode(o) for o in out]
 
                 if web:
                     if 'config' not in cols:

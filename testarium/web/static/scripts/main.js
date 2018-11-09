@@ -38,13 +38,16 @@ $.views.helpers({
 		return vars[key].slice(8);
 	},
 	checkfile: function(s) {
-		return s.slice(0,7) == 'file://';
+        if (typeof s !== 'string') return false;
+		return s.slice(0,7) === 'file://';
 	},
 	checkgraph: function(s) {
-		return s.slice(0,8) == 'graph://';
+        if (typeof s !== 'string') return false;
+		return s.slice(0,8) === 'graph://';
 	},
 	checkimage: function(s) {
-		return s.slice(0,8) == 'image://';
+        if (typeof s !== 'string') return false;
+		return s.slice(0,8) === 'image://';
 	},
 	cleanfile: function(s) {
 		return s.slice(7);
