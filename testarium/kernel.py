@@ -25,6 +25,7 @@ import coderepos
 import filedb
 import random
 import codecs
+import socket
 
 CONFIG_COMMIT_DIRECTORY = 'testarium.commitDirectory'
 
@@ -580,6 +581,7 @@ class Testarium:
         self.coderepos = coderepos.CodeRepos()
         self.common = Common()
         self.common.root = rootdir
+        self.hostname = socket.gethostname()
         try:
             self.Load(loadCommits, silent=True)
         except Exception as e:

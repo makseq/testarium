@@ -286,7 +286,8 @@ html {
 }
 
 .title{
-	width:1%;
+	width: 100%;
+	text-align: center;
 	margin: 0 auto;
 	font-size:150%;
 	padding:1% 0;
