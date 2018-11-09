@@ -188,7 +188,7 @@ class Commit:
         msg = ''
         no_head = ['name', 'comment', '']
         for i, c in enumerate(cols):
-            part = out[i]
+            part = out[i] if isinstance(string, out[i]) or isinstance(unicode, out[i]) else unicode(out[i])
             if part:
                 msg += ('\t> ' if i != 0 else '') + ('' if c in no_head else c + ': ') + part + ' '
 
