@@ -290,8 +290,16 @@ html {
 	text-align: center;
 	margin: 0 auto;
 	font-size:150%;
-	padding:1% 0;
+	padding:0 0;
 }
+.hostname{
+	width: 100%;
+	text-align: center;
+	margin: 0 auto;
+	font-size:110%;
+	padding:0 0;
+}
+
 
 h1 {
 	padding:0;

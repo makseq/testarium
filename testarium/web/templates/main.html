@@ -3,7 +3,7 @@
 <html ng-app=testarium
       style="background-image:url({{ t.ReadConfig('background', 'static/images/back.jpg') }})">
 <head>
-	<title>{{ t.name }}@{{ t.hostname }} | Testarium</title>
+	<title>{{ t.name }}:{{ t.hostname }} | Testarium</title>
     <script>var testarium_web = true; </script>
 
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -37,7 +37,8 @@
             -khtml-opacity: {{ t.ReadConfig('background.opacity', 0.7) }};
             opacity: {{ t.ReadConfig('background.opacity', 0.7) }};
             background-color:rgba(255,255,255, {{ t.ReadConfig('background.opacity', 0.7) }});">
-		<div class=title>{{ t.name }}@{{ t.hostname }}</div>
+		<div class="title">{{ t.name }}</div>
+        <div class="hostname">on {{ t.hostname }}</div>
 	</div>
 
 	<div id=control>
