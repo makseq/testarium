@@ -67,6 +67,12 @@ def url_graph(s):
     else:
         return ''
 
+# check and return image url
+def url_image(s):
+    if (isinstance(s, str) or isinstance(s, unicode)) and s[0:8] == 'image://':
+        return s
+    else:
+        return ''
 
 # check and return file url
 def url_file(s):
@@ -74,6 +80,9 @@ def url_file(s):
         return s
     else:
         return ''
+
+def url_any(s):
+    return url_file(s) or url_graph(s) or url_image(s)
 
 
 # time to str

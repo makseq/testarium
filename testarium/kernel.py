@@ -228,7 +228,7 @@ class Commit:
         return format % self.desc[key] if key in self.desc else default
 
     def SkipUrls(self, cols, out):
-        new = [c for c in zip(cols, out) if not url_graph(c[1]) and not url_file(c[1])]
+        new = [c for c in zip(cols, out) if not url_any(c[1])]
         return zip(*new)
 
     def Print(self, skipUserPrint=False, web=False):
@@ -341,30 +341,35 @@ class Commit:
         # init
         if 'resources' not in self.desc:
             self.desc['resources'] = []
-        # add
+
+        # convert file to file list
         if not isinstance(files_or_dirs, list):
             files_or_dirs = [files_or_dirs]
-        self.desc['resources'] += [{"name": name, "paths": files_or_dirs, "type": resource_type}]
+
+        # add
+        r = {"name": name, "paths": files_or_dirs, "type": resource_type}
+        if r not in self.desc['resources']:  # check is it already exists?
+            self.desc['resources'] += [r]
 
         # save changes
         self.Save()
 
     def GetResources(self, resource_type, unroll=True):
-        r = []
+        result = []
         for r in self.desc['resources']:
             if r.get('type', '') == resource_type:
                 if unroll:
-                    r += [{'name': r['name'], 'path': p} for p in r['paths']]
+                    result += [{'name': r['name'], 'path': p} for p in r['paths']]
                 else:
-                    r += [{'name': r['name'], 'paths': r['paths']}]
-        return r
+                    result += [{'name': r['name'], 'paths': r['paths']}]
+        return result
 
     def PrintGraphics(self):
-        graphs = self.GetResources('image', unroll=True)
+        graphs = self.GetResources('graph', unroll=True)
         names, paths = [], []
         for i in graphs:
             names += [i['name']]
-            paths += ['image://storage/' + i['path']]
+            paths += ['graph://storage/' + i['path']]
         return names, paths
 
     def PrintImages(self):
@@ -388,6 +393,10 @@ class Commit:
             for r in self.desc['resources']:
                 name, paths = r['name'], r['paths']
                 for path in paths:
+                    # skip resources inside of commit dir, it will be deleted anyway
+                    if self.dir in path:
+                        continue
+
                     try:
                         if os.path.isdir(path):
                             shutil.rmtree(path)
@@ -556,10 +565,9 @@ class Branch:
             except:
                 bad = True
             else:
+                self.commits[commit.name] = commit
                 if 'dry_run' in commit.desc and commit.desc['dry_run']:
                     dry_run = True
-                else:
-                    self.commits[commit.name] = commit
 
             # remove commit
             if (bad or dry_run) and self.common.allow_remove_commits:
@@ -577,6 +585,10 @@ class Branch:
                     except:
                         log("Can't remove:", dir + '/' + d)
                     else:
+                        # remove commit from memory
+                        if commit.name in self.commits:
+                            del self.commits[commit.name]
+
                         log('Commit removed:', dir + '/' + d, '(dry-run)' if dry_run else '')
                         removed += 1
 
