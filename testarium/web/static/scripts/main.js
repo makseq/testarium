@@ -519,7 +519,7 @@ function newImage()
 
 function loadImage(event, obj)
 {
-	var url = $(obj).data('url');
+	var url = $(obj).data('url') + '?rnd=' + Math.random();
 	if (scope.image.active == '' )
 		newImage();
 
