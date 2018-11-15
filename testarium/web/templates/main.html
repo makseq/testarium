@@ -57,16 +57,19 @@
 				{{for result}}
 
 					{{props :}}
-					{{if key=="name"}}
-					    <tr data-commit-name="{{:prop}}" class='commit-name'>
-					{{/if}}
-					{{if key=="config"}}
-						{{setvar "path" prop /}}
-					{{/if}}
-					{{if key=="desc"}}
-						{{setvar "path_desc" prop /}}
-					{{/if}}
+                        {{if key=="config"}}
+                            {{setvar "path" prop /}}
+                        {{/if}}
+                        {{if key=="desc"}}
+                            {{setvar "path_desc" prop /}}
+                        {{/if}}
 					{{/props}}
+
+					{{props :}}
+                        {{if key=="name"}}
+                            <tr data-commit-name="{{:prop}}" class='commit-name' data-commit-path="{{:~getvarfile('path')}}" >
+                        {{/if}}
+                    {{/props}}
 
 					{{props :}}
 					{{if key!="config" && key!="desc"}}
