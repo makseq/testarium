@@ -375,10 +375,11 @@ def main():
 
     # run
     parser_run.add_argument('config_path', default='', nargs='?',
-                            help='config path to use in the commit; using default branch config if option is empty')
+                            help='[config path] or [branch name] to start experiment with. '
+                                 'It will be used default branch config if option is empty')
     parser_run.add_argument('-m', '-c', default='', dest='comment', help='add comment to the commit')
     parser_run.add_argument('-p', default='', dest='newParams',
-                            help='json dictionary, used instead of parameters in current config')
+                            help='parameters to be replaced in config on the fly')
     parser_run.add_argument('-d', '--dry', default=False, dest='dry_run', action='store_true',
                             help='Dry run mode: do not repository (git, hg) commit and '
                                  'remove commit from repository after run. '
