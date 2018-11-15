@@ -93,8 +93,17 @@ class WebServer:
         @self.app.route('/storage/<path:filename>')
         def send_storage(filename):
             if os.path.exists(filename):
-                workdir = os.getcwd()
-                return flask.send_from_directory(workdir, filename)  # load file from root of project
+                work_dir = os.getcwd()
+
+                # file
+                if os.path.isfile(filename):
+                    return flask.send_from_directory(work_dir, filename)  # load file from root of project
+
+                # directory
+                else:
+                    files = os.listdir(filename)
+                    return render_template('browse.html', files=files)
+
             else:
                 return flask.send_file(filename)  # load file with absolute path
 

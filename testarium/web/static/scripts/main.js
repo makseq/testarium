@@ -245,18 +245,38 @@ function newCommitTableByBranch(branch)
         commits.contextMenu({
             selector: 'tr',
             items: {
+                open_url: {name: "Open commit", icon: "fa-copy", "accesskey": "n",
+                            callback: function(itemKey, opt, e) {
+                                var path = $(opt.$trigger[0]).data("commit-path");
+                                path = path.substring(0, path.indexOf("config.json"));  // remove "config.json"
+                                window.open(path, $(opt.$trigger[0]).data("commit-name"));
+                            }
+                },
+
+                sep0: "---------",
+
                 copy_name: {name: "Copy name", icon: "fa-copy", "accesskey": "n",
                             callback: function(itemKey, opt, e) {
                                 clipboard_copy($(opt.$trigger[0]).data("commit-name"));
                             }
                 },
-                copy_line: {name: "Copy line", icon: "fa-copy", "accesskey": "l",
+				copy_path: {name: "Copy path", icon: "fa-copy", "accesskey": "n",
+                            callback: function(itemKey, opt, e) {
+				                var path = $(opt.$trigger[0]).data("commit-path");
+				                path = path.substring(path.indexOf("/")+1);  // remove root of path ("storage/")
+                                path = path.substring(0, path.indexOf("config.json"));  // remove "config.json"
+                                clipboard_copy(path);
+                            }
+                },
+                copy_line: {name: "Copy row", icon: "fa-copy", "accesskey": "l",
                             callback: function(itemKey, opt, e) {
                                 var cp = $(opt.$trigger[0]).text().replace(/\r?\n|\r/g, '');
                                 clipboard_copy(cp);
                             }
                 },
+
                 sep1: "---------",
+
                 delete: {name: "Delete commit", icon: "fa-trash", "accesskey": "d",
                          callback: function(itemKey, opt, e) {
                             var table = $(opt.$trigger[0]).closest('.commit-table');
