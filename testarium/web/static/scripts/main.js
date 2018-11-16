@@ -164,7 +164,7 @@ function newCommitTableByBranch(branch)
 {
 	$.getJSON('api/branches/'+branch+'/commits', function (data) {
 	    if (data.result.length === 0) {
-	        alert('No commits in branch ' + branch);
+	        alert('No commits in branch: ' + branch);
 	        return -1
         }
 
@@ -224,6 +224,12 @@ function newCommitTableByBranch(branch)
 		commits.bind('remove', function() {
 			scope.commits.active='';
 		});
+
+		// commits table position (it must be before scope.commits.active changed)
+		if (scope.commits.active !== '') {
+            var link = $('#' + scope.commits.active);
+            commits.css({top: link.offset().top + link.outerHeight() + GRID_SIZE*3, left: link.offset().left});
+        }
 
 		scope.commits.number++;
 		var also = '#' + data.id;
@@ -292,7 +298,7 @@ function newCommitTableByBranch(branch)
 	}); // api/branch/name/commits
 }
 
-function newCommitTable()
+function newBranchDialog()
 {
 	$.getJSON('api/branches', function(info) {
 		info.id = 'branches-'+scope.branches.number;
@@ -313,6 +319,10 @@ function newCommitTable()
 			 $('#'+$(this).data('branches-id')).remove();
 		});
 
+		// focus
+		branches.attr('tabindex', -1);
+		branches.on('focusin', focusWindow);
+		branches.focus();
 	})
 }
 
@@ -342,14 +352,14 @@ function showTips(e)
 {
 	var tips = $('#tips');
 	tips.toggle();
-	tips.draggable({ handle: ".header", grid: [25, 25] });
+	tips.draggable({ handle: ".header", grid: [GRID_SIZE, GRID_SIZE] });
 	tips.on('focusin', focusWindow);
 	tips.focus();
 
 	$(this).dblclick(function(e){ e.stopPropagation() })
 
 	var link = $('#'+scope.commits.active);
-	tips.css({top: link.offset().top + link.outerHeight() + 30, left: link.offset().left});
+	tips.css({top: link.offset().top + link.outerHeight() + GRID_SIZE*3, left: link.offset().left});
 }
 
 function saveComment(e)
@@ -416,7 +426,7 @@ function newPlot()
 
 	// get position of active commit table and set right corner for new plot
 	var link = $('#'+scope.commits.active);
-	plot.css({top: link.offset().top, left: link.offset().left + link.outerWidth() + 30});
+	plot.css({top: link.offset().top, left: link.offset().left + link.outerWidth() + GRID_SIZE*3});
 	scope.plot.number++;
 	plot.focus()
 }
@@ -484,7 +494,7 @@ function newImage()
 	image.on('focusin', focusWindow);
 
 	// drag
-	image.draggable({ handle: ".header", grid: [25, 25] });
+	image.draggable({ handle: ".header", grid: [GRID_SIZE, GRID_SIZE]});
 	image.bind('remove', function() {
 		scope.image.active='';
 	});
@@ -579,7 +589,7 @@ function loadImage(event, obj)
 				' src="' + url + '"/>' +
 			'</a>');
 	image = $('#'+scope.image.active);
-	image.resizable({grid: 25});
+	image.resizable({grid:GRID_SIZE});
 
 	event.preventDefault();
 	event.stopPropagation();
@@ -588,7 +598,7 @@ function loadImage(event, obj)
 
 
 $( document ).ready(function() {
-	$('.button.commits').click(newCommitTable);
+	$('.button.commits').click(newBranchDialog);
 	$('.button.info').click(showInfo);
 	$('#tips-btn').click(showTips);
 	$('.button.plot-btn').click(newPlot);
