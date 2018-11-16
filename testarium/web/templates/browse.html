@@ -1,5 +1,29 @@
-<ul>
-    {% for file in files %}
-    <li><a href="{{ file }}">{{ file }}</a></li>
-    {% endfor %}
-</ul>
+<link rel="stylesheet" href="/static/styles/highlight/docco.css">
+<script src="/static/scripts/highlight.js"></script>
+<script src="/static/scripts/python.js"></script>
+<script src="/static/scripts/json.js"></script>
+
+<div style="display:flex;flex-direction:row;align-items:flex-start">
+    <div style="width:40%">
+        <ul>
+            {% for file in files %}
+            <li><a href="{{ file[0] }}">{{ file[1] }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div style="width:60%; height:100%;display:flex; flex-direction: column; align-items: flex-start;">
+        <div style="height:50%; width:100%;">
+            <pre><code class="json">{{ config }}</code></pre>
+        </div>
+        <div style="height:50%; width:100%;">
+            <pre><code class="json">{{ desc }}</code></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    hljs.registerLanguage('python', python_lang);
+    hljs.registerLanguage('json', json_lang);
+    hljs.initHighlightingOnLoad();
+</script>
