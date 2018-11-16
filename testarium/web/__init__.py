@@ -106,7 +106,7 @@ class WebServer:
                     config = open(config_file).read() if os.path.exists(config_file) else ''
                     desc = open(desc_file).read() if os.path.exists(desc_file) else ''
 
-                    files = os.listdir(filename)
+                    files = sorted(os.listdir(filename))
                     if not filename.endswith('/'):
                         files = [os.path.basename(filename) + '/' + f for f in files]
                     files = [(f, os.path.basename(f)) for f in files]

@@ -3,6 +3,12 @@
 <script src="/static/scripts/python.js"></script>
 <script src="/static/scripts/json.js"></script>
 
+<style>
+pre {
+    margin: 0;
+}
+</style>
+
 <div style="display:flex;flex-direction:row;align-items:flex-start">
     <div style="width:40%">
         <ul>
@@ -13,10 +19,13 @@
     </div>
 
     <div style="width:60%; height:100%;display:flex; flex-direction: column; align-items: flex-start;">
-        <div style="height:50%; width:100%;">
+        config.json
+        <div style="height:45%; width:100%;overflow:auto;">
             <pre><code class="json">{{ config }}</code></pre>
         </div>
-        <div style="height:50%; width:100%;">
+
+        desc.json
+        <div style="height:50%; width:100%;overflow:auto;">
             <pre><code class="json">{{ desc }}</code></pre>
         </div>
     </div>
