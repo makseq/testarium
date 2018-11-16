@@ -101,9 +101,16 @@ class WebServer:
 
                 # directory
                 else:
-                    files = os.listdir(filename)
-                    return render_template('browse.html', files=files)
+                    config_file = filename + '/config.json'
+                    desc_file = filename + '/desc.json'
+                    config = open(config_file).read() if os.path.exists(config_file) else ''
+                    desc = open(desc_file).read() if os.path.exists(desc_file) else ''
 
+                    files = os.listdir(filename)
+                    if not filename.endswith('/'):
+                        files = [os.path.basename(filename) + '/' + f for f in files]
+                    files = [(f, os.path.basename(f)) for f in files]
+                    return render_template('browse.html', files=files, config=config, desc=desc)
             else:
                 return flask.send_file(filename)  # load file with absolute path
 
@@ -278,5 +285,5 @@ class WebServer:
         if not self.args.no_open_tab:
             threading.Timer(2.0, open_page).start()
 
-        self.app.run(port=port, host='0.0.0.0', use_reloader=False, debug=False, threaded=True)
+        self.app.run(port=port, host='0.0.0.0', use_reloader=True, debug=True, threaded=True)
 
