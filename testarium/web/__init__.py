@@ -99,18 +99,13 @@ class WebServer:
                 if os.path.isfile(filename):
                     return flask.send_from_directory(work_dir, filename)  # load file from root of project
 
-                # directory
+                # directory with browse template
                 else:
-                    config_file = filename + '/config.json'
-                    desc_file = filename + '/desc.json'
-                    config = open(config_file).read() if os.path.exists(config_file) else ''
-                    desc = open(desc_file).read() if os.path.exists(desc_file) else ''
-
                     files = os.listdir(filename)
                     if not filename.endswith('/'):
                         files = [os.path.basename(filename) + '/' + f for f in files]
                     files = [(f, os.path.basename(f)) for f in files]
-                    return render_template('browse.html', files=files, config=config, desc=desc)
+                    return render_template('browse.html', files=files)
             else:
                 return flask.send_file(filename)  # load file with absolute path
 
