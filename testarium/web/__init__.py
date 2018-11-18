@@ -96,7 +96,6 @@ class WebServer:
             static = '/static/'
             if static in filename:
                 path = filename[filename.index(static)+len(static): ]
-                print '!!!!!!!', path
                 return flask.send_from_directory('static', path)
 
             elif os.path.exists(filename):
