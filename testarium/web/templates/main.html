@@ -7,12 +7,12 @@
     <script>var testarium_web = true; </script>
 
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<link href="static/fonts/stylesheet.css" rel="stylesheet" type="text/css"/>
-	<link href="static/styles/font-awesome.css" rel="stylesheet" type="text/css"/>
-	<link href="static/styles/main.css" rel="stylesheet" type="text/css"/>
-	<link href="static/styles/d3.linegraph.css" rel="stylesheet" type="text/css"/>
-	<link href="static/styles/jquery-ui.min.css" rel="stylesheet" type="text/css"/>
-    <link href="static/styles/jquery.contextMenu.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" type="text/css" href="static/fonts/stylesheet.css" />
+	<link rel="stylesheet" type="text/css" href="static/styles/font-awesome.css" />
+	<link rel="stylesheet" type="text/css" href="static/styles/main.css" />
+	<link rel="stylesheet" type="text/css" href="static/styles/d3.linegraph.css" />
+	<link rel="stylesheet" type="text/css" href="static/styles/jquery-ui.min.css" />
+    <link rel="stylesheet" type="text/css" href="static/styles/jquery.contextMenu.css" />
 
 	<script type="text/javascript" src="static/scripts/jquery.min.js"></script>
 	<script type="text/javascript" src="static/scripts/jquery.mousewheel.min.js"></script>
@@ -21,6 +21,7 @@
 	<script type="text/javascript" src="static/scripts/jsrender.min.js"></script>
 	<script type="text/javascript" src="static/scripts/d3.v3.min.js"></script>
 	<script type="text/javascript" src="static/scripts/d3.linegraph.js"></script>
+    <script type="text/javascript" src="static/scripts/clipboard.js"></script>
 
 	<!-- <script type="text/javascript" src="static/scripts/wavesurfer.min.js"></script>
 	<script type="text/javascript" src="static/scripts/wavesurfer.regions.js"></script>
@@ -73,9 +74,9 @@
 					{{props :}}
 					{{if key!="config" && key!="desc"}}
 						{{if key=="name" }}
-							<td><a target="_blank" href="{{:~getvarfile('path')}}" target=blank>{{:prop}}</a></td>
+							<td><a target="_blank" href="{{:~getvarfile('path')}}?pretty" target=blank>{{:prop}}</a></td>
 						{{else key=="score" }}
-							<td><a target="_blank" href="{{:~getvarfile('path_desc')}}" target=blank>{{:prop}}</a></td>
+							<td><a target="_blank" href="{{:~getvarfile('path_desc')}}?pretty" target=blank>{{:prop}}</a></td>
 						{{else key=="comment" }}
 						    <td><div contenteditable="true" onkeyup="saveComment(event)">{{:prop}}</div></td>
 						{{else}}

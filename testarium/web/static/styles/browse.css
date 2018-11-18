@@ -1,0 +1,74 @@
+* {
+    font-family: 'Gudea', monospace;
+}
+.browse {
+    display:flex;
+    flex-direction:row;
+    align-items:flex-start;
+    height: 100%;
+}
+.browse .files {
+    width:40%;
+}
+.browse .preview {
+    width:60%;
+    height:100%;
+    display:flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.browse .json {
+    width:100%;
+    height:49.5%;
+    overflow: auto;
+    background: #f0f4f7;
+}
+.browse .sep {
+    height: 1%;
+}
+.browse pre {
+    padding: 0 0 0 2px;
+    margin: 0;
+}
+.browse .preview .header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    background-color: #f5f9fb;
+}
+.browse .preview .header .title {
+    margin: 3px 5px 3px 2px;
+}
+.browse .preview .buttons {
+}
+.browse .preview .button {
+    cursor: pointer;
+    color: #008080;
+    margin: 3px 10px;
+}
+.browse .preview .button.full-screen:after {
+    content: "\f065";
+}
+
+.overlay {
+    position: fixed;
+    overflow: auto;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 10;
+    object-fit: contain;
+}
+.overlay pre {
+   padding-left: 10%;
+}
+.overlay .header {
+
+}
+.overlay .button.full-screen:after {
+    content: "\f066" !important;
+}

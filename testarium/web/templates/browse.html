@@ -1,79 +1,12 @@
-<link href="/static/fonts/stylesheet.css" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" type="text/css" href="/static/fonts/stylesheet.css"/>
+<link rel="stylesheet" type="text/css" href="/static/styles/font-awesome.css"/>
+<link rel="stylesheet" type="text/css" href="/static/styles/jquery.json-viewer.css">
+<link rel="stylesheet" type="text/css" href="/static/styles/browse.css">
 
-<link rel="stylesheet" href="/static/styles/jquery.json-viewer.css">
 <script src="/static/scripts/jquery.min.js"></script>
 <script src="/static/scripts/jquery.json-viewer.js"></script>
+<script src="/static/scripts/clipboard.js"></script>
 
-<style>
-    * {
-        font-family: 'Gudea', monospace;
-    }
-    .browse {
-        display:flex;
-        flex-direction:row;
-        align-items:flex-start;
-        height: 100%;
-    }
-    .browse .files {
-        width:40%;
-    }
-    .browse .preview {
-        width:60%;
-        height:100%;
-        display:flex;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .browse .json {
-        width:100%;
-        height:49.5%;
-        overflow: auto;
-        background: #f0f4f7;
-    }
-    .browse .sep {
-        height: 1%;
-    }
-    .browse pre {
-        padding: 0 0 0 2px;
-        margin: 0;
-    }
-    .browse .preview .header {
-        display: block;
-        background-color: #f5f9fb;
-    }
-    .browse .preview .full-screen-button {
-        text-decoration: underline;
-        cursor: pointer;
-        color: blue;
-    }
-    .browse .preview .full-screen-button:after {
-        content: '[full]';
-    }
-
-    .overlay {
-        position: fixed;
-        overflow: auto;
-        width: 100%;
-        height: 100%;
-        min-height: 100%;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        right: 0;
-        z-index: 10;
-        object-fit: contain;
-    }
-    .overlay pre {
-       padding-left: 10%;
-    }
-    .overlay .header {
-       padding-left: 10%;
-    }
-    .overlay .full-screen-button:after {
-        content: '[back]' !important;
-    }
-
-</style>
 
 <div class="browse">
     <div class="files">
@@ -85,24 +18,61 @@
     </div>
 
     <div class="preview">
-        <div id="config" class="json"><span class="header" title="double click on header to change screen mode">config.json <span class="full-screen-button"></span></span><pre></pre></div>
+
+        <div id="config" class="json">
+            <div class="header" title="double click on header to change screen mode">
+                <span class="title">config.json</span>
+                <div class="buttons">
+                    <span class="button full-screen fa"></span>
+                    <span class="button raw fa fa-file" title="open raw"></span>
+                    <span class="button copy fa fa-copy" title="copy all"></span>
+                </div>
+            </div>
+
+            <pre></pre>
+        </div>
+
         <div class="sep"></div>
-        <div id="desc" class="json"><span class="header" title="double click on header to change screen mode">desc.json <span class="full-screen-button"></span></span><pre></pre></div>
+
+        <div id="desc" class="json">
+            <div class="header" title="double click on header to change screen mode">
+                <span class="title">config.json</span>
+                <div class="buttons">
+                    <span class="button full-screen fa"></span>
+                    <span class="button raw fa fa-file" title="open raw"></span>
+                    <span class="button copy fa fa-copy" title="copy all"></span>
+                </div>
+            </div>
+
+            <pre></pre>
+        </div>
+
     </div>
 </div>
 
 <script>
     function load_json(name) {
-        $.getJSON(window.location.href + '/' + name + '.json').success(function (d) {
+        var path = window.location.href + '/' + name + '.json?rnd' + Math.random();
+         $.ajax({url: path, dataType:"text"}).success(function (d) {
             var obj = $('#'+name+' pre');
-            obj.jsonViewer(d, {collapsed: true, withQuotes: false});
+            obj.jsonViewer(JSON.parse(d), {collapsed: true, withQuotes: false});
             obj.find('.json-toggle').first().click();
             obj.find('.json-toggle').first().hide();
 
             // full screen button binding
             function fullscreen(){ $('#'+name).toggleClass('overlay') }
-            $('#'+name+' .full-screen-button').click(fullscreen);
+            $('#'+name+' .full-screen').click(fullscreen);
             $('#'+name+' .header').dblclick(fullscreen);
+
+             // copy
+            $('#'+name+' .button.copy').on('click', function(){
+                clipboard_copy(d);
+            });
+
+            // raw
+            $('#'+name+' .button.raw').on('click', function(){
+               window.location.href = path;
+            })
         });
     }
     load_json('config');

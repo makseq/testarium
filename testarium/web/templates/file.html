@@ -1,0 +1,60 @@
+<link rel="stylesheet" type="text/css" href="/static/fonts/stylesheet.css"/>
+<link rel="stylesheet" type="text/css" href="/static/styles/font-awesome.css"/>
+<link rel="stylesheet" type="text/css" href="/static/styles/jquery.json-viewer.css">
+<link rel="stylesheet" type="text/css" href="/static/styles/browse.css">
+
+<script src="/static/scripts/jquery.min.js"></script>
+<script src="/static/scripts/jquery.json-viewer.js"></script>
+<script src="/static/scripts/clipboard.js"></script>
+
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        background: #f0f4f7;
+    }
+    .browse .preview {
+        width: 100%;
+        height: 100%;
+        background: #f0f4f7;
+    }
+</style>
+
+<div class="browse">
+    <div class="preview" id="preview">
+       <div class="header" title="double click on header to change screen mode">
+            <span class="title">test</span>
+            <div class="buttons">
+                <span class="button raw fa fa-file" title="open raw"></span>
+                <span class="button copy fa fa-copy" title="copy all"></span>
+            </div>
+        </div>
+
+        <pre></pre>
+    </div>
+</div>
+
+<script>
+    function load_json() {
+        var path = location.protocol + '//' + location.host + location.pathname + '?rnd' + Math.random();
+        $.ajax({url: path, dataType:"text"}).success(function (d) {
+            var obj = $('#preview pre');
+            obj.jsonViewer(JSON.parse(d), {collapsed: false, withQuotes: true});
+            obj.find('.json-toggle').first().hide();
+
+            // copy
+            $('.button.copy').on('click', function(){
+                clipboard_copy(d);
+            });
+
+            // raw
+            $('.button.raw').on('click', function(){
+               window.location.href = path;
+            })
+        });
+    }
+    load_json();
+</script>

@@ -97,14 +97,22 @@ class WebServer:
 
                 # file
                 if os.path.isfile(filename):
-                    return flask.send_from_directory(work_dir, filename)  # load file from root of project
+                    if filename.endswith('.json') and ('preview' in request.args or 'pretty' in request.args):
+                        return render_template('file.html')
+                    else:
+                        return flask.send_from_directory(work_dir, filename)  # load file from root of project
 
                 # directory with browse template
                 else:
                     files = os.listdir(filename)
                     if not filename.endswith('/'):
                         files = [os.path.basename(filename) + '/' + f for f in files]
+
+                    # make (path, presentation) pairs
                     files = [(f, os.path.basename(f)) for f in files]
+
+                    # apply pretty argument to json files
+                    files = [(f[0] + '?pretty' if f[0].endswith('.json') else f[0], f[1]) for f in files]
                     return render_template('browse.html', files=files)
             else:
                 return flask.send_file(filename)  # load file with absolute path

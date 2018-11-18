@@ -143,23 +143,6 @@ function commitFilter()
 	commitUpdate($(this).data('commits-table-id'))
 }
 
-function clipboard_copy(text) {
-	var textarea = document.createElement('textarea');
-	textarea.textContent = text;
-	document.body.appendChild(textarea);
-
-	var selection = document.getSelection();
-	var range = document.createRange();
-	range.selectNode(textarea);
-	selection.removeAllRanges();
-	textarea.focus();
-	textarea.setSelectionRange(0, textarea.value.length);
-    document.execCommand('copy');
-	selection.removeAllRanges();
-
-	document.body.removeChild(textarea);
-}
-
 function newCommitTableByBranch(branch)
 {
 	$.getJSON('api/branches/'+branch+'/commits', function (data) {
@@ -288,8 +271,9 @@ function newCommitTableByBranch(branch)
                             var table = $(opt.$trigger[0]).closest('.commit-table');
                             var branch = table.data("activeBranch");
                             var name = $(opt.$trigger[0]).data("commit-name");
-                            deleteCommit(branch, name);
-                            commitUpdate(table.attr('id'));
+                            deleteCommit(branch, name, function() {
+                            	commitUpdate(table.attr('id'));
+                            });
                          }
                 }
             }
@@ -380,7 +364,7 @@ function saveComment(e)
 		})
 }
 
-function deleteCommit(branch, commitName)
+function deleteCommit(branch, commitName, done)
 {
 	$.ajax({
 			url:'api/branches/'+branch+'/commits/'+commitName+'?op=delete',
@@ -392,6 +376,7 @@ function deleteCommit(branch, commitName)
 			    console.log(d);
 				alert('Something wrong with commit:\n\n' + d.msg);
 			}
+			done()
 		})
 }
 
