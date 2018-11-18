@@ -54,7 +54,12 @@
 <script>
     function load_json(name) {
         var path = window.location.href + '/' + name + '.json?rnd=' + Math.random();
-         $.ajax({url: path, dataType:"text"}).success(function (d) {
+            $.ajax({url: path, dataType:"text"}).success(function (d) {
+            // prepare string
+            d = d.replaceAll('Infinity', '"!Infinity!"');
+            d = d.replaceAll('NaN', '"!NaN!"');
+
+            // prepare json preview
             var obj = $('#'+name+' pre');
             obj.jsonViewer(JSON.parse(d), {collapsed: true, withQuotes: false});
             obj.find('.json-toggle').first().click();
@@ -68,14 +73,14 @@
             $('#'+name+' .full-screen').click(fullscreen);
             $('#'+name+' .header').dblclick(fullscreen);
 
-             // copy
+            // copy
             $('#'+name+' .button.copy').on('click', function(){
                 clipboard_copy(d);
             });
 
             // raw
             $('#'+name+' .button.raw').on('click', function(){
-               window.location.href = path;
+                window.location.href = path;
             })
         });
     }

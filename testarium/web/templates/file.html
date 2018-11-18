@@ -42,9 +42,18 @@
 </div>
 
 <script>
+    String.prototype.replaceAll = function(search, replace) {
+        return this.split(search).join(replace);
+    };
+
     function load_json() {
         var path = location.protocol + '//' + location.host + location.pathname + '?rnd=' + Math.random();
         $.ajax({url: path, dataType:"text"}).success(function (d) {
+            // prepare string
+            d = d.replaceAll('Infinity', '"!Infinity!"');
+            d = d.replaceAll('NaN', '"!NaN!"');
+
+            // prepare json preview
             var obj = $('#preview pre');
             obj.jsonViewer(JSON.parse(d), {collapsed: false, withQuotes: true});
             obj.find('.json-toggle').first().hide();
