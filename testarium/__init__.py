@@ -451,6 +451,8 @@ def main():
     parser_web.add_argument('-p', default=1080, dest='port', help='port')
     parser_web.add_argument('-u', default='', dest='username', help='username for web interface')
     parser_web.add_argument('-s', default='', dest='password', help='password for username')
+    parser_web.add_argument('-d', default=False, dest='debug', action="store_true",
+                            help='debug mode for Flask (debug & reloader)')
     parser_web.add_argument('--no-open-tab', default=False, dest='no_open_tab', action="store_true",
                             help='do not open new tab in browser at webserver start')
 

@@ -92,7 +92,14 @@ class WebServer:
         # -----------------------------------------------
         @self.app.route('/storage/<path:filename>')
         def send_storage(filename):
-            if os.path.exists(filename):
+            # static for storage is special case
+            static = '/static/'
+            if static in filename:
+                path = filename[filename.index(static)+len(static): ]
+                print '!!!!!!!', path
+                return flask.send_from_directory('static', path)
+
+            elif os.path.exists(filename):
                 work_dir = os.getcwd()
 
                 # file
@@ -240,7 +247,7 @@ class WebServer:
                 if e.user_score:
                     commit.desc.update(e.user_score(commit))
 
-            # replace meta id to pathes
+            # replace meta id to paths
             meta = commit.meta.meta
             if 'replace_id' in request.args:
                 new_meta = {}
@@ -288,5 +295,5 @@ class WebServer:
         if not self.args.no_open_tab:
             threading.Timer(2.0, open_page).start()
 
-        self.app.run(port=port, host='0.0.0.0', use_reloader=True, debug=True, threaded=True)
+        self.app.run(port=port, host='0.0.0.0', use_reloader=self.args.debug, debug=self.args.debug, threaded=True)
 
