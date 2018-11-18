@@ -52,9 +52,13 @@
 </div>
 
 <script>
+    String.prototype.replaceAll = function(search, replace) {
+        return this.split(search).join(replace);
+    };
+
     function load_json(name) {
         var path = window.location.href + '/' + name + '.json?rnd=' + Math.random();
-            $.ajax({url: path, dataType:"text"}).success(function (d) {
+        $.ajax({url: path, dataType:"text"}).success(function (d) {
             // prepare string
             d = d.replaceAll('Infinity', '"!Infinity!"');
             d = d.replaceAll('NaN', '"!NaN!"');
