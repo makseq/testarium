@@ -356,7 +356,7 @@ class Commit:
 
     def GetResources(self, resource_type, unroll=True):
         result = []
-        for r in self.desc['resources']:
+        for r in self.desc.get('resources', []):
             if r.get('type', '') == resource_type:
                 if unroll:
                     result += [{'name': r['name'], 'path': p} for p in r['paths']]
@@ -390,7 +390,7 @@ class Commit:
         ok = True
         msg = ''
         if 'resources' in self.desc:
-            for r in self.desc['resources']:
+            for r in self.desc.get('resources', []):
                 name, paths = r['name'], r['paths']
                 for path in paths:
                     # skip resources inside of commit dir, it will be deleted anyway
