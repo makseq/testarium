@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import copy
 import time
+import psutil
 import threading
 import webbrowser
 import collections
@@ -144,6 +145,23 @@ class WebServer:
                 "branches": [b.replace('.', '-') for b in t.branches],
                 "active_branch": t.ActiveBranch().name
             }
+            return answer(result=res)
+
+        # -----------------------------------------------
+        @self.app.route('/api/running')
+        def api_running():
+            res = []
+            for p in psutil.process_iter():
+                try:
+                    a = p.cmdline()
+                except (psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+                except psutil.NoSuchProcess:
+                    continue
+
+                if len(a) > 0 and '[testarium:' in a[0]:
+                    res += [a[0].replace('[testarium:', '').replace(']', '')]
+
             return answer(result=res)
 
         # -----------------------------------------------

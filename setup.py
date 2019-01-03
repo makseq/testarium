@@ -1,4 +1,4 @@
-'''
+"""
 Testarium
 Copyright (C) 2014 Maxim Tkachenko
 
@@ -14,7 +14,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 # command: setup.py sdist & twine upload dist/*
 
@@ -32,7 +32,7 @@ def get_version():
 
     # check if everything is commited
     if 'dirty' in desc:
-        print 'Current git description: %sError: please commit your changes' % desc
+        print 'Current git description: %s \n Error: please commit your changes' % desc
         exit(-100)
 
     # create package version
@@ -89,7 +89,8 @@ with open("README.md", "r") as fh:
 
 setup(name='testarium',
       url='http://testarium.makseq.com',
-      description='Research tool to perform experiments and store results in the repository. More: http://testarium.makseq.com',
+      description='Research tool to perform experiments and store results in the repository. '
+                  'More: http://testarium.makseq.com',
       long_description=long_description,
       long_description_content_type="text/markdown",
       author='Max Tkachenko, Danila Doroshin, Alexander Yamshinin',

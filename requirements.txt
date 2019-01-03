@@ -1,0 +1,4 @@
+setproctitle
+colorama
+flask
+psutil

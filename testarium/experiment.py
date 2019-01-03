@@ -24,6 +24,11 @@ import collections
 import itertools as it
 from utils import *
 import kernel
+try:
+    import setproctitle
+    setproctitle_enabled = True
+except ImportError:
+    setproctitle_enabled = False
 
 
 class Experiment:
@@ -222,6 +227,11 @@ class Experiment:
     def run(self, config, comment, new_params, branch_name, dry_run=True):
         c, result = None, False
 
+        # get title of process
+        title = ''
+        if setproctitle_enabled:
+            title = setproctitle.getproctitle()
+
         # check if user Run function defined
         if self.user_run is None:
             log('COLOR.RED', 'Error: User Run function is not described. Use decorator @Experiment.set_run to set it')
@@ -276,6 +286,11 @@ class Experiment:
                 if len(new_params) > 0:
                     log('Config =', str(new_params))
 
+                # change process title
+                if setproctitle_enabled:
+                    new_title = '[testarium:' + c.name + '] ' + title
+                    setproctitle.setproctitle(new_title)
+
                 # run and score
                 result = self._run_body(c)
 
@@ -292,6 +307,9 @@ class Experiment:
             if timer is not None:
                 timer.cancel()
 
+        # change back process title
+        if setproctitle_enabled:
+            setproctitle.setproctitle(title)
         return c, result
 
     # Body of experiment run

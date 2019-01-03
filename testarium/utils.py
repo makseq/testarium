@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 Testarium
 Copyright (C) 2014 Maxim Tkachenko
 
@@ -15,7 +15,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 import os, sys, socket, string, random, base64, inspect
 import traceback

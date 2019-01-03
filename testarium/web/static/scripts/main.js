@@ -100,36 +100,53 @@ function focusWindow(e) {
 }
 
 function commitUpdate(commits_id) {
-	commits = $('#'+commits_id);
-	active_branch = commits.data('active-branch');
-	request = 'api/branches/'+active_branch+'/commits';
-	filter = commits.find('input').val();
+	var commits = $('#'+commits_id);
+	var active_branch = commits.data('active-branch');
+	var request = 'api/branches/'+active_branch+'/commits';
+	var filter = commits.find('input').val();
 	if (filter) request = 'api/branches/'+active_branch+'/commits?where='+filter;
 
 	$.ajax({ url: request, dataType: 'json',
 		success: function (data) {
 			// refresh if data changed
-			if (JSON.stringify(commits.data('scope')) != JSON.stringify(data)) {
+			if (JSON.stringify(commits.data('scope')) !== JSON.stringify(data)) {
 				l('update ' + commits_id );
 				if (data.status < 0) {
 					l(data)
 				}
+
+				// get running testarium processes
 
 				commits.data('scope', data);
 				commits.find('.body table').remove();
 				commits.find('.body').append($("#commitsTableTemplate").render(data, true));
 
 				// table body and footer widths
-				body = commits.children('.body').find('td');
-				footer = commits.children('.footer').find('th');
+				var body = commits.children('.body').find('td');
+				var footer = commits.children('.footer').find('th');
 				for (var i = 0; i < body.length; i++) {
 					var j = i % (footer.length - 1); // -1 is for close X
 					$(body.get(i)).outerWidth($(footer.get(j)).outerWidth())
 				}
-			}
 
-			//setTimeout(commitUpdate, 2000, commits_id)
+				highlightRunningCommits(false);
+			}
 		}
+	})
+}
+
+function highlightRunningCommits(auto_update){
+	$.ajax({url: 'api/running', dataType:'json',
+		success: function (data) {
+            $('tr.commit-name').removeClass('running');
+            for (var i = 0; i < data.result.length; i++) {
+                var name = data.result[i];
+                $('tr[data-commit-name="' + name + '"].commit-name').addClass('running');
+            }
+            if (auto_update) {
+                setTimeout(function(){ highlightRunningCommits(true)}, 1000);
+            }
+        }
 	})
 }
 
@@ -229,6 +246,9 @@ function newCommitTableByBranch(branch)
 				 return false;
              }
         });
+
+        // highlight running commits
+        highlightRunningCommits(false);
 
         // add right click menu
         commits.contextMenu({
@@ -597,5 +617,7 @@ $( document ).ready(function() {
 		var tmp = $('html').css('background');
 		$('html').css('background', prev_background);
 		prev_background = tmp;
-	})
+	});
+
+	highlightRunningCommits(true);
 });
