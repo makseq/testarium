@@ -2,3 +2,4 @@ setproctitle
 colorama
 flask
 psutil
+setproctitle
