@@ -28,8 +28,8 @@ try:
     import setproctitle
     setproctitle_enabled = True
 except ImportError:
-    print '! warning: setproctitle is not installed: pip install setproctitle'
     setproctitle_enabled = False
+    raise ImportError('setproctitle is not installed: pip install setproctitle')
 
 
 class Experiment:
