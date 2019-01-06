@@ -162,7 +162,7 @@ class WebServer:
                 if len(a) > 0 and '[testarium:' in a[0]:
                     res += [a[0].replace('[testarium:', '').replace(']', '')]
 
-            return answer(result=res)
+            return answer(result=list(set(res)))
 
         # -----------------------------------------------
         @self.app.route('/api/branches')
