@@ -32,7 +32,9 @@ try: import numpy as np
 except: pass
 
 try: import web; webOk = True
-except: webOk = False
+except Exception as e:
+    log('Error while web module import:', e)
+    webOk = False
 
 testarium = kernel.Testarium()
 experiment = experiment_module.Experiment(testarium)
