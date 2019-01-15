@@ -173,7 +173,8 @@ function newCommitTableByBranch(branch)
 		data.header = Object.keys(data.result[0]);
 		$('body').append($("#commitsDivTemplate").render(data, true));
 
-		var commits = $('#' + data.id);
+		var commits = $('#' + data.id.replace(/\+/g, '\\+'));
+		console.log(commits);
 		commits.data('scope', data);
 		commits.data('active-branch', data.active_branch);
 		commits.data('window-type', 'commits');
