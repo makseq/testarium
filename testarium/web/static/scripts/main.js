@@ -173,8 +173,7 @@ function newCommitTableByBranch(branch)
 		data.header = Object.keys(data.result[0]);
 		$('body').append($("#commitsDivTemplate").render(data, true));
 
-		var commits = $('#' + data.id.replace(/\+/g, '\\+'));
-		console.log(commits);
+		var commits = $('#' + data.id.replace(/(\+|=|\[|\]|\(|\)|\.)/g, '\\$1'));
 		commits.data('scope', data);
 		commits.data('active-branch', data.active_branch);
 		commits.data('window-type', 'commits');
@@ -228,7 +227,7 @@ function newCommitTableByBranch(branch)
 
 		// commits table position (it must be before scope.commits.active changed)
 		if (scope.commits.active !== '') {
-            var link = $('#' + scope.commits.active);
+            var link = $('#' + scope.commits.active.replace(/(\+|=|\[|\]|\(|\)|\.)/g, '\\$1'));
             commits.css({top: link.offset().top + link.outerHeight() + GRID_SIZE*3, left: link.offset().left});
         }
 
@@ -363,7 +362,7 @@ function showTips(e)
 
 	$(this).dblclick(function(e){ e.stopPropagation() })
 
-	var link = $('#'+scope.commits.active);
+	var link = $('#'+scope.commits.active.replace(/(\+|=|\[|\]|\(|\)|\.)/g, '\\$1'));
 	tips.css({top: link.offset().top + link.outerHeight() + GRID_SIZE*3, left: link.offset().left});
 }
 
@@ -431,7 +430,7 @@ function newPlot()
 	});
 
 	// get position of active commit table and set right corner for new plot
-	var link = $('#'+scope.commits.active);
+	var link = $('#'+scope.commits.active.replace(/(\+|=|\[|\]|\(|\)|\.)/g, '\\$1'));
 	plot.css({top: link.offset().top, left: link.offset().left + link.outerWidth() + GRID_SIZE*3});
 	scope.plot.number++;
 	plot.focus()
@@ -547,7 +546,7 @@ function newImage()
 	});
 
 	// get position of active commit table and set right corner for new image
-	var link = $('#'+scope.commits.active);
+	var link = $('#'+scope.commits.active.replace(/(\+|=|\[|\]|\(|\)|\.)/g, '\\$1'));
 	image.css({top: link.offset().top, left: link.offset().left + link.outerWidth() + 30});
 	scope.image.number++;
 	image.focus()

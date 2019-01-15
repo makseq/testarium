@@ -25,7 +25,7 @@ log = logging.getLogger()
 
 # check english letters
 def is_english(s):
-    try: s.decode('ascii')
+    try: s.encode('ascii')
     except: return False
     else: return True
 
