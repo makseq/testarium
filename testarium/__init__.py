@@ -99,6 +99,17 @@ def branch(args):
             log('Other branches:', *['"' + name + '"' for name in testarium.branches])
 
     else:
+        # check english letters
+        def incorrect_name(name):
+            for ch in name:
+                if not (ch.isalpha() or ch.isdigit() or ch in ['-', '_']):
+                    return True
+            return False
+
+        if incorrect_name(args.name):
+            log('COLOR.RED', "Incorrect branch name, use english letters, digits or ['-', '_']")
+            exit(-1)
+
         testarium.ChangeBranch(args.name)
         log('Active branch changed to:', testarium.activeBranch.name)
         if args.config_path:
