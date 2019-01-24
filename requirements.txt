@@ -1,5 +1,6 @@
-setproctitle
-colorama
+numpy
 flask
 psutil
+colorama
+pycrypto
 setproctitle

@@ -16,34 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# command: setup.py sdist & twine upload dist/*
+# pypi upload command: setup.py sdist & twine upload dist/*
 
-from subprocess import STDOUT, CalledProcessError, check_output as run
-from setuptools import setup
+import testarium as package
+import setuptools
 
-
-def get_version():
-    # take version from git
-    try:
-        desc = run('git describe --long --tags --always --dirty', stderr=STDOUT, shell=True)
-    except CalledProcessError as e:
-        print "cmd: %s\nError %s: %s" % (e.cmd, e.returncode, e.output)
-        exit(-101)
-
-    # check if everything is commited
-    if 'dirty' in desc:
-        print 'Current git description: %s \n Error: please commit your changes' % desc
-        exit(-100)
-
-    # create package version
-    version = desc.lstrip('v').rstrip().replace('-', '.')
-    version = '.'.join(version.split('.')[0:-1])
-    print 'Version:', version
-    return version
-
-
-data_files = [
-
+# advanced files
+files = [
     ('testarium/web/templates', ['main.html']),
 
     ('testarium/web/static/fonts',
@@ -81,32 +60,37 @@ data_files = [
       'font-awesome.css']),
 
     ('testarium/web/static', ['favicon.ico'])
-
 ]
 
+# read description
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-setup(name='testarium',
-      url='http://testarium.makseq.com',
-      description='Research tool to perform experiments and store results in the repository. '
-                  'More: http://testarium.makseq.com',
-      long_description=long_description,
-      long_description_content_type="text/markdown",
-      author='Max Tkachenko, Danila Doroshin, Alexander Yamshinin',
-      author_email='makseq@gmail.com',
-      license='GNU GPLv3',
-      version=get_version(),
-      packages=['testarium', 'testarium/score', 'testarium/web'],
-      install_requires=['numpy', 'flask', 'colorama', 'pycrypto', 'argcomplete'],
-      include_package_data=True,
-      zip_safe=False,
-      keywords=['testing', 'logging', 'research', 'science', 'repository'],
-      classifiers=[
-          "Topic :: Scientific/Engineering",
-          "Development Status :: 3 - Alpha",
-          "Operating System :: OS Independent",
-          "Programming Language :: Python",
-          "Intended Audience :: Science/Research"
-      ]
-      )
+# read side packages
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
+# setuptools setup
+setuptools.setup(name=package.__name__,
+                 version=package.__version__,
+                 author=package.__author__,
+                 author_email=package.__email__,
+                 description=package.__description__,
+                 url=package.__url__,
+
+                 long_description=long_description,
+                 long_description_content_type="text/markdown",
+                 license='GNU GPLv3',
+
+                 packages=setuptools.find_packages(),
+                 install_requires=required,
+                 include_package_data=True,
+                 zip_safe=False,
+                 keywords=['testing', 'logging', 'research', 'science', 'repository'],
+                 classifiers=[
+                     "Topic :: Scientific/Engineering",
+                     "Development Status :: 3 - Alpha",
+                     "Operating System :: OS Independent",
+                     "Programming Language :: Python",
+                     "Intended Audience :: Science/Research"
+                 ])

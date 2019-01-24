@@ -13,8 +13,8 @@ def my_run(commit):
     # run experiment
     pos = open(d + '/pos.txt', 'w')
     neg = open(d + '/neg.txt', 'w')
-    [pos.write(str(random.random() * c['a']) + '\n') for _ in xrange(100)]
-    [neg.write(str(random.random() * c['a']) + '\n') for _ in xrange(100)]
+    [pos.write(str(random.random() * c['a']) + '\n') for _ in range(100)]
+    [neg.write(str(random.random() * c['a']) + '\n') for _ in range(100)]
     return 0
 
 

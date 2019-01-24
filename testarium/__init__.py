@@ -17,24 +17,32 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import argparse
 import json
 import copy
-import shutil
+import argparse
 import collections
 
 import kernel
 import experiment as experiment_module
-from utils import *
+from .utils import *
+from .version import get_git_version
 
-# using it for parameter grid search
+# it's used for parameter grid search
 try: import numpy as np
-except: pass
+except ImportError: pass
 
-try: import web; webOk = True
+try: import web; web_loaded = True
 except Exception as e:
     log('Error while web module import:', e)
-    webOk = False
+    web_loaded = False
+
+__author__ = 'Max Tkachenko'
+__email__ = 'makseq@gmail.com'
+__url__ = 'http://testarium.makseq.com'
+__version__ = get_git_version()
+__git_version__ = get_git_version()
+__description__ = 'Research tool to perform experiments and store results in the repository.' \
+                  'More: http://testarium.makseq.com'
 
 testarium = kernel.Testarium()
 experiment = experiment_module.Experiment(testarium)
@@ -57,7 +65,7 @@ def run(args):
     try:
         config = json.loads(open(os.getcwd() + '/' + config_path, 'r').read(),
                             object_pairs_hook=collections.OrderedDict)
-    except Exception, e:
+    except Exception as e:
         log('COLOR.RED', "Error: can't open config file:", config_path, '(' + str(e) + ')')
         return False
 
@@ -73,7 +81,7 @@ def run(args):
         cmd = "c['" + g[0].replace(' ', '').replace('\t', '') + "'] = " + g[1]
         try:
             exec cmd
-        except Exception, e:
+        except Exception as e:
             msg = str(e).replace(' (<string>, line 1)', '')
             log('COLOR.RED', msg + ':', 'COLOR.RED', '"' + cmd + '"')
             stop = True
@@ -253,7 +261,7 @@ def where(args):
 
 
 def webserver(args):
-    if not webOk: log('Web server is disabled. Try to "easy_install flask"'); exit(-101)
+    if not web_loaded: log('Web server is disabled. Try to "easy_install flask"'); exit(-101)
 
     w = web.WebServer(testarium, experiment, args)
     w.start(int(args.port), args.username, args.password)
@@ -354,7 +362,7 @@ def mail(args):
             text = 'Your mail is working!'
             send_email(mailto, account, passwd, 'Testarium: ' + testarium.name, text,
                        smtp_server, smtp_port, proxy=proxy_server, porta=proxy_port)
-        except Exception, e:
+        except Exception as e:
             log('COLOR.RED', 'Error: sending mail failed:', str(e))
 
 
