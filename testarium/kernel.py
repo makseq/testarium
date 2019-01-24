@@ -73,40 +73,35 @@ class Config(collections.OrderedDict):
         if msg and msg[len(msg) - 1] == '\n': msg = msg[0:len(msg) - 1]
         return msg
 
-    def Difference(self, other_config, useKeys=[]):
+    def Difference(self, other_config, use_keys=[]):
         a = self
         b = other_config
 
         keys = set(a) | set(b)
         diff = dict()
         for key in keys:
-            if key not in useKeys: continue
+            if key not in use_keys and use_keys: continue
             if key == CONFIG_COMMIT_DIRECTORY: continue
-            if key in useKeys or not useKeys:
-                try:
-                    aval = a[key]
-                except:
-                    aval = None
 
-                try:
-                    bval = b[key]
-                except:
-                    bval = None
+            if key in use_keys or not use_keys:
+                a_value = a[key] if key in a else None
+                b_value = b[key] if key in b else None
+                if a_value != b_value:
+                    diff[key] = (a_value, b_value)
 
-                if aval <> bval: diff[key] = (aval, bval)
         return diff
 
-    def StrDifference(self, other_config, aName, bName, useKeys=[]):
-        diff = self.Difference(other_config, useKeys)
+    def StrDifference(self, other_config, a_name, b_name, use_keys=[]):
+        diff = self.Difference(other_config, use_keys)
         if len(diff) == 0: return 'No configs difference' + \
-                                  (' with key filter ' + str(useKeys) if len(useKeys) > 0 else '')
+                                  (' with key filter ' + str(use_keys) if len(use_keys) > 0 else '')
 
         s = ''
-        maxSpaces = max([len(x) for x in diff]) + 1
-        for key in sorted(diff.iterkeys()):
+        max_spaces = max([len(x) for x in diff]) + 1
+        for key in sorted(diff.keys()):
             val = diff[key]
-            s += key + ' ' * (maxSpaces - len(key)) + ': ' + aName + ' = ' + str(val[0])
-            s += ' ' * maxSpaces + ': ' + bName + ' = ' + str(val[1])
+            s += key + ' ' * (max_spaces - len(key)) + ': ' + a_name + ' = ' + str(val[0])
+            s += ' ' * max_spaces + ': ' + b_name + ' = ' + str(val[1])
             s += '\n'
 
         # delete unnecessary '\n'
