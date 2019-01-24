@@ -80,7 +80,7 @@ class Config(collections.OrderedDict):
         keys = set(a) | set(b)
         diff = dict()
         for key in keys:
-            if not key in useKeys: continue
+            if key not in useKeys: continue
             if key == CONFIG_COMMIT_DIRECTORY: continue
             if key in useKeys or not useKeys:
                 try:

@@ -193,30 +193,35 @@ def delete(args):
 
 
 def differ(args):
-    branchA = args.branchA if args.branchA else args.branch
-    branchB = args.branchB if args.branchB else args.branch
-    nameA = args.nameA
-    nameB = args.nameB
+    branch_a = args.branchA if args.branchA else args.branch
+    branch_b = args.branchB if args.branchB else args.branch
+    name_a = args.nameA
+    name_b = args.nameB
 
-    commitA = testarium.SelectCommits(branch_name=branchA, name=nameA, N=1)
-    commitB = testarium.SelectCommits(branch_name=branchB, name=nameB, N=1)
-    if commitA and commitB:
-        commitA = commitA[0]
-        commitB = commitB[0]
-        nameA = 'last' if not nameA else nameA
-        nameB = 'last' if not nameB else nameB
+    commit_a = testarium.SelectCommits(branch_name=branch_a, name=name_a, N=1)
+    commit_b = testarium.SelectCommits(branch_name=branch_b, name=name_b, N=1)
+    if commit_a and commit_b:
+        commit_a = commit_a[0]
+        commit_b = commit_b[0]
+        name_a = 'last' if not name_a else name_a
+        name_b = 'last' if not name_b else name_b
 
-        l = max(len(nameA), len(nameB))
-        log(nameA + ' ' * (l - len(nameA)) + ' :: ' + str(commitA))
-        log(nameB + ' ' * (l - len(nameB)) + ' :: ' + str(commitB))
-        print_diff(commitA, commitB, nameA, nameB, args.config_keys)
+        l = max(len(name_a), len(name_b))
+        log(name_a + ' ' * (l - len(name_a)) + ' :: ' + str(commit_a))
+        log(name_b + ' ' * (l - len(name_b)) + ' :: ' + str(commit_b))
+        print_diff(commit_a, commit_b, name_a, name_b, args.config_keys)
 
 
-def print_diff(a, b, aName='A', bName='B', useKeys=[]):
-    if a is None: log_lines('No ' + aName + ' to make difference'); return
-    if b is None: log_lines('No ' + bName + ' to make difference'); return
+def print_diff(a, b, a_name='A', b_name='B', use_keys=[]):
+    if a is None:
+        log_lines('No ' + a_name + ' to make difference')
+        return
 
-    s = a.config.StrDifference(b.config, aName, bName, useKeys)
+    if b is None:
+        log_lines('No ' + b_name + ' to make difference')
+        return
+
+    s = a.config.StrDifference(b.config, a_name, b_name, use_keys)
     log_lines(s)
 
 
