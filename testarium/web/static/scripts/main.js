@@ -170,7 +170,14 @@ function newCommitTableByBranch(branch)
 
 		data.id = 'commits-table-'+branch+scope.commits.number;
 		data.active_branch = branch;
-		data.header = Object.keys(data.result[0]);
+
+		// prepare header keys from all commit items
+		var keys = [];
+		for (var i=0; i<data.result.length; i++) {
+			keys = keys.concat(Object.keys(data.result[i]));
+		}
+		var set = new Set(keys);
+		data.header = Array.from(set);
 		$('body').append($("#commitsDivTemplate").render(data, true));
 
 		var commits = $('#' + data.id.replace(/(\+|=|\[|\]|\(|\)|\.)/g, '\\$1'));
