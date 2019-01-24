@@ -25,7 +25,7 @@ import collections
 import kernel
 import experiment as experiment_module
 from .utils import *
-from .version import get_git_version
+from .version import get_git_version, get_short_version
 
 # it's used for parameter grid search
 try: import numpy as np
@@ -39,7 +39,7 @@ except Exception as e:
 __author__ = 'Max Tkachenko'
 __email__ = 'makseq@gmail.com'
 __url__ = 'http://testarium.makseq.com'
-__version__ = get_git_version()
+__version__ = get_short_version()
 __git_version__ = get_git_version()
 __description__ = 'Research tool to perform experiments and store results in the repository.' \
                   'More: http://testarium.makseq.com'

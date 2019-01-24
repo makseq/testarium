@@ -55,7 +55,8 @@ def get_git_version():
     # take OS name
     keys = ('ID=', 'VERSION_ID=', 'RELEASE=')
     with open('/etc/os-release') as f:
-        os_version = ''.join(str(s).split("=", 1)[1].rstrip().strip('"').replace('.', '') for s in f if str(s).startswith(keys))
+        s = [str(s).split("=", 1)[1].rstrip().strip('"').replace('.', '') for s in f if str(s).startswith(keys)]
+        os_version = ''.join(s)
 
     # create package version
     version = desc.lstrip('v').rstrip().replace('-', '+', 1).replace('-', '.') + '.' + os_version
@@ -66,4 +67,6 @@ def get_git_version():
 # get only tag from git
 def get_short_version():
     version = get_git_version()
+    version = version.replace('+', '.').split('.')  # eg.: 0.5+4.g9b9c266.ubuntu1604 => [0][5][4][g9b9c266][ubuntu1604]
+    version = '.'.join(version[0:3])
     return version.split('+')[0]

@@ -1,2 +1,3 @@
 recursive-include testarium/web/static *
 recursive-include testarium/web/templates *
+include requirements*.*

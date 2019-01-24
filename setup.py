@@ -21,47 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import testarium as package
 import setuptools
 
-# advanced files
-files = [
-    ('testarium/web/templates', ['main.html']),
-
-    ('testarium/web/static/fonts',
-     ['FontAwesome.otf',
-      'FontAwesome.ttf',
-      'fontawesome-webfont.eot',
-      'fontawesome-webfont.svg',
-      'fontawesome-webfont.ttf',
-      'fontawesome-webfont.woff',
-      'fontawesome-webfont.woff2',
-      'Gudea-Bold.otf',
-      'Gudea-Bold.ttf',
-      'Gudea-Italic.otf',
-      'Gudea-Italic.ttf',
-      'Gudea-Regular.otf',
-      'Gudea-Regular.ttf']),
-
-    ('testarium/web/static/images', ['back.jpg']),
-
-    ('testarium/web/static/scripts',
-     ['d3.linegraph.js',
-      'd3.v3.min.js',
-      'jquery-ui.min.js',
-      'jsrender.min.js',
-      'jquery.mousewheel.min.js',
-      'main.js',
-      'wavesurfer.min.js',
-      'wavesurfer.regions.js',
-      'wavesurfer.spectrogram.js']),
-
-    ('testarium/web/static/styles',
-     ['main.css',
-      'd3.linegraph.css',
-      'jquery-ui.min.css',
-      'font-awesome.css']),
-
-    ('testarium/web/static', ['favicon.ico'])
-]
-
 # read description
 with open("README.md", "r") as fh:
     long_description = fh.read()
