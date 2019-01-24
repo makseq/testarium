@@ -33,5 +33,4 @@ def my_print(commit):
            [commit.name, commit.config['a'], commit.desc['test.param'], score]
 
 if __name__ == '__main__':
-    testarium.testarium.best_score_is_max()
     testarium.main()
