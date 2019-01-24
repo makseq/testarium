@@ -10,4 +10,4 @@ It can be helpful for science researchers and their bosses to monitor the work p
 More info: http://testarium.makseq.com
 
 
-![alt text](http://testarium.makseq.com/images/web2.png?some)
+![alt text](http://testarium.makseq.com/images/web2.png?some2)
