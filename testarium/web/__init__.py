@@ -133,7 +133,8 @@ class WebServer:
                 return answer(403)
 
             # remove old archive
-            out_path = path + '/archive.tar.gz'
+            out_path = path + '/' + os.path.basename(os.path.dirname(path)) + '.tar.gz'
+            print out_path
             if os.path.exists(out_path):
                 os.remove(out_path)
 
