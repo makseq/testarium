@@ -11,7 +11,7 @@
 <div class="browse">
     <div class="files">
         <ul>
-            <a href="../">[..]</a>
+            <a href="..">[..]</a> <a href="/api/archive?path={{ root_dir }}">[ archive this directory ]</a>
             {% for file in files %}
             <li><a href="{{ file[0] }}">{{ file[1] }}</a></li>
             {% endfor %}

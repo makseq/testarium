@@ -22,7 +22,7 @@ import psutil
 import threading
 import webbrowser
 import collections
-
+import subprocess
 import flask
 from flask import Flask, Response, request, render_template
 from functools import wraps
@@ -91,40 +91,57 @@ class WebServer:
             return flask.send_file('static/favicon.ico')
 
         # -----------------------------------------------
-        @self.app.route('/storage/<path:filename>')
-        def send_storage(filename):
+        @self.app.route('/storage/<path:path>')
+        def send_storage(path):
             # static for storage is special case
             static = '/static/'
-            if static in filename:
-                path = filename[filename.index(static)+len(static): ]
+            if static in path:
+                path = path[path.index(static) + len(static):]
                 return flask.send_from_directory('static', path)
 
-            elif os.path.exists(filename):
+            elif os.path.exists(path):
                 work_dir = os.getcwd()
 
                 # file
-                if os.path.isfile(filename):
-                    if filename.endswith('.json') and ('preview' in request.args or 'pretty' in request.args):
+                if os.path.isfile(path):
+                    if path.endswith('.json') and ('preview' in request.args or 'pretty' in request.args):
                         return render_template('file.html')
                     else:
-                        return flask.send_from_directory(work_dir, filename)  # load file from root of project
+                        return flask.send_from_directory(work_dir, path)  # load file from root of project
 
                 # directory with browse template
                 else:
-                    files = os.listdir(filename)
-                    if not filename.endswith('/'):
-                        files = [os.path.basename(filename) + '/' + f for f in files]
+                    files = os.listdir(path)
+                    files = [f + ('/' if os.path.isdir(path + '/' + f) else '') for f in files]
 
                     # make (path, presentation) pairs
-                    files = [(f, os.path.basename(f)) for f in files]
+                    files = [(f, f) for f in files]
 
                     # apply pretty argument to json files
                     files = [(f[0] + '?pretty' if f[0].endswith('.json') else f[0], f[1]) for f in files]
-                    return render_template('browse.html', files=files)
+                    return render_template('browse.html', files=files, root_dir=path)
             else:
-                return flask.send_file(filename)  # load file with absolute path
+                return flask.send_file(path)  # load file with absolute path
 
         # API #
+
+        # -----------------------------------------------
+        @self.app.route('/api/archive')
+        def api_archive():
+            path = request.args['path']
+            if '..' in path:
+                return answer(403)
+
+            # remove old archive
+            out_path = path + '/archive.tar.gz'
+            if os.path.exists(out_path):
+                os.remove(out_path)
+
+            # write new archive
+            cmd = ['tar', '-czvf', out_path, path]
+            p = subprocess.Popen(cmd)
+            p.wait()
+            return answer(p.returncode, msg='tar status: ' + 'ok, archive created!' if p.returncode == 1 else 'error!')
 
         # -----------------------------------------------
         @self.app.route('/api/info')
