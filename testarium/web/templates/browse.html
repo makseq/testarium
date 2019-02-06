@@ -7,15 +7,33 @@
 <script src="static/scripts/jquery.json-viewer.js"></script>
 <script src="static/scripts/clipboard.js"></script>
 
+<style>
+    td {
+        padding-top: 5px;
+        padding-right: 35px;
+    }
+    th {
+        text-align: left;
+    }
+</style>
 
 <div class="browse">
     <div class="files">
-        <ul>
-            <a href="..">[..]</a> <a href="/api/archive?path={{ root_dir }}">[ archive this directory ]</a>
+        <a href="..">[..]</a> <a href="/api/archive?path={{ root_dir }}">[ archive this directory ]</a>
+        <table>
+            <thead>
+                <th>name</th>
+                <th>Mbytes</th>
+                <th>delete</th>
+            </thead>
             {% for file in files %}
-            <li><a href="{{ file[0] }}">{{ file[1] }}</a></li>
+                <tr>
+                    <td><a href="{{ file[0] }}">{{ file[1] }}</a></td>
+                    <td>{{ file[2] }}</td>
+                    <td><a href="/api/remove_path?path={{ root_dir }}{{ file[0] }}">[x]</a></td>
+                </tr>
             {% endfor %}
-        </ul>
+        </table>
     </div>
 
     <div class="preview">

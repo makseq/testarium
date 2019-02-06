@@ -115,10 +115,11 @@ class WebServer:
                     files = [f + ('/' if os.path.isdir(path + '/' + f) else '') for f in files]
 
                     # make (path, presentation) pairs
-                    files = [(f, f) for f in files]
+                    files = [[f, f, '%0.2f' % (os.stat(path + '/' + f).st_size / 1024.0 / 1024.0)] for f in files]
+                    print files
 
                     # apply pretty argument to json files
-                    files = [(f[0] + '?pretty' if f[0].endswith('.json') else f[0], f[1]) for f in files]
+                    files = [(f[0] + '?pretty' if f[0].endswith('.json') else f[0], f[1], f[2]) for f in files]
                     return render_template('browse.html', files=files, root_dir=path)
             else:
                 return flask.send_file(path)  # load file with absolute path
@@ -134,7 +135,6 @@ class WebServer:
 
             # remove old archive
             out_path = path + '/' + os.path.basename(os.path.dirname(path)) + '.tar.gz'
-            print out_path
             if os.path.exists(out_path):
                 os.remove(out_path)
 
@@ -143,6 +143,20 @@ class WebServer:
             p = subprocess.Popen(cmd)
             p.wait()
             return answer(p.returncode, msg='tar status: ' + 'ok, archive created!' if p.returncode == 1 else 'error!')
+
+        # -----------------------------------------------
+        @self.app.route('/api/remove_path')
+        def api_remove_path():
+            path = request.args['path']
+            if '..' in path:
+                return answer(403)
+
+            # remove
+            out_path = path
+            if os.path.exists(out_path):
+                os.remove(out_path)
+
+            return answer(0, msg='removed')
 
         # -----------------------------------------------
         @self.app.route('/api/info')
