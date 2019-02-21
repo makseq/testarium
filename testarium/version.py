@@ -5,11 +5,13 @@ This library automatically generates version of package based on git.
 If 'git desc' is successful it will write version to __version__.py:git_version.  
 If 'git desc' is fail it will read __version__.py:git_version.
 
-ATTENTION: do not include __version__.py to git! It will affect git commit always!   
+ATTENTION: do not include version_.py to git! It will affect git commit always!
 """
 from __future__ import print_function
 from subprocess import STDOUT, CalledProcessError, check_output as run
 import os
+import sys
+import logging
 
 VERSION_FILE = 'version_.py'
 
@@ -30,18 +32,27 @@ def _write_py(version):
 def _read_py():
     # go to current dir to package __init__.py
     cwd = os.getcwd()
-    os.chdir(os.path.dirname(__file__))
+    module_dir = os.path.dirname(__file__)
+    os.chdir(module_dir)
+
+    # sys path
+    need_remove = False
+    if module_dir not in sys.path:
+        sys.path.append(module_dir)
+        need_remove = True
 
     # read version
     try:
         version = __import__(os.path.splitext(VERSION_FILE)[0]).version
         return version
     except ImportError as e:
-        print("Can't read version file: " + VERSION_FILE)
-        print(e)
+        logging.error("Can't read version file: " + VERSION_FILE)
+        logging.error(e)
         return None
     finally:
         os.chdir(cwd)  # back current dir
+        if need_remove:
+            sys.path.remove(module_dir)
 
 
 def get_git_version():
