@@ -61,6 +61,10 @@ def run(args):
         config_path = testarium.activeBranch.config_path  # use default branch config
         branch_name = testarium.activeBranch.name
 
+    # take branch from -b option
+    if args.branch:
+        branch_name = args.branch
+
     # try to load main config
     try:
         config = json.loads(open(os.getcwd() + '/' + config_path, 'r').read(),
@@ -410,6 +414,8 @@ def main():
                             help='Dry run mode: do not repository (git, hg) commit and '
                                  'remove commit from repository after run. '
                                  'Dry run will be disabled for experiment more than 10 min')
+    parser_run.add_argument('--branch', '-b', default='', dest='branch',
+                               help='name of branch, leave it empty to use active branch')
     parser_run.add_argument('--mail', default=False, dest='mail', action='store_true', help='send report to mail')
 
     # branch
@@ -423,7 +429,7 @@ def main():
     parser_delete.add_argument('name', default='', nargs='?',
                                help="name of commit. Use 'best' for the best scored commit. "
                                     "head or HEAD or last or 0 for the last commit")
-    parser_delete.add_argument('--branch', default='', dest='branch',
+    parser_delete.add_argument('--branch', '-b', default='', dest='branch',
                                help='name of branch, leave it empty to use active branch')
     parser_delete.add_argument('-p', default='', nargs='?', dest='conditions',
                                help="user conditions: 'c' - config dict, 'd' - description dict. "
@@ -436,7 +442,7 @@ def main():
     parser_differ.add_argument('nameB', default='', nargs='?',
                                help="name of commit to diff with. Use 'best' for the best scored commit. "
                                     "0 is last, -1 is first commit")
-    parser_differ.add_argument('--branch', default='', dest='branch',
+    parser_differ.add_argument('--branch', '-b', default='', dest='branch',
                                help='name of common branch to operate, stay it empty to use active branch')
     parser_differ.add_argument('--branchA', default='', dest='branchA', help='name of branch A to operate')
     parser_differ.add_argument('--branchB', default='', dest='branchB', help='name of branch B to operate')
@@ -452,7 +458,7 @@ def main():
     parser_log.add_argument('-c', default=False, dest='print_config', action='store_true', help='print configs')
     parser_log.add_argument('-k', default=[], dest='config_keys', nargs='+', help='config keys to show')
     parser_log.add_argument('-n', default=-1, dest='n', type=int, help='number of commits to display, -1 = all')
-    parser_log.add_argument('--branch', default='', dest='branch',
+    parser_log.add_argument('--branch', '-b', default='', dest='branch',
                             help='name of branch to be shown, leave it empty to use active branch')
 
     # rescore
