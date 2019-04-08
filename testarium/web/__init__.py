@@ -148,8 +148,8 @@ class WebServer:
         @self.app.route('/api/remove_path')
         def api_remove_path():
             path = request.args['path']
-            if '..' in path:
-                return answer(403)
+            if '..' in path or '.testarium' not in path:
+                return answer(403, msg='you can remove only in .testarium')
 
             # remove
             out_path = path
