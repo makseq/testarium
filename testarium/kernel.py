@@ -20,12 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import datetime, time, json, numpy as np
 import os, operator, shutil, collections
 import traceback
-from utils import *
-import coderepos
-import filedb
+from .utils import *
+from . import coderepos
+from . import filedb
 import random
 import codecs
 import socket
+
+
+json.encoder.FLOAT_REPR = lambda o: format(o, '.2f')
 
 CONFIG_COMMIT_DIRECTORY = 'testarium.commitDirectory'
 
@@ -183,7 +186,7 @@ class Commit:
         msg = ''
         no_head = ['name', 'comment', '']
         for i, c in enumerate(cols):
-            part = unicode(out[i])
+            part = out[i]
             if part:
                 msg += ('\t> ' if i != 0 else '') + ('' if c in no_head else c + ': ') + part + ' '
 
@@ -233,7 +236,7 @@ class Commit:
         if self.common.commit_print_func is not None and not skipUserPrint:
             if not self.common.commit_print_func[0] is None:
                 cols, out = self.common.commit_print_func[0](self)
-                out = [unicode(o) for o in out]
+                out = [o for o in out]
 
                 if web:
                     if 'config' not in cols:
@@ -458,7 +461,7 @@ class Commit:
             create_dir(dir)
 
             # config
-            config_str = json.dumps(self.config, indent=2, ensure_ascii=False).encode('utf-8')
+            config_str = json.dumps(self.config, indent=2, ensure_ascii=False)
             open(self.dir + '/config.json', 'w').write(config_str)
             if configOnly: return
 
@@ -807,7 +810,7 @@ class Testarium:
         if not sort_keys: return None
         cond = ''.join(conditions)
         cond = cond.replace("['", "[", 1).replace("']", "]", 1).replace("[", "['", 1).replace("]", "']", 1)
-        print cond
+        print(cond)
 
         # where
         error = ''
@@ -818,7 +821,7 @@ class Testarium:
 
             show = False
             try:
-                exec 'if ' + cond + ': show = True'
+                exec('if ' + cond + ': show = True')
             except Exception as e:
                 error += str(e) + '; '
 

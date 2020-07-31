@@ -229,7 +229,7 @@ def ScoreDirectory(dir):
         pos = np.loadtxt(pos)
         neg = np.loadtxt(neg)
     except:
-        print 'Score: Error: No pos or neg file';
+        print('Score: Error: No pos or neg file')
         return -1
     pos = pos[np.logical_not(np.isnan(pos))]
     neg = neg[np.logical_not(np.isnan(neg))]
@@ -247,7 +247,7 @@ def ScoreDirectory(dir):
     try:
         open(dir + '/fafr.txt', 'w').write(j)
     except:
-        print "Can't save: " + dir + '/fafr.txt'
+        print("Can't save: " + dir + '/fafr.txt')
 
     # calc EER
     eer = FA[np.argmin(np.abs(FA - FR))]
@@ -256,7 +256,7 @@ def ScoreDirectory(dir):
 
 
 def fafr_cache(pos, neg, fname, commit):
-    print 'FAFR: Positive and negative scores count:', len(pos), len(neg)
+    print('FAFR: Positive and negative scores count:', len(pos), len(neg))
     pos, neg = np.array(pos), np.array(neg)
     FA, FR, th = fafr(pos, neg)
 
@@ -264,7 +264,7 @@ def fafr_cache(pos, neg, fname, commit):
     data = [{'x': FA[i], 'y': FR[i], 't': th[i]} for i, x in enumerate(FR)]
     j = json.dumps({'xAxis': 'False Alarm', 'yAxis': 'False Reject', 'data': data})
     try: open(commit.dir + '/' + fname, 'w').write(j)
-    except: print "Can't save: " + commit.dir + '/' + fname
+    except: print("Can't save: " + commit.dir + '/' + fname)
 
     # calc EER
     eer = FA[np.argmin(np.abs(FA - FR))]

@@ -74,7 +74,7 @@ def exception_treatment(f):
         try:
             return f(*args, **kwargs)
 
-        except AnswerException, e:
+        except AnswerException as e:
             traceback = tb.format_exc()
             log.critical('\n\n--------------\n' + traceback + '--------------\n')
 

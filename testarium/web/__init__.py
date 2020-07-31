@@ -27,7 +27,7 @@ import flask
 from flask import Flask, Response, request, render_template
 from functools import wraps
 
-from base import answer, exception_treatment
+from .base import answer, exception_treatment
 from ..utils import TestariumException
 
 DEBUG = True
@@ -116,7 +116,7 @@ class WebServer:
 
                     # make (path, presentation) pairs
                     files = [[f, f, '%0.2f' % (os.stat(path + '/' + f).st_size / 1024.0 / 1024.0)] for f in files]
-                    print files
+                    print(files)
 
                     # apply pretty argument to json files
                     files = [(f[0] + '?pretty' if f[0].endswith('.json') else f[0], f[1], f[2]) for f in files]
@@ -287,7 +287,7 @@ class WebServer:
                     f = commit.filedb.GetFile(_id)
                     m = commit.meta.meta[_id]
                     try:
-                        exec 'if not (' + cond + '): del commit.meta.meta[_id]' in globals(), locals()
+                        exec('if not (' + cond + '): del commit.meta.meta[_id]' in globals(), locals())
                     except Exception as exception:
                         error += str(exception) + '; '
                 msg = error
@@ -336,9 +336,9 @@ class WebServer:
             try:
                 url = 'http://localhost:'+str(port)
                 webbrowser.open_new_tab(url)
-                print 'Open in new tab:', url
+                print('Open in new tab:', url)
             except:
-                print "Can't open browser with new tab"
+                print("Can't open browser with new tab")
                 pass
 
         if not self.args.no_open_tab:

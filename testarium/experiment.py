@@ -22,8 +22,9 @@ import time
 import threading
 import collections
 import itertools as it
-from utils import *
-import kernel
+
+from . import kernel
+from .utils import *
 try:
     import setproctitle
     setproctitle_enabled = True
@@ -71,7 +72,7 @@ class Experiment:
             log('Sending email to:', mailto)
             send_email(mailto, account, passwd, 'Testarium: ' + self.testarium.name, text,
                        smtp_server, smtp_port, proxy=proxy_server, porta=proxy_port)
-        except Exception, e:
+        except Exception as e:
             log('COLOR.RED', 'Error: sending mail failed:', str(e))
             return False
 
