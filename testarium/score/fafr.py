@@ -43,7 +43,7 @@ def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='c
     model_eq_test = id(model) == id(test)  # check if model is the same as test
 
     # calculate hamming distances
-    if isinstance(metric, basestring):
+    if isinstance(metric, str):
         if metric == 'hamming':
             model = model > 0
             test = test > 0
@@ -107,10 +107,10 @@ def fafr_parallel(pos, neg, N, prcount):
     FR = np.zeros((N + 1,))
     Thresh = np.zeros((N + 1,))
 
-    indexes = [range(N + 1)[m::prcount] for m in xrange(prcount)]
+    indexes = [range(N + 1)[m::prcount] for m in range(prcount)]
     out_q = Queue()
     prs = []
-    for j in xrange(prcount):
+    for j in range(prcount):
         p = threading.Thread(target=fafr_process, args=(pos, neg, N, indexes[j], j, out_q))
         p.start()
         prs.append(p)
