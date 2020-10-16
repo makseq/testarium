@@ -115,8 +115,10 @@ class Experiment:
 
             # combine params
             var_names = sorted(new_params)
+            #combinations = [collections.OrderedDict(zip(var_names, prod)) for prod in
+            #                it.product(*(new_params[varName] for varName in var_names))]
             combinations = [collections.OrderedDict(zip(var_names, prod)) for prod in
-                            it.product(*(new_params[varName] for varName in var_names))]
+                            zip(*(new_params[varName] for varName in var_names))]
 
             # init vars
             results = []

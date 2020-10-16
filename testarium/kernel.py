@@ -175,6 +175,30 @@ class Commit:
             else:
                 return -1 if not self.common.best_score_max else 1
 
+    def __lt__(self, other):
+        # user compare
+        if self.common.commit_cmp_func is not None:
+            if not self.common.commit_cmp_func[0] is None:
+                return self.common.commit_cmp_func[0](self, other)
+
+            if self._init:
+                if self.common.best_score_max:
+                    if self.desc['score'] > other.desc['score']:
+                        return 1
+                    elif self.desc['score'] < other.desc['score']:
+                        return -1
+                    else:
+                        return 0
+                else:
+                    if self.desc['score'] > other.desc['score']:
+                        return -1
+                    elif self.desc['score'] < other.desc['score']:
+                        return 1
+                    else:
+                        return 0
+            else:
+                return -1 if not self.common.best_score_max else 1
+
     def __str__(self):
         if not self._init:
             return 'No init'

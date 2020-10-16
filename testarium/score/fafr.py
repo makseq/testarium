@@ -21,7 +21,7 @@ import os
 import json
 import numpy as np
 import threading
-from multiprocessing import Process, Queue
+from queue import Queue
 from multiprocessing.pool import ThreadPool
 from functools import partial
 
