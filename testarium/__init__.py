@@ -22,8 +22,8 @@ import copy
 import argparse
 import collections
 
-import kernel
-import experiment as experiment_module
+from . import kernel
+from . import experiment as experiment_module
 from .utils import *
 from .version import get_git_version, get_short_version
 
@@ -31,7 +31,7 @@ from .version import get_git_version, get_short_version
 try: import numpy as np
 except ImportError: pass
 
-try: import web; web_loaded = True
+try: from . import web; web_loaded = True
 except Exception as e:
     log('Error while web module import:', e)
     web_loaded = False
@@ -75,7 +75,8 @@ def run(args):
 
     # parser: param=value; => (param, value)
     import re
-    p = re.compile(ur'([^=|^;]+)?=([^;]*(?=;|))')
+    p = re.compile(r'([^=|^;]+)?=([^;]*(?=;|))')
+
     groups = re.findall(p, args.newParams)
 
     # apply newParams to dict c
@@ -84,7 +85,7 @@ def run(args):
     for g in groups:
         cmd = "c['" + g[0].replace(' ', '').replace('\t', '') + "'] = " + g[1]
         try:
-            exec cmd
+            exec(cmd)
         except Exception as e:
             msg = str(e).replace(' (<string>, line 1)', '')
             log('COLOR.RED', msg + ':', 'COLOR.RED', '"' + cmd + '"')
@@ -150,7 +151,7 @@ def rescore(args):
                 f = commit.filedb.GetFile(_id)
                 m = commit.meta.meta[_id]
                 try:
-                    exec 'if not (' + cond + '): del commit.meta.meta[_id]' in globals(), locals()
+                    exec('if not (' + cond + '): del commit.meta.meta[_id]' in globals(), locals())
                 except Exception as exception:
                     error += str(exception) + '; '
             msg = error

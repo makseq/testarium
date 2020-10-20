@@ -21,7 +21,7 @@ import os
 import json
 import numpy as np
 import threading
-from multiprocessing import Process, Queue
+from queue import Queue
 from multiprocessing.pool import ThreadPool
 from functools import partial
 
@@ -43,7 +43,7 @@ def get_pos_neg(model, test, model_labels, test_labels, verbose=False, metric='c
     model_eq_test = id(model) == id(test)  # check if model is the same as test
 
     # calculate hamming distances
-    if isinstance(metric, basestring):
+    if isinstance(metric, str):
         if metric == 'hamming':
             model = model > 0
             test = test > 0
@@ -107,10 +107,10 @@ def fafr_parallel(pos, neg, N, prcount):
     FR = np.zeros((N + 1,))
     Thresh = np.zeros((N + 1,))
 
-    indexes = [range(N + 1)[m::prcount] for m in xrange(prcount)]
+    indexes = [range(N + 1)[m::prcount] for m in range(prcount)]
     out_q = Queue()
     prs = []
-    for j in xrange(prcount):
+    for j in range(prcount):
         p = threading.Thread(target=fafr_process, args=(pos, neg, N, indexes[j], j, out_q))
         p.start()
         prs.append(p)
@@ -229,7 +229,7 @@ def ScoreDirectory(dir):
         pos = np.loadtxt(pos)
         neg = np.loadtxt(neg)
     except:
-        print 'Score: Error: No pos or neg file';
+        print('Score: Error: No pos or neg file')
         return -1
     pos = pos[np.logical_not(np.isnan(pos))]
     neg = neg[np.logical_not(np.isnan(neg))]
@@ -247,7 +247,7 @@ def ScoreDirectory(dir):
     try:
         open(dir + '/fafr.txt', 'w').write(j)
     except:
-        print "Can't save: " + dir + '/fafr.txt'
+        print("Can't save: " + dir + '/fafr.txt')
 
     # calc EER
     eer = FA[np.argmin(np.abs(FA - FR))]
@@ -256,7 +256,7 @@ def ScoreDirectory(dir):
 
 
 def fafr_cache(pos, neg, fname, commit):
-    print 'FAFR: Positive and negative scores count:', len(pos), len(neg)
+    print('FAFR: Positive and negative scores count:', len(pos), len(neg))
     pos, neg = np.array(pos), np.array(neg)
     FA, FR, th = fafr(pos, neg)
 
@@ -264,7 +264,7 @@ def fafr_cache(pos, neg, fname, commit):
     data = [{'x': FA[i], 'y': FR[i], 't': th[i]} for i, x in enumerate(FR)]
     j = json.dumps({'xAxis': 'False Alarm', 'yAxis': 'False Reject', 'data': data})
     try: open(commit.dir + '/' + fname, 'w').write(j)
-    except: print "Can't save: " + commit.dir + '/' + fname
+    except: print("Can't save: " + commit.dir + '/' + fname)
 
     # calc EER
     eer = FA[np.argmin(np.abs(FA - FR))]

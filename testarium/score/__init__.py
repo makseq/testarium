@@ -1,2 +1,3 @@
-import fafr
-import der
+from . import fafr
+from . import der
+

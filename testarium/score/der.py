@@ -130,7 +130,7 @@ def DER(refData, hypDataOrig):
 	
 	markers = mergeMarkers(refData, hypDataOrig)
 	if not markers:
-		print 'Error: no markers'
+		print('Error: no markers')
 		return (-2, 0, 0)
 
 	totalSpeakers = getTotalSpeakers(hypDataOrig)
@@ -165,7 +165,7 @@ def DER(refData, hypDataOrig):
 			bestTscore = total
 
 	if (bestShift == -1):
-		print 'Error! No best score!'
+		print('Error! No best score!')
 		return (-1, 0, 0)
 
 	return (0, bestNom, bestTscore)
@@ -186,28 +186,28 @@ def Go(dirRef, dirHyp):
 		hypPath = dirHyp + '/' + fileparts[0] + '.lab'
 
 		if os.path.isfile(hypPath) == False:
-			print 'Hyp not found', hypPath
+			print('Hyp not found', hypPath)
 			skipped += 1
 			continue
 		
 		# bad ref file
 		refData = readFile(refPath)
 		if not refData:
-			print 'Bad ref file:', refPath
+			print('Bad ref file:', refPath)
 			skipped += 1
 			continue
 		
 		# bad hyp file
 		hypData = readFile(hypPath)
 		if not hypData:
-			print 'Bad hyp file:', refPath
+			print('Bad hyp file:', refPath)
 			skipped += 1
 			continue
 
 		# calculate DER 
 		der = DER(refData, hypData)
 		if der[0] < 0:
-			print '!!! Error: ' + refFile
+			print('!!! Error: ' + refFile)
 			skipped += 1
 		else:
 			nom += der[1]
@@ -217,9 +217,9 @@ def Go(dirRef, dirHyp):
 			else: pass
 				#print 'Processed: ' + refFile.decode('1251') + '\nDER = '+ str(der[1] / der[2])
 
-	if skipped != 0: print 'Skipped files =', skipped
+	if skipped != 0: print('Skipped files =', skipped)
 	if (den < 1e-7): 
-		print 'Denominator = 0, is data empty?'
+		print('Denominator = 0, is data empty?')
 		den = 1.0
 		nom = 1.0
 
@@ -233,7 +233,7 @@ def Score(dir):
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
-	if (len(sys.argv) < 3): print 'usage: der_anguera.py reference_dir hyp_dir' ; exit()
+	if (len(sys.argv) < 3): print('usage: der_anguera.py reference_dir hyp_dir'); exit()
 	
 	der = Go(sys.argv[1], sys.argv[2])
-	print 'Total DER =', der[0]
+	print('Total DER =', der[0])

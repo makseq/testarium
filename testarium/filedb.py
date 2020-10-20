@@ -1,6 +1,7 @@
 import os, json, random
-from utils import *
 import collections
+
+from .utils import *
 
 class FileDataBaseException(Exception): pass
 

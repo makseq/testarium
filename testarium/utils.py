@@ -104,7 +104,7 @@ def log(*msg):
 
     reset = False
     for m in msg:
-        if isinstance(m, basestring) and m in COLOR_DICT:
+        if isinstance(m, (bytes, str)) and m in COLOR_DICT:
             if colored: sys.stdout.write(COLOR_DICT[m])
             reset = True
         else:
@@ -307,7 +307,7 @@ class ProxySMTP(smtplib.SMTP):
         # This makes it simpler for SMTP_SSL to use the SMTP connect code
         # and just alter the socket connection bit.
         if self.debuglevel > 0:
-            print 'connect:', (host, port)
+            print('connect:', (host, port))
         new_socket = socket.create_connection((self.p_address, self.p_port), timeout)
         new_socket.sendall("CONNECT {0}:{1} HTTP/1.1\r\n\r\n".format(port, host))
         for x in xrange(2): recvline(new_socket)
@@ -362,7 +362,7 @@ class TestariumCipherAES:
             key = self.key_generator(256)
             self.key = hashlib.sha256(key.encode()).digest()
             open(keyfile, 'wb').write(self.key)
-            os.chmod(keyfile, 0500)
+            os.chmod(keyfile, 0o500)
             log('Cipher AES: Testarium keyfile created:', 'COLOR.GREEN', keyfile)
 
     def encrypt(self, raw):
